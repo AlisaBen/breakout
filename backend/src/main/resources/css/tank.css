@@ -1,0 +1,134 @@
+.input_mask {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    opacity: 0.4;
+    z-index: 99;
+    background: rgb(0, 0, 0);
+}
+
+.input_div {
+    position: fixed;
+    top: 30%;
+    left: 0;
+    right: 0;
+    width: 50%;
+    margin: 0 auto;
+    z-index: 100;
+    padding: 20px 50px;
+}
+
+.input_title {
+    color: white;
+    font-size: 1.8vw;
+    text-align: center;
+}
+
+.input_des {
+    color: white;
+    font-size: 1.8vw;
+    text-align: center;
+    padding-right: 10px;
+}
+
+.input_inline {
+    margin-top: 5%;
+    text-align: center;
+}
+
+#TankGameNameInput {
+    width: 50%;
+    line-height: 2.5vw;
+    font-size: 2.5vw;
+    padding-left: 5px;
+    padding-right: 5px;
+    background-color: #f3ebeb;
+    font-family: 'Ubuntu';
+    padding: 0;
+    border: 0;
+    outline: none;
+    color: #332c2c;
+
+}
+
+#TankGameRoomIdInput {
+    width: 50%;
+    line-height: 2.5vw;
+    font-size: 2.5vw;
+    padding-left: 5px;
+    padding-right: 5px;
+    background-color: #f3ebeb;
+    font-family: 'Ubuntu';
+    padding: 0;
+    border: 0;
+    outline: none;
+    color: #332c2c;
+
+}
+
+.input_button {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.input_button span {
+    margin-left: 10px;
+}
+
+#GameView {
+    cursor: url("/tank/static/img/瞄准_2.png"), auto;
+}
+
+#searchGameRecord {
+    width: 30%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 100px;
+    margin-bottom: 80px;
+}
+
+#gameRecordTable {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#pageSwitch {
+    position: fixed;
+    left: 40%;
+    bottom: 10px;
+}
+
+#combat_gains {
+    color: white;
+    font-size: 1.8vw;
+    text-align: center;
+    position: fixed;
+    top: 10%;
+    left: 0;
+    right: 0;
+    width: 50%;
+    margin: 0 auto;
+    padding-top: 15px;
+    padding-bottom: 15px;
+
+    z-index: 100;
+    /*background-size: 67% 100%;*/
+    /*background-repeat: no-repeat;*/
+    /*background-position: 60% 0%;*/
+}
+
+#combat_gains p {
+    margin-left: 50px;
+    margin-bottom: 5px;
+    word-break: break-all;
+}
+
+#combat_gains span {
+    color: red;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+

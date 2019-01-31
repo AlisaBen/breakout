@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%;">
+<head>
+
+
+    <!--<link rel="stylesheet" href="/tank/static/css/weui.min.css"/>-->
+    <link rel="stylesheet" href="/tank/static/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/tank/static/css/tank.css" />
+    <!--<link rel="stylesheet" href="/tank/static/css/diep.css" />-->
+    <!--<link rel="stylesheet" href="/tank/static/css/sticky.css" />-->
+
+    <!--<link rel="stylesheet" href="/tank/static/css/postManagePage.css" />-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" id="viewport" name="viewport">
+    <script language="javascript">
+        var scrollFunc=function(e){
+            e=e || window.event;
+            if(e.wheelDelta && event.ctrlKey){//IE/Opera/Chrome
+                event.returnValue=false;
+            }else if(e.detail){//Firefox
+                event.returnValue=false;
+            }
+        }
+
+        /*注册事件*/
+        if(document.addEventListener){
+            document.addEventListener('DOMMouseScroll',scrollFunc,false);
+        }//W3C
+        window.onmousewheel=document.onmousewheel=scrollFunc;//IE/Opera/Chrome/Safari
+
+    </script>
+    <title>breakout</title>
+</head>
+<body style="height: 100%;overflow: hidden;">
+<script src="/tank/static/js/jquery-3.3.1.min.js"></script>
+<script src="/tank/static/js/bootstrap.min.js"></script>
+
+<!--<script type="text/javascript" src="/tank/static/js/es6-promise.auto.min.js"></script>-->
+<!--<script type="text/javascript" src="/tank/static/js/fetch.min.js"></script>-->
+<script type="text/javascript" id="js-version" src="/tank/static/sjsout/frontend-fastopt.js?id=2019-01-22"></script>
+<!--<script type="text/javascript" id="js-version" src="/tank/static/sjsout/frontend-opt.js?id=2019-01-22"></script>-->
+<!--<script type="text/javascript" id="js-version" src="/tank/static/sjsout/frontend-fastopt.js?id=2019-01-09"></script>-->
+<!--<script type="text/javascript" id="js-version" src="/tank/static/sjsout/frontend-opt.js?id=2019-01-10"></script>-->
+
+<script>front.Main.run()</script>
+<!--<audio id="GameAudioForBgm" src="/tank/static/music/tank.mp3" loop="loop" preload="auto" style="display:none"></audio>-->
+<!--<audio id="GameAudioForDead" src="/tank/static/music/fail.mp3" preload="auto" style="display:none"></audio>-->
+<!--<audio id="GameAudioForBullet" src="/tank/static/music/bullet.mp3" preload="auto" style="display:none"></audio>-->
+
+</body>
+</html>
