@@ -9,6 +9,10 @@ object Constants {
 
   val drawHistory = false
 
+  object RacketParameter{
+    val speed = Point(2,0)
+  }
+
   object DirectionType {
     final val right:Float = 0
     final val upRight = math.Pi / 4 * 7
@@ -53,10 +57,11 @@ object Constants {
   }
 
   object ObstacleType{
-    val airDropBox:Byte = 1
-    val brick:Byte = 2
-    val steel:Byte = 3
-    val river:Byte = 4
+//    val airDropBox:Byte = 1
+    val brick:Byte = 1
+    val racket:Byte = 2
+//    val steel:Byte = 3
+//    val river:Byte = 4
   }
 
 
