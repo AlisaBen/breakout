@@ -6,6 +6,7 @@ import com.neo.sk.breakout.shared.ptcl.{AccountProtocol, ErrorRsp, SuccessRsp}
 import org.slf4j.LoggerFactory
 import com.neo.sk.breakout.models.DAO.AccountDAO._
 import com.neo.sk.breakout.models.SlickTables._
+import com.neo.sk.breakout.Boot.executor
 
 /**
   * created by benyafang on 2019/2/2 pm 13:48

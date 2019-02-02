@@ -29,6 +29,8 @@ object MainPage extends PageSwitcher {
 
   private val currentPage: Rx[Elem] = currentPageHash.map {
     case "admin" :: "login" ::  Nil => AdminLoginPage.render
+    case "login" :: Nil => LoginPage.render
+    case "register" :: Nil => RegisterPage.render
     case _ => <div>Error Page</div>
   }
 

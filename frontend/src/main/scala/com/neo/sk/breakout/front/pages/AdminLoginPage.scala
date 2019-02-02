@@ -1,6 +1,6 @@
 package com.neo.sk.breakout.front.pages
 
-import com.neo.sk.breakout.front.common.{Page, Routes}
+import com.neo.sk.breakout.front.common.{Page, PageSwitcher, Routes}
 import com.neo.sk.breakout.front.utils.{Http, LocalStorageUtil}
 import com.neo.sk.breakout.shared.ptcl.{AccountProtocol, SuccessRsp}
 import mhtml.Var
@@ -9,6 +9,7 @@ import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.{KeyboardEvent, html}
 import com.neo.sk.breakout.front.common.Routes._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.Elem
 
 /**
@@ -16,7 +17,7 @@ import scala.xml.Elem
   * Date on 2018/12/12
   * Time at 上午11:43
   */
-object AdminLoginPage extends Page{
+object AdminLoginPage extends Page {
   import io.circe.generic.auto._
   import io.circe._
   import io.circe.syntax._
@@ -67,7 +68,6 @@ object AdminLoginPage extends Page{
   override def render: Elem ={
     <div>
       <div class="bgp">
-        <img src={Routes.genImgUrl("登录背景.png")}></img>
 
       </div>
       <div class="loginBg" onkeydown = {e:KeyboardEvent => keyDownEnter(e)}>
