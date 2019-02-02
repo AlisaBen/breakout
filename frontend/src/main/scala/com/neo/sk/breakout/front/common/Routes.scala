@@ -11,7 +11,17 @@ import com.neo.sk.breakout.front.model.ReplayInfo
   */
 object Routes {
 
-  val base = "/tank"
+  val base = "/breakout"
+
+  object AccountRoute{
+    val adminLoginRoute = base + "/account/adminLogin"
+    val registerRoute = base + "/account/register"
+    val loginRoute = base + "/account/login"
+  }
+
+  def genImgUrl(imgName:String) = base + s"/static/img/${imgName}"
+
+
   val getRoomListRoute = base + "/getRoomIdList"
 
   val getRecordListUrl = base + s"/getGameRec"

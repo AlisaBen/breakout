@@ -5,6 +5,10 @@ import com.neo.sk.utils.DBUtil.db
 import slick.jdbc.H2Profile.api._
 
 import scala.concurrent.Future
+
+/**
+  * created by benyafang on 2019/2/2 16:04
+  * */
 object AccountDAO {
 
   def insertUserInfo(r:rUserInfo) = {

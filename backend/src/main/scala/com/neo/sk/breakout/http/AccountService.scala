@@ -2,8 +2,7 @@ package com.neo.sk.breakout.http
 
 import akka.http.scaladsl.server.Directives._
 import com.neo.sk.breakout.common.AppSettings
-import com.neo.sk.breakout.protocol.AccountProtocol
-import com.neo.sk.breakout.shared.ptcl.{ErrorRsp, SuccessRsp}
+import com.neo.sk.breakout.shared.ptcl.{AccountProtocol, ErrorRsp, SuccessRsp}
 import org.slf4j.LoggerFactory
 import com.neo.sk.breakout.models.DAO.AccountDAO._
 import com.neo.sk.breakout.models.SlickTables._

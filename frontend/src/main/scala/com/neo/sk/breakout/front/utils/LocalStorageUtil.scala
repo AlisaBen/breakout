@@ -1,6 +1,7 @@
 package com.neo.sk.breakout.front.utils
 
 import org.scalajs.dom.ext.LocalStorage
+import com.neo.sk.breakout.shared.ptcl.AccountProtocol._
 
 /**
   * User: Taoz
@@ -33,7 +34,7 @@ object LocalStorageUtil {
 
 
 
-/*
+
   def removeUserInfo(): Unit = {
     LocalStorage.remove(USER_INFO_KEY)
   }
@@ -42,24 +43,24 @@ object LocalStorageUtil {
     LocalStorage.remove(ROOM_LIST_KEY)
   }
 
-  def storeUserInfo(userInfo: UserInfo): Unit = {
+  def storeUserInfo(userInfo: NameStorage): Unit = {
     LocalStorage.update(USER_INFO_KEY, userInfo.asJson.noSpaces)
   }
+//
+//  def storeRoomList(rooms: List[RoomInfo]): Unit = {
+//    val str = rooms.asJson.noSpaces
+//    println(s"storeRoomList: $str")
+//    LocalStorage.update(ROOM_LIST_KEY, rooms.asJson.noSpaces)
+//  }
+//
+//  def loadUserInfo(): Option[UserInfo] = {
+//    loadAndParse[UserInfo](USER_INFO_KEY)
+//  }
+//
+//  def loadRoomList(): Option[List[RoomInfo]] = {
+//    loadAndParse[List[RoomInfo]](ROOM_LIST_KEY)
+//  }
 
-  def storeRoomList(rooms: List[RoomInfo]): Unit = {
-    val str = rooms.asJson.noSpaces
-    println(s"storeRoomList: $str")
-    LocalStorage.update(ROOM_LIST_KEY, rooms.asJson.noSpaces)
-  }
-
-  def loadUserInfo(): Option[UserInfo] = {
-    loadAndParse[UserInfo](USER_INFO_KEY)
-  }
-
-  def loadRoomList(): Option[List[RoomInfo]] = {
-    loadAndParse[List[RoomInfo]](ROOM_LIST_KEY)
-  }
-*/
 
 
 }

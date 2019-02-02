@@ -1,4 +1,4 @@
-package com.neo.sk.breakout.protocol
+package com.neo.sk.breakout.shared.ptcl
 
 /**
   * created by benyafang on 2019/2/2 pm 13:56
@@ -15,4 +15,8 @@ object AccountProtocol {
                      userName:String,
                      password:String
                      )
+
+  case class NameStorage(
+                        name:String
+                        )
 }
