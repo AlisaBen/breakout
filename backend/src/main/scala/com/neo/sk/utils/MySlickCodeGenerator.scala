@@ -1,7 +1,8 @@
 package com.neo.sk.utils
 
 import slick.codegen.SourceCodeGenerator
-import slick.jdbc.{JdbcProfile,PostgresProfile}
+import slick.jdbc.{JdbcProfile,PostgresProfile,H2Profile}
+//import slick.jdbc.H2Profile
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -15,17 +16,21 @@ object MySlickCodeGenerator {
 
   import concurrent.ExecutionContext.Implicits.global
 
-  val slickDriver = "slick.jdbc.PostgresProfile"
-  val jdbcDriver = "org.postgresql.Driver"
-  val url = "jdbc:postgresql://127.0.0.1:5432/breakout?useUnicode=true&characterEncoding=utf-8"
+  val slickDriver = "slick.jdbc.H2Profile"
+//  val jdbcDriver = "org.postgresql.Driver"
+//  val jdbcDriver = "org.h2.Driver"
+  val jdbcDriver = "org.h2.Driver"
+//  val url = "jdbc:postgresql://127.0.0.1:5432/breakout?useUnicode=true&characterEncoding=utf-8"
+  val url = "jdbc:h2:D:/doc/breakout/backend/src/main/resources/sql\\breakout"
   val outputFolder = "target/gencode/genTablesPsql"
-  val pkg = "com.neo.sk.tank.models"
+  val pkg = "com.neo.sk.breakout.models"
   val user = "breakout"
-  val password = "breakout1qaz@WSX"
+  val password = "breakout123"
 
 
   //val dbDriver = MySQLDriver
-  val dbDriver: JdbcProfile = PostgresProfile
+//  val dbDriver: JdbcProfile = PostgresProfile
+  val dbDriver:JdbcProfile = H2Profile
 
   def genDefaultTables() = {
 
@@ -59,7 +64,8 @@ object MySlickCodeGenerator {
   def genDDL() ={
     // fetch data model
     val driver: JdbcProfile =
-      Class.forName("slick.driver.PostgresDriver" + "$").getField("MODULE$").get(null).asInstanceOf[JdbcProfile]
+//      Class.forName("slick.driver.PostgresDriver" + "$").getField("MODULE$").get(null).asInstanceOf[JdbcProfile]
+    Class.forName("slick.driver.H2Profile" + "$").getField("MODULE$").get(null).asInstanceOf[JdbcProfile]
     val dbFactory = driver.api.Database
     val db = dbFactory.forURL(url, driver = jdbcDriver,
       user = user, password = password, keepAliveConnection = true)

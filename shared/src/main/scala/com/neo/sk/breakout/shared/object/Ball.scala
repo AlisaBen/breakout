@@ -24,7 +24,7 @@ case class Ball(
                  ) extends CircleObjectOfGame{
 
   def this(config:GameConfig, ballState: BallState){
-    this(config,ballState.position,ballState.startFrame,ballState.bId,ballState.brickId)
+    this(config,ballState.position,ballState.startFrame,ballState.momentum,ballState.bId,ballState.brickId)
   }
 
 

@@ -72,6 +72,9 @@ object AppSettings {
   val rootPath = appConfig.getString("server.rootPath")
   val baseUrl = serverProtocol + "://" + serverHost
 
+  val adminName = appConfig.getString("admin.name")
+  val adminPassword = appConfig.getString("admin.password")
+
 
   val authCheck = appConfig.getBoolean("authCheck")
   val ramblerAuthCheck = appConfig.getBoolean("ramblerAuthCheck")
@@ -171,7 +174,7 @@ object AppSettings {
 
 
 
-  val adminAccount = {
+//  val adminAccount = {
     import collection.JavaConverters._
 //    val list = appConfig.getStringList("adminAccount").asScala
 //    val admins = new ListBuffer[(Long,String,String)]
@@ -180,7 +183,7 @@ object AppSettings {
 //      admins.append((i+1,account,pwd))
 //    }
 //    admins.toList
-  }
+//  }
 
   val essfMapKeyName = "essfMap"
 

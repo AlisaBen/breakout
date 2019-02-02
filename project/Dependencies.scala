@@ -64,6 +64,7 @@ object Dependencies {
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
   val codec = "commons-codec" % "commons-codec" % "1.10"
   val postgresql = "org.postgresql" % "postgresql" % "9.4.1208"
+  val h2sql = "com.h2database" % "h2" % "1.4.186"
   val asynchttpclient = "org.asynchttpclient" % "async-http-client" % "2.0.32"
   val ehcache = "net.sf.ehcache" % "ehcache" % "2.10.4"
   val essf = "org.seekloud" %% "essf" % "0.0.1-beta3"
@@ -93,6 +94,7 @@ object Dependencies {
       Dependencies.logback,
       Dependencies.codec,
       Dependencies.postgresql,
+      Dependencies.h2sql,
       Dependencies.asynchttpclient,
       Dependencies.ehcache,
       Dependencies.essf,

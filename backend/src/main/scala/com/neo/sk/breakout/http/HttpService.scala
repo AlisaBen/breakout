@@ -23,7 +23,8 @@ import scala.util.Random
   */
 trait HttpService
   extends ResourceService
-    with ServiceUtils {
+    with ServiceUtils
+    with AccountService{
 
   import akka.actor.typed.scaladsl.AskPattern._
   import com.neo.sk.utils.CirceSupport._
@@ -84,7 +85,7 @@ trait HttpService
 
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath){
-    resourceRoutes ~ platEnterRoute ~
+    resourceRoutes ~ platEnterRoute ~ account ~
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
