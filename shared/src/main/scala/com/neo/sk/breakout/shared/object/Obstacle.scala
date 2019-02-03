@@ -11,7 +11,7 @@ import com.neo.sk.breakout.shared.model.Point
   * 砖头（可被球打碎）
   * 道具（暂时不加，快消、炸弹、加速、分裂）
   */
-case class ObstacleState(oId:Int,t:Byte,p:Point)
+case class ObstacleState(oId:Int,t:Byte,p:Point)//id,类型（racket,brick），位置
 
 trait ObstacleBall
 
