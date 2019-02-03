@@ -8,7 +8,7 @@ import com.neo.sk.breakout.shared.model.Score
   * created by benyafang on 2019/2/3 14:30
   *
   * */
-object GameEvent {
+object BreakoutGameEvent {
   //todo 同步全量数据
   final case class GameContainerAllState(
                                         f:Long,
@@ -33,6 +33,8 @@ object GameEvent {
 
   final case class WsMsgErrorRsp(errCode:Int, msg:String) extends WsMsgServer
   final case class WsSuccess(roomId:Option[Long]) extends WsMsgServer
+
+  final case class DecodeError() extends WsMsgServer
 //  touch事件基本类型：touchstart,touchmove,touchend
 /**
   * 进入游戏事件（随机进入、指定房间进入），建立websocket，roomIdOpt,name
