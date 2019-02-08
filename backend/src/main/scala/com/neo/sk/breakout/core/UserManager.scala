@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 /**
   * created by benyafang on 2019/2/3 15:52
-  *
+  * A5
   * */
 object UserManager {
   import io.circe.generic.auto._

@@ -1,11 +1,8 @@
-package com.neo.sk.breakout.front.breakoutClient
+package com.neo.sk.breakout.front.pages.control
 
-import com.neo.sk.breakout.front.common.Routes
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
-import org.scalajs.dom
 import org.scalajs.dom.Blob
 import org.scalajs.dom.raw._
-import org.seekloud.byteobject.ByteObject.bytesDecode
 import org.seekloud.byteobject.MiddleBufferInJs
 
 import scala.scalajs.js.typedarray.ArrayBuffer

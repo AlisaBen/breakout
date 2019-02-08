@@ -6,7 +6,7 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
-import akka.stream.typed.javadsl.ActorSource
+import akka.stream.typed.scaladsl.ActorSource
 import akka.stream.typed.scaladsl.ActorSink
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.TankGameSnapshot

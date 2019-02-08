@@ -1,5 +1,6 @@
 package com.neo.sk.breakout.front.common
 
+import com.neo.sk.breakout.shared.model.Point
 import org.scalajs.dom.ext.Color
 
 /**
@@ -14,6 +15,7 @@ object Constants {
 
   val supportLiveLimit = false
 
+  final val WindowView = Point(192,108)
 //  object GameState{
 //    val firstCome = 1
 //    val play = 2

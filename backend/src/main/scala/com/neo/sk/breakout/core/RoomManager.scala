@@ -8,7 +8,9 @@ import org.slf4j.LoggerFactory
 
 /**
   * created by benyafang on 2019/2/3 15:52
-  *
+  * 随机匹配玩家，匹配成功之后创建房间，给roomActor发消息，后端Actor开始进行游戏逻辑更新
+  * 给userAcotr发消息
+  * A2
   * */
 object RoomManager {
 
