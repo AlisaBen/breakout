@@ -65,6 +65,7 @@ trait RectangleObjectOfGame extends ObjectOfGame{
     }
   }
 
+  //fixme
   private def isIntersects(o: RectangleObjectOfGame): Boolean = {
     getObjectRect().intersects(o.getObjectRect())
   }

@@ -80,6 +80,10 @@ final case class BrickParameters(
                                   num:Int
                                 )
 
+final case class RacketParameters(
+                                 speed:Point
+                                 )
+
 //final case class RiverParameters(
 //                                  typePos:List[List[(Int, Int)]], //河流的元素位置
 //                                  barrierPos:List[List[(Int,Int)]]
@@ -95,6 +99,7 @@ final case class ObstacleParameters(
                                      collisionWidthOffset: Float,
 //                                     airDropParameters: AirDropParameters,
                                      brickParameters: BrickParameters,
+                                     racketParameters:RacketParameters
 //                                     riverParameters: RiverParameters,
 //                                     steelParameters: SteelParameters
                                    )
@@ -168,7 +173,7 @@ trait GameConfig{
 //  def fillBulletDuration:Int
 //  def initInvincibleDuration:Int
 //  def getTankReliveDuration:Int
-//  def getTankSpeedByType(t:Byte):Point
+  def getRacketSpeedByType:Point
 //  def getTankAccByLevel(l: Byte): Int
 //  def getTankDecByLevel(l: Byte): Int
 //  def getTankSpeedMaxLevel():Byte
@@ -179,7 +184,7 @@ trait GameConfig{
 
 //  def getBulletRadiusByDamage(d:Int):Float
 
-//  def getMoveDistanceByFrame(t:Byte) = getTankSpeedByType(t) * frameDuration / 1000
+  def getMoveDistanceByFrame:Point
 
   def getGameConfigImpl(): GameConfigImpl
 
@@ -248,8 +253,8 @@ case class GameConfigImpl(
 //  def fillBulletDuration = tankParameters.fillBulletDuration
 //  def initInvincibleDuration = tankParameters.initInvincibleDuration
 //  def getTankReliveDuration = tankParameters.tankReliveDuration
-//  def getTankSpeedByType(t:Byte) = tankParameters.tankSpeed.getTankSpeedByType(t)
-//
+  def getRacketSpeedByType = obstacleParameters.racketParameters.speed
+  def getMoveDistanceByFrame = getRacketSpeedByType * frameDuration / 1000
 //  def getTankSpeedMaxLevel():Byte = tankParameters.tankSpeed.speeds.size.toByte
 //
 //  def getTankBloodMaxLevel():Byte = tankParameters.tankBloodLevel.size.toByte

@@ -1,6 +1,7 @@
 package com.neo.sk.breakout.shared.game.view
 
 import com.neo.sk.breakout.shared.game.GameContainerClientImpl
+import com.neo.sk.breakout.shared.model.Point
 
 import scala.collection.mutable
 
@@ -11,10 +12,10 @@ import scala.collection.mutable
   */
 trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 
-//  private val cacheCanvasMap = mutable.HashMap.empty[String, Any]
-//  private var canvasBoundary:Point=canvasSize
-//
-//  private val rankWidth = 26
+  private val cacheCanvasMap = mutable.HashMap.empty[String, Any]
+  private var canvasBoundary:Point=canvasSize
+
+  private val rankWidth = 26
 //  private val rankHeight = 50
 //  private val currentRankNum = 10
 //  private val currentRankCanvas=drawFrame.createCanvas(math.max(rankWidth * canvasUnit, 26 * 10),math.max(rankHeight * canvasUnit, 26 * 10))
@@ -29,10 +30,10 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 //
 //  var minimapRenderFrame = 0L
 //
-//
-//  def updateBackSize(canvasSize:Point)={
-//    cacheCanvasMap.clear()
-//    canvasBoundary=canvasSize
+
+  def updateBackSize(canvasSize:Point)={
+    cacheCanvasMap.clear()
+    canvasBoundary=canvasSize
 //
 //    rankUpdated = true
 //    minimapRenderFrame = systemFrame - 1
@@ -42,8 +43,8 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 //    historyRankCanvas.setHeight(math.max(rankHeight * canvasUnit, 24 * 10))
 //    minimapCanvas.setWidth(LittleMap.w * canvasUnit + 6)
 //    minimapCanvas.setHeight(LittleMap.h * canvasUnit + 6)
-//  }
-//
+  }
+
 //
 //  private def generateBackgroundCanvas() = {
 //    val cacheCanvas = drawFrame.createCanvas(((boundary.x + canvasBoundary.x) * canvasUnit).toInt,((boundary.y + canvasBoundary.y) * canvasUnit).toInt)

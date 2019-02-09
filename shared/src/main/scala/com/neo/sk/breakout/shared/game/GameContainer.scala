@@ -1,6 +1,11 @@
 package com.neo.sk.breakout.shared.game
 
+import com.neo.sk.breakout.shared.`object`._
 import com.neo.sk.breakout.shared.config.GameConfig
+import com.neo.sk.breakout.shared.model.{Point, Rectangle, Score}
+import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
+import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent._
+import com.neo.sk.breakout.shared.util.QuadTree
 
 import scala.collection.mutable
 
@@ -24,15 +29,15 @@ trait GameContainer extends KillInformation{
 
   import scala.language.implicitConversions
 
-//  def debug(msg: String): Unit
+  def debug(msg: String): Unit
 
-//  def info(msg: String): Unit
+  def info(msg: String): Unit
 
   implicit val config:GameConfig
-//
-//  val boundary : Point = config.boundary
-//
-//  var currentRank = List.empty[Score]
+
+  val boundary : Point = config.boundary
+
+  var currentRank = List.empty[Score]
 //
 //  var historyRankMap = Map.empty[Int,Score]
 //  var historyRank = historyRankMap.values.toList.sortBy(_.d).reverse
@@ -42,26 +47,26 @@ trait GameContainer extends KillInformation{
 ////  val tankEatPropMap = mutable.HashMap[Int,mutable.HashSet[Prop]]()//tankId -> Set(propId)
 //
 //  val maxFollowFrame=math.max(math.max(config.shotgunDuration,config.initInvincibleDuration),config.fillBulletDuration)
-//
-////  var tankId = -1
-//  var systemFrame:Long = 0L //系统帧数
-//
-//  val tankMap = mutable.HashMap[Int,Tank]() //tankId -> Tank
-//  val bulletMap = mutable.HashMap[Int,Bullet]() //bulletId -> Bullet
-//  val obstacleMap = mutable.HashMap[Int,Obstacle]() //obstacleId -> Obstacle  可打击的砖头
+
+  var racketId = -1
+  var systemFrame:Long = 0L //系统帧数
+
+  val racketMap = mutable.HashMap[Int,Racket]() //tankId -> Tank
+  val ballMap = mutable.HashMap[Int,Ball]() //bulletId -> Bullet
+  val obstacleMap = mutable.HashMap[Int,Brick]() //obstacleId -> Obstacle  可打击的砖头
 //  val environmentMap = mutable.HashMap[Int,Obstacle]() //obstacleId -> steel and river  不可打击
 //  val propMap = mutable.HashMap[Int,Prop]() //propId -> prop 道具信息
 //
-//  val tankMoveAction = mutable.HashMap[Int,mutable.HashSet[Byte]]() //tankId -> pressed direction key code
+  val racketMoveAction = mutable.HashMap[Int,mutable.HashSet[Byte]]() //tankId -> pressed direction key code
+
+  val quadTree : QuadTree = new QuadTree(Rectangle(Point(0,0),boundary))
 //
-//  val quadTree : QuadTree = new QuadTree(Rectangle(Point(0,0),boundary))
+  protected val racketHistoryMap = mutable.HashMap[Int,String]()
+  protected val removeRacketHistoryMap=mutable.HashMap[Long,List[Int]]()
 //
-//  protected val tankHistoryMap = mutable.HashMap[Int,String]()
-//  protected val removeTankHistoryMap=mutable.HashMap[Long,List[Int]]()
-//
-//  protected val gameEventMap = mutable.HashMap[Long,List[GameEvent]]() //frame -> List[GameEvent] 待处理的事件 frame >= curFrame
-//  protected val actionEventMap = mutable.HashMap[Long,List[UserActionEvent]]() //frame -> List[UserActionEvent]
-//  protected val followEventMap = mutable.HashMap[Long,List[FollowEvent]]()  // 记录游戏逻辑中产生事件
+  protected val gameEventMap = mutable.HashMap[Long,List[GameEvent]]() //frame -> List[GameEvent] 待处理的事件 frame >= curFrame
+  protected val actionEventMap = mutable.HashMap[Long,List[UserActionEvent]]() //frame -> List[UserActionEvent]
+  protected val followEventMap = mutable.HashMap[Long,List[FollowEvent]]()  // 记录游戏逻辑中产生事件
 //  final protected def handleUserJoinRoomEvent(l:List[UserJoinRoom]) :Unit = {
 //    l foreach handleUserJoinRoomEvent
 //  }
@@ -75,7 +80,7 @@ trait GameContainer extends KillInformation{
 //    }
 //  }
 //
-//
+
 //  protected def handleUserJoinRoomEvent(e:UserJoinRoom) :Unit = {
 ////    println(s"-------------------处理用户加入房间事件")
 //    val tank : Tank = e.tankState
@@ -112,76 +117,45 @@ trait GameContainer extends KillInformation{
 //      handleUserReliveEvent(events.filter(_.isInstanceOf[UserRelive]).map(_.asInstanceOf[UserRelive]).reverse)
 //    }
 //  }
-//
-//  protected final def handleUserLeftRoom(e:UserLeftRoom) :Unit = {
-//    tankMoveAction.remove(e.tankId)
-//    tankMap.get(e.tankId).foreach(quadTree.remove)
-//    tankMap.remove(e.tankId)
-//    removeTankHistoryMap.get(systemFrame+1000) match {
-//      case Some(l)=>removeTankHistoryMap.put(systemFrame+1000,e.tankId::l)
-//      case None=>removeTankHistoryMap.put(systemFrame+1000,List(e.tankId))
-//    }
-//  }
-//
-//  final protected def handleUserLeftRoom(l:List[UserLeftRoom]) :Unit = {
-//    l foreach handleUserLeftRoom
-//  }
-//
-//  final protected def handleUserLeftRoomNow() = {
-//    gameEventMap.get(systemFrame).foreach{ events =>
-//      handleUserLeftRoom(events.filter(_.isInstanceOf[UserLeftRoom]).map(_.asInstanceOf[UserLeftRoom]).reverse)
-//    }
-//  }
-//
-//  protected final def handleUserActionEvent(actions:List[UserActionEvent]) = {
-//    /**
-//      * 用户行为事件
-//      * */
-//    actions.sortBy(t => (t.tankId,t.serialNum)).foreach{ action =>
-//      val tankMoveSet = tankMoveAction.getOrElse(action.tankId,mutable.HashSet[Byte]())
-//      tankMap.get(action.tankId) match {
-//        case Some(tank) =>
-//          action match {
-//            case a:UserMouseMove => tank.setTankGunDirection(a.d)
-//            case a:UserMouseMoveByte => tank.setTankGunDirection(a.d)
-//            case a:UserMouseClick => {
-//              //remind 调整鼠标方向
-//              tank.setTankGunDirection(a.d)
-//              tankExecuteLaunchBulletAction(a.tankId,tank)
-//            }
-//            case a:UserPressKeyDown =>
-//              tankMoveSet.add(a.keyCodeDown)
-//              tankMoveAction.put(a.tankId,tankMoveSet)
-//              tank.setTankDirection(tankMoveSet.toSet)
-//            case a:UserPressKeyUp =>
-//              tankMoveSet.remove(a.keyCodeUp)
-//              tankMoveAction.put(a.tankId,tankMoveSet)
-//              tank.setTankDirection(tankMoveSet.toSet)
-//            case a:UserKeyboardMove => tank.setTankKeyBoardDirection(a.angle)
-//            case a:UserPressKeyMedical => tank.addBlood()
-//          }
-//        case None => info(s"tankId=${action.tankId} action=${action} is no valid,because the tank is not exist")
-//      }
-//    }
-//  }
-//
-//  final protected def handleUserActionEventNow() = {
-//    actionEventMap.get(systemFrame).foreach{ actionEvents =>
-//      handleUserActionEvent(actionEvents.reverse)
-//    }
-//  }
-//
+
+  protected final def handleUserActionEvent(actions:List[UserActionEvent]) = {
+    /**
+      * 用户行为事件
+      * */
+    //fixme
+    actions.sortBy(t => (t.racketId,t.serialNum)).foreach{ action =>
+      val tankMoveSet = racketMoveAction.getOrElse(action.racketId,mutable.HashSet[Byte]())
+      racketMap.get(action.racketId) match {
+        case Some(racket) =>
+          action match {
+            case a:UserTouchStart =>
+            case a:UserTouchMove =>
+            case a:UserTouchEnd =>
+          }
+        case None => info(s"tankId=${action.racketId} action=${action} is no valid,because the tank is not exist")
+      }
+    }
+  }
+
+  final protected def handleUserActionEventNow() = {
+    actionEventMap.get(systemFrame).foreach{ actionEvents =>
+      handleUserActionEvent(actionEvents.reverse)
+    }
+  }
+
 //  /**
 //    * 服务器和客户端执行的逻辑不一致
 //    * 服务器需要进行坦克子弹容量计算，子弹生成事件，
 //    * 客户端只需要进行子弹容量计算
 //    * */
 //  protected def tankExecuteLaunchBulletAction(tankId:Int,tank:Tank) : Unit
-//
-//
-//  protected def handleTankAttacked(e:TankAttacked) :Unit = {
-//    bulletMap.get(e.bulletId).foreach(quadTree.remove)
-//    bulletMap.remove(e.bulletId)
+
+
+  protected def handleRacketCollision(e:RacketCollision) :Unit = {
+    /**
+      * 球的运行方向改变
+      * */
+    ballMap.get(e.ballId).foreach(_.changeDirection())
 //    val bulletTankOpt = tankMap.get(e.bulletTankId)
 //    tankMap.get(e.tankId).foreach{ tank =>
 //      tank.attackedDamage(e.damage)
@@ -195,43 +169,41 @@ trait GameContainer extends KillInformation{
 //        dropTankCallback(e.bulletTankId,tankHistoryMap.getOrElse(e.bulletTankId,"未知"),tank)
 //      }
 //    }
-//  }
+  }
 //
 //  protected def dropTankCallback(bulletTankId:Int, bulletTankName:String,tank:Tank):Unit = {}
-//
-//
-//  protected final def handleTankAttacked(es:List[TankAttacked]) :Unit = {
-//    es foreach handleTankAttacked
-//  }
-//
-//  final protected def handleTankAttackedNow() = {
-//    followEventMap.get(systemFrame).foreach{ events =>
-//      handleTankAttacked(events.filter(_.isInstanceOf[TankAttacked]).map(_.asInstanceOf[TankAttacked]).reverse)
-//    }
-//  }
-//
-//  protected def handleObstacleAttacked(e:ObstacleAttacked) :Unit = {
-//    bulletMap.get(e.bulletId).foreach(quadTree.remove)
-//    bulletMap.remove(e.bulletId)
-//    obstacleMap.get(e.obstacleId).foreach{ obstacle =>
-//      if(obstacle.isLived()){
-//        obstacle.attackDamage(e.damage)
-//      }
-//    }
-//  }
-//
-//
-//
-//  protected final def handleObstacleAttacked(es:List[ObstacleAttacked]) :Unit = {
-//    es foreach handleObstacleAttacked
-//  }
-//
-//  final protected def handleObstacleAttackedNow() = {
-//    followEventMap.get(systemFrame).foreach{ events =>
-//      handleObstacleAttacked(events.filter(_.isInstanceOf[ObstacleAttacked]).map(_.asInstanceOf[ObstacleAttacked]).reverse)
-//    }
-//  }
-//
+
+
+  protected final def handleRacketCollision(es:List[RacketCollision]) :Unit = {
+    es foreach handleRacketCollision
+  }
+
+  final protected def handleRacketCollisionNow() = {
+    followEventMap.get(systemFrame).foreach{ events =>
+      handleRacketCollision(events.filter(_.isInstanceOf[RacketCollision]).map(_.asInstanceOf[RacketCollision]).reverse)
+    }
+  }
+
+  protected def handleObstacleCollision(e:ObstacleCollision) :Unit = {
+    ballMap.get(e.ballId).foreach(_.changeDirection(e.isLeft))
+    obstacleMap.get(e.brickId).foreach{ obstacle =>
+      quadTree.remove(obstacle)
+      obstacleMap.remove(e.brickId)
+    }
+  }
+
+
+
+  protected final def handleObstacleCollision(es:List[ObstacleCollision]) :Unit = {
+    es foreach handleObstacleCollision
+  }
+
+  final protected def handleObstacleCollisionNow() = {
+    followEventMap.get(systemFrame).foreach{ events =>
+      handleObstacleCollision(events.filter(_.isInstanceOf[ObstacleCollision]).map(_.asInstanceOf[ObstacleCollision]).reverse)
+    }
+  }
+
 //  protected def handleTankEatProp(e:TankEatProp) :Unit = {
 //    propMap.get(e.propId).foreach{ prop =>
 //      quadTree.remove(prop)
@@ -311,24 +283,24 @@ trait GameContainer extends KillInformation{
 //      handleGenerateObstacle(events.filter(_.isInstanceOf[GenerateObstacle]).map(_.asInstanceOf[GenerateObstacle]).reverse)
 //    }
 //  }
-//
-//  protected def handleObstacleRemove(e:ObstacleRemove) :Unit = {
-//    obstacleMap.get(e.obstacleId).foreach { obstacle =>
-//      quadTree.remove(obstacle)
-//      obstacleMap.remove(e.obstacleId)
-//    }
-//  }
-//
-//  protected final def handleObstacleRemove(es:List[ObstacleRemove]) :Unit = {
-//    es foreach handleObstacleRemove
-//  }
-//
-//  protected def handleObstacleRemoveNow()={
-//    gameEventMap.get(systemFrame).foreach{events=>
-//      handleObstacleRemove(events.filter(_.isInstanceOf[ObstacleRemove]).map(_.asInstanceOf[ObstacleRemove]).reverse)
-//    }
-//  }
-//
+
+  protected def handleObstacleRemove(e:ObstacleRemove) :Unit = {
+    obstacleMap.get(e.obstacleId).foreach { obstacle =>
+      quadTree.remove(obstacle)
+      obstacleMap.remove(e.obstacleId)
+    }
+  }
+
+  protected final def handleObstacleRemove(es:List[ObstacleRemove]) :Unit = {
+    es foreach handleObstacleRemove
+  }
+
+  protected def handleObstacleRemoveNow()={
+    gameEventMap.get(systemFrame).foreach{events=>
+      handleObstacleRemove(events.filter(_.isInstanceOf[ObstacleRemove]).map(_.asInstanceOf[ObstacleRemove]).reverse)
+    }
+  }
+
 //  protected def handleTankFillBullet(e:TankFillBullet) :Unit = {
 //    tankMap.get(e.tankId).foreach{ tank =>
 //      tank.fillABullet()
@@ -380,92 +352,86 @@ trait GameContainer extends KillInformation{
 //      handleTankShotgunExpire(events.filter(_.isInstanceOf[TankShotgunExpire]).map(_.asInstanceOf[TankShotgunExpire]).reverse)
 //    }
 //  }
-//
-//
-//
-//  protected def tankMove():Unit = {
-//    /**
-//      * 坦克移动过程中检测是否吃道具
-//      * */
-//    tankMap.toList.sortBy(_._1).map(_._2).foreach{ tank =>
-//      tank.move(boundary,quadTree)
-//      //tank 进行检测是否吃到道具
-//      val tankMaybeEatProps = quadTree.retrieveFilter(tank).filter(_.isInstanceOf[Prop]).map(_.asInstanceOf[Prop])
-//      tankMaybeEatProps.foreach(tank.checkEatProp(_,tankEatPropCallback(tank)))
-//    }
-//  }
+
+
+
+  protected def racketMove():Unit = {
+    /**
+      * 坦克移动过程中检测是否吃道具
+      * */
+    racketMap.toList.sortBy(_._1).map(_._2).foreach{ racket =>
+      racket.move(quadTree,boundary)
+    }
+  }
 //
 //  //后台需要重写，生成吃到道具事件，客户端不必重写
 //  protected def tankEatPropCallback(tank:Tank)(prop: Prop):Unit = {}
 //
-//  protected def bulletMove():Unit = {
-//    bulletMap.toList.sortBy(_._1).map(_._2).foreach{ bullet =>
-//      val objects = quadTree.retrieveFilter(bullet)
-//      objects.filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]).filter(_.tankId != bullet.tankId)
-//        .foreach{t =>
-//          bullet.checkAttackObject(t,attackTankCallBack(bullet))}
-//      objects.filter(t => t.isInstanceOf[ObstacleBullet] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
-//        .foreach(t => bullet.checkAttackObject(t,attackObstacleCallBack(bullet)))
-//      bullet.move(boundary,systemFrame,removeBullet)
-//
-//    }
-//  }
-//
-//
-//  protected def bulletFlyEndCallback(bullet: Bullet):Unit = {
-//    bulletMap.remove(bullet.bId)
-//    quadTree.remove(bullet)
-//  }
-//
-//  //游戏后端需要重写，生成伤害事件
-//  protected def attackTankCallBack(bullet: Bullet)(tank:Tank):Unit = {
-//    removeBullet(bullet)
-//    val event = TankGameEvent.TankAttacked(tank.tankId,bullet.bId, bullet.tankId, bullet.damage,systemFrame)
-//    addFollowEvent(event)
-//  }
-//
-//
-//  //子弹攻击到障碍物的回调函数，游戏后端需要重写,生成伤害事件
-//  protected def attackObstacleCallBack(bullet: Bullet)(o:Obstacle):Unit = {
-//    removeBullet(bullet)
-//    val event = TankGameEvent.ObstacleAttacked(o.oId,bullet.bId,bullet.damage,systemFrame)
-//    addFollowEvent(event)
-//  }
-//
+  protected def ballMove():Unit = {
+    ballMap.toList.sortBy(_._1).map(_._2).foreach{ ball =>
+      val objects = quadTree.retrieveFilter(ball)
+      objects.filter(_.isInstanceOf[Racket]).map(_.asInstanceOf[Racket])
+        .foreach{t =>
+          ball.checkAttackObject(t,collisionRacketCallBack(ball))}
+      objects.filter(t => t.isInstanceOf[ObstacleBall] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
+        .foreach(t => ball.checkAttackObject(t,collisionObstacleCallBack(ball)))
+      ball.move(boundary,systemFrame,ballFlyEndCallback)
+    }
+  }
+
+
+  protected def ballFlyEndCallback(ball: Ball):Unit = {
+    ballMap.remove(ball.bId)
+    quadTree.remove(ball)
+  }
+
+  //游戏后端需要重写，生成伤害事件
+  protected def collisionRacketCallBack(ball: Ball)(racket: Racket):Unit = {
+    ball.changeDirection()
+    val event = BreakoutGameEvent.RacketCollision(racket.racketId,ball.bId,systemFrame)
+    addFollowEvent(event)
+  }
+
+
+  //子弹攻击到障碍物的回调函数，游戏后端需要重写,生成伤害事件
+  protected def collisionObstacleCallBack(ball: Ball)(o:Obstacle):Unit = {
+    //fixme
+    ball.changeDirection()
+    val event = BreakoutGameEvent.ObstacleCollision(o.oId,ball.bId,frame = systemFrame)
+    addFollowEvent(event)
+  }
+
 //  protected final def removeBullet(bullet: Bullet):Unit = {
 //    bulletMap.remove(bullet.bId)
 //    quadTree.remove(bullet)
 //  }
-//
-//  protected final def objectMove():Unit = {
-//    tankMove()
-//    bulletMove()
-//  }
-//
-//  protected final def addUserAction(action:UserActionEvent):Unit = {
-//    /**
-//      * 增加用户使用血包
-//      * */
-//    actionEventMap.get(action.frame) match {
-//      case Some(actionEvents) => actionEventMap.put(action.frame,action :: actionEvents)
-//      case None => actionEventMap.put(action.frame,List(action))
-//    }
-//  }
-//
-//
-//  protected final def addGameEvent(event:GameEvent):Unit = {
-//    gameEventMap.get(event.frame) match {
-//      case Some(events) => gameEventMap.put(event.frame, event :: events)
-//      case None => gameEventMap.put(event.frame,List(event))
-//    }
-//  }
-//
-//  protected final def addFollowEvent(event:FollowEvent):Unit = {
-//    followEventMap.get(event.frame) match {
-//      case Some(events) => followEventMap.put(event.frame, event :: events)
-//      case None => followEventMap.put(event.frame,List(event))
-//    }
-//  }
+
+  protected final def objectMove():Unit = {
+    racketMove()
+    ballMove()
+  }
+
+  protected final def addUserAction(action:UserActionEvent):Unit = {
+    actionEventMap.get(action.frame) match {
+      case Some(actionEvents) => actionEventMap.put(action.frame,action :: actionEvents)
+      case None => actionEventMap.put(action.frame,List(action))
+    }
+  }
+
+
+  protected final def addGameEvent(event:GameEvent):Unit = {
+    gameEventMap.get(event.frame) match {
+      case Some(events) => gameEventMap.put(event.frame, event :: events)
+      case None => gameEventMap.put(event.frame,List(event))
+    }
+  }
+
+  protected final def addFollowEvent(event:FollowEvent):Unit = {
+    followEventMap.get(event.frame) match {
+      case Some(events) => followEventMap.put(event.frame, event :: events)
+      case None => followEventMap.put(event.frame,List(event))
+    }
+  }
 //
 //  final protected def fillBulletCallBack(tid:Int):Unit={
 //    addFollowEvent(TankGameEvent.TankFillBullet(tid,systemFrame+config.fillBulletDuration))
@@ -492,15 +458,15 @@ trait GameContainer extends KillInformation{
 //    }
 //  }
 //
-//  //更新本桢的操作
-//  def update():Unit = {
+  //更新本桢的操作
+  def update():Unit = {
 //    handleUserLeftRoomNow()
-//    objectMove()
-//
-//    handleUserActionEventNow()
-//
-//    handleTankAttackedNow()
-//    handleObstacleAttackedNow()
+  objectMove()
+
+  handleUserActionEventNow()
+
+  handleRacketCollisionNow()
+  handleObstacleCollisionNow()
 //
 //    handleTankFillBulletNow()
 //    handleTankInvincibleNow()
@@ -509,21 +475,21 @@ trait GameContainer extends KillInformation{
 //    handleTankEatPropNow()
 //
 //    handlePropLifecycleNow()
-//
-//    handleObstacleRemoveNow() //此处需要结合坦克攻击，在移动之后
+
+    handleObstacleRemoveNow() //此处需要结合坦克攻击，在移动之后
 //    handleGenerateObstacleNow()
 //    handleGeneratePropNow()
-//
+
 //    handleGenerateBulletNow()
 //    handleUserJoinRoomEventNow()
 //    handleUserReliveNow()
-//
-//    quadTree.refresh(quadTree)
+
+    quadTree.refresh(quadTree)
 //    updateKillInformation()
-//
+
 //    handleRemoveHistoryMapNow()
-//    clearEventWhenUpdate()
-//  }
+    clearEventWhenUpdate()
+  }
 //
 //  implicit val scoreOrdering = new Ordering[Score] {
 //    override def compare(x: Score, y: Score): Int = {
@@ -565,25 +531,24 @@ trait GameContainer extends KillInformation{
 //    }
 //  }
 //
-//  protected def clearEventWhenUpdate():Unit
-//
-//  def getGameContainerAllState():GameContainerAllState = {
-//    GameContainerAllState(
-//      systemFrame,
-//      tankMap.values.map(_.getTankState()).toList,
-//      bulletMap.values.map(_.getBulletState()).toList,
-//      propMap.values.map(_.getPropState).toList,
-//      obstacleMap.values.map(_.getObstacleState()).toList,
+  protected def clearEventWhenUpdate():Unit
+
+  def getGameContainerAllState():GameContainerAllState = {
+    GameContainerAllState(
+      systemFrame,
+      racketMap.values.map(_.getRacketState()).toList,
+      ballMap.values.map(_.getBallState()).toList,
+      obstacleMap.values.map(_.getObstacleState()).toList,
 //      environmentMap.values.map(_.getObstacleState()).toList,
-//      tankMoveAction.toList.map(t => (t._1,if(t._2.isEmpty) None else Some(t._2.toList)))
-//    )
-//  }
-//
-//  /**
-//    * @author sky
-//    * 重置followEventMap
-//    * 筛选回溯之前帧产生的事件,不包含本帧
-//    * */
+      racketMoveAction.toList.map(t => (t._1,if(t._2.isEmpty) None else Some(t._2.toList)))
+    )
+  }
+
+  /**
+    * @author sky
+    * 重置followEventMap
+    * 筛选回溯之前帧产生的事件,不包含本帧
+    * */
 //  protected def reSetFollowEventMap(frame:Long)={
 //    followEventMap.foreach{l=>
 //      val eventList=l._2.filter(r=>
@@ -592,15 +557,15 @@ trait GameContainer extends KillInformation{
 //      followEventMap.put(l._1,eventList)
 //    }
 //  }
-//
-//  protected def addGameEvents(frame:Long,events:List[GameEvent],actionEvents:List[UserActionEvent]) = {
-//    gameEventMap.put(frame,events)
-//    actionEventMap.put(frame,actionEvents)
-//  }
-//
-//  def removePreEvent(frame:Long, tankId:Int, serialNum:Byte):Unit = {
-//    actionEventMap.get(frame).foreach{ actions =>
-//      actionEventMap.put(frame,actions.filterNot(t => t.tankId == tankId && t.serialNum == serialNum))
-//    }
-//  }
+
+  protected def addGameEvents(frame:Long,events:List[GameEvent],actionEvents:List[UserActionEvent]) = {
+    gameEventMap.put(frame,events)
+    actionEventMap.put(frame,actionEvents)
+  }
+
+  def removePreEvent(frame:Long, tankId:Int, serialNum:Byte):Unit = {
+    actionEventMap.get(frame).foreach{ actions =>
+      actionEventMap.put(frame,actions.filterNot(t => t.racketId == tankId && t.serialNum == serialNum))
+    }
+  }
 }

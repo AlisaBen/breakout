@@ -1,6 +1,6 @@
 package com.neo.sk.breakout.shared.protocol
 
-import com.neo.sk.breakout.shared.`object`.{BallState, ObstacleState}
+import com.neo.sk.breakout.shared.`object`.{BallState, ObstacleState, RacketState}
 import com.neo.sk.breakout.shared.config.GameConfigImpl
 import com.neo.sk.breakout.shared.model.Score
 
@@ -12,6 +12,7 @@ object BreakoutGameEvent {
   //todo 同步全量数据
   final case class GameContainerAllState(
                                         f:Long,
+                                        rackets:List[RacketState],
                                         balls:List[BallState],
                                         obstacles:List[ObstacleState],
                                         racketMoveAction:List[(Int,Option[List[Byte]])]
@@ -91,9 +92,9 @@ object BreakoutGameEvent {
 
   final case class ObstacleRemove(obstacleId:Int, override val frame:Long) extends EnvironmentEvent with WsMsgServer
   /**球运动方向重新计算，分数计算*/
-  final case class RacketCollision(racketId:Int,ballId:Int,damage:Int,override val frame:Long) extends FollowEvent
+  final case class RacketCollision(racketId:Int,ballId:Int,override val frame:Long) extends FollowEvent
 
-  final case class ObstacleCollision(obstacleId:Int, ballId:Int, damage:Int, override val frame:Long) extends FollowEvent
+  final case class ObstacleCollision(brickId:Int, ballId:Int, isLeft:Option[Boolean] = None, override val frame:Long) extends FollowEvent
   sealed trait GameSnapshot
 
   final case class TankGameSnapshot(

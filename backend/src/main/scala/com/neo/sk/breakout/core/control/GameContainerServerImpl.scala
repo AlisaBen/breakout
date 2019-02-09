@@ -1,5 +1,12 @@
 package com.neo.sk.breakout.core.control
 
+import akka.actor.typed.ActorRef
+import com.neo.sk.breakout.core.RoomActor
+import com.neo.sk.breakout.shared.game.GameContainer
+import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
+import javax.xml.ws.Dispatch
+import org.slf4j.Logger
+
 /**
   * created by benyafang on 2019/2/8 21:52
   * A4
@@ -13,6 +20,15 @@ package com.neo.sk.breakout.core.control
   * 8.逻辑更新
   *
   * */
-class GameContainerServerImpl {
+case class GameContainerServerImpl(
+                                  roomActorRef:ActorRef[RoomActor.Command],
+                                  log:Logger,
+                                  dispatch:BreakoutGameEvent.WsMsgServer => Unit,
+                                  dispatchTo:(String,BreakoutGameEvent.WsMsgServer) => Unit
+                                  )
+//  extends GameContainer
+{
+  import scala.language.implicitConversions
+
 
 }

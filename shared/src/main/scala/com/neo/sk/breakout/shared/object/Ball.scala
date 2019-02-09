@@ -3,6 +3,7 @@ package com.neo.sk.breakout.shared.`object`
 import com.neo.sk.breakout.shared.config.GameConfig
 import com.neo.sk.breakout.shared.model
 import com.neo.sk.breakout.shared.model.Point
+import javafx.scene.effect.Light
 
 /**
   * Created by hongruying on 2018/7/8
@@ -18,7 +19,7 @@ case class Ball(
                  override protected var position: Point,
                  startFrame:Long,
 //                 damage:Int, //威力
-                 momentum:Point,//移动的速度
+                 var momentum:Point,//移动的速度
                  bId:Int,
                  brickId:Int
                  ) extends CircleObjectOfGame{
@@ -31,8 +32,6 @@ case class Ball(
 //  val momentum: Point = momentum
   //todo
   override val radius: Float = config.getBallRadius
-
-  val maxFlyFrame:Int = config.maxFlyFrame
 
   // 获取子弹外形
   override def getObjectRect(): model.Rectangle = {
@@ -51,19 +50,39 @@ case class Ball(
   }
 
   // 生命周期是否截至或者打到地图边界
-  def isFlyEnd(boundary: Point,frame:Long):Boolean = {
-    if( frame-this.startFrame > maxFlyFrame || position.x <= 0 || position.y <= 0 || position.x >= boundary.x || position.y >= boundary.y)
-      true
-    else
-      false
+  def isFlyEnd(boundary: Point,flyEndCallBack:Ball => Unit):Int = {
+    if(position.x - radius <= 0 || position.x + radius >= boundary.x){
+      //左右边界
+      1
+    }else if(position.y - radius <= 0){
+      //上下边界
+      2
+    }else if(position.y + radius >= boundary.y){
+      flyEndCallBack(this)
+      4
+    }else
+      3
   }
 
   // 先检测是否生命周期结束，如果没结束继续移动
   def move(boundary: Point,frame:Long,flyEndCallBack:Ball => Unit):Unit = {
-    if(isFlyEnd(boundary,frame)){
-      flyEndCallBack(this)
-    } else{
-      this.position = this.position + momentum
+    isFlyEnd(boundary,flyEndCallBack) match{
+      case 1 =>
+        //左右边界，不改变y轴的移动速度，改变x轴
+        momentum.*(Point(-1,1))
+      case 2 =>
+        //上下边界，改变y轴
+        momentum.*(Point(1,-1))
+      case 3 =>
+    }
+    this.position = this.position + momentum
+  }
+
+  def changeDirection(isLeftOpt:Option[Boolean] = None) = {
+    isLeftOpt match {
+      case Some(isLeft) =>
+        momentum.*(Point(-1,1))
+      case None => momentum.*(Point(1, -1))
     }
   }
 

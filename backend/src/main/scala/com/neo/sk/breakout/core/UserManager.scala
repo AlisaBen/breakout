@@ -3,11 +3,12 @@ package com.neo.sk.breakout.core
 import java.util.concurrent.atomic.AtomicLong
 
 import akka.actor.typed.{ActorRef, Behavior}
-import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.stream.{ActorAttributes, Supervision}
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
+import com.neo.sk.breakout.core.RoomManager.ChildDead
 import org.slf4j.LoggerFactory
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 /**
@@ -23,6 +24,13 @@ object UserManager {
   private val log = LoggerFactory.getLogger(this.getClass)
 
   trait Command
+
+  case class ChildDead[U](childName:String,ctx:ActorContext[U]) extends Command
+
+  case class GetAllUserActor(replyTo:ActorRef[List[ActorRef[UserActor.Command]]]) extends Command
+
+  case class GetUserActor(name:String,replyTo:ActorRef[ActorRef[UserActor.Command]]) extends Command
+
   def create(): Behavior[Command] = {
     log.debug(s"UserManager start...")
     Behaviors.setup[Command] {
@@ -34,6 +42,42 @@ object UserManager {
             Behaviors.same
         }
     }
+  }
+
+  def idle()(
+    implicit stashBuffer:StashBuffer[Command],
+    sendBuffer:MiddleBufferInJvm,
+    timer:TimerScheduler[Command]
+  ) = {
+    Behaviors.receive[Command]{(ctx,msg) =>
+      msg match {
+        case GetAllUserActor(replyTo) =>
+          replyTo ! getAllUserActor(ctx)
+          Behaviors.same
+
+        case GetUserActor(name,replyTo) =>
+          replyTo ! getUserActor(ctx,name)
+          Behaviors.same
+
+        case unknowMsg =>
+          Behaviors.same
+
+      }
+    }
+  }
+
+  def getUserActor(ctx:ActorContext[Command],name:String) = {
+    val childName = s"userActor--${name}"
+    ctx.child(childName).getOrElse{
+      val actor = ctx.spawn(UserActor.create(name),childName)
+      ctx.watchWith(actor,ChildDead(childName,ctx))
+      actor
+    }
+      .upcast[UserActor.Command]
+  }
+
+  def getAllUserActor(ctx:ActorContext[Command]) = {
+    ctx.children.map(_.upcast[UserActor.Command]).toList
   }
 
   private def getWebSocketFlow(userActor:ActorRef[UserActor.Command]):Flow[Message,Message,Any] = {

@@ -1,9 +1,12 @@
 package com.neo.sk.breakout.shared.game
 
-import com.neo.sk.breakout.shared.`object`.Racket
+import com.neo.sk.breakout.shared.`object`.{Ball, Brick, Obstacle, Racket}
 import com.neo.sk.breakout.shared.config.GameConfig
 import com.neo.sk.breakout.shared.game.view._
+import com.neo.sk.breakout.shared.model.Constants.GameAnimation
 import com.neo.sk.breakout.shared.model.Point
+import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
+import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.{GameContainerAllState, GameEvent, UserActionEvent}
 import com.neo.sk.breakout.shared.util.canvas.{MiddleContext, MiddleFrame}
 
 import scala.collection.mutable
@@ -18,13 +21,11 @@ case class GameContainerClientImpl(
                                     drawFrame: MiddleFrame,
                                     ctx: MiddleContext,
                                     override val config: GameConfig,
-                                    myId: String,
-                                    myTankId: Int,
+                                    myRacketId: Int,
                                     myName: String,
                                     var canvasSize: Point,
                                     var canvasUnit: Int,
-                                    setKillCallback: Racket => Unit,
-                                    versionInfo: Option[String] = None
+                                    setKillCallback: Racket => Unit
                                   ) extends GameContainer with EsRecover
   with BackgroundDrawUtil with BallDrawUtil with FpsComponentsDrawUtil with BrickDrawUtil with RacketDrawUtil with InfoDrawUtil {
 
@@ -39,8 +40,8 @@ case class GameContainerClientImpl(
   protected var damageNum: Int = 0
   protected var killerName: String = ""
 
-  var tankId: Int = myTankId
-//  protected val myTankMoveAction = mutable.HashMap[Long,List[UserActionEvent]]()
+  var myId: Int = myRacketId
+  protected val myRacketMoveAction = mutable.HashMap[Long,List[UserActionEvent]]()
 //
 //  def changeTankId(id: Int) = tankId = id
 //
@@ -63,37 +64,37 @@ case class GameContainerClientImpl(
 //    if(tankMap.contains(killerId)) true else false
 //  }
 //
-//  override def debug(msg: String): Unit = {}
-//
-//  override def info(msg: String): Unit = println(msg)
-//
-//  private val esRecoverSupport: Boolean = true
-//
-//  private val uncheckedActionMap = mutable.HashMap[Byte, Long]() //serinum -> frame
-//
-//  private var gameContainerAllStateOpt: Option[GameContainerAllState] = None
+  override def debug(msg: String): Unit = {}
+
+  override def info(msg: String): Unit = println(msg)
+
+  private val esRecoverSupport: Boolean = true
+
+  private val uncheckedActionMap = mutable.HashMap[Byte, Long]() //serinum -> frame
+
+  private var gameContainerAllStateOpt: Option[GameContainerAllState] = None
 //  private var gameContainerStateOpt: Option[GameContainerState] = None
 //
-//  protected var waitSyncData: Boolean = true
-//
-//  private val preExecuteFrameOffset = com.neo.sk.tank.shared.model.Constants.PreExecuteFrameOffset
-//
-//  def updateClientSize(canvasS: Point, cUnit: Int) = {
-//    canvasUnit = cUnit
-//    canvasSize = canvasS
-//    updateBackSize(canvasS)
-//    updateBulletSize(canvasS)
-//    updateFpsSize(canvasS)
-//    updateObstacleSize(canvasS)
+  protected var waitSyncData: Boolean = true
+
+  private val preExecuteFrameOffset = com.neo.sk.breakout.shared.model.Constants.PreExecuteFrameOffset
+
+  def updateClientSize(canvasS: Point, cUnit: Int) = {
+    canvasUnit = cUnit
+    canvasSize = canvasS
+    updateBackSize(canvasS)
+    updateBulletSize(canvasS)
+    updateFpsSize(canvasS)
+    updateObstacleSize(canvasS)
 //    updateTankSize(canvasS)
-//  }
-//
-//  override protected def handleObstacleAttacked(e: TankGameEvent.ObstacleAttacked): Unit = {
-//    super.handleObstacleAttacked(e)
-//    if (obstacleMap.get(e.obstacleId).nonEmpty || environmentMap.get(e.obstacleId).nonEmpty) {
-//      obstacleAttackedAnimationMap.put(e.obstacleId, GameAnimation.bulletHitAnimationFrame)
-//    }
-//  }
+  }
+
+  override protected def handleObstacleCollision(e: BreakoutGameEvent.ObstacleCollision): Unit = {
+    super.handleObstacleCollision(e)
+    if (obstacleMap.get(e.brickId).nonEmpty) {
+      obstacleAttackedAnimationMap.put(e.brickId, GameAnimation.bulletHitAnimationFrame)
+    }
+  }
 //
 //  override protected def handleGenerateBullet(e:GenerateBullet) = {
 //    tankMap.get(e.bullet.tankId) match{
@@ -109,14 +110,14 @@ case class GameContainerClientImpl(
 //    super.handleGenerateBullet(e)
 //  }
 //
-//
-//  override protected def handleTankAttacked(e: TankGameEvent.TankAttacked): Unit = {
-//    super.handleTankAttacked(e)
-//    if (tankMap.get(e.tankId).nonEmpty) {
-//      tankAttackedAnimationMap.put(e.tankId, GameAnimation.bulletHitAnimationFrame)
-//    }
-//  }
-//
+
+  override protected def handleRacketCollision(e: BreakoutGameEvent.RacketCollision): Unit = {
+    super.handleRacketCollision(e)
+    if (racketMap.get(e.racketId).nonEmpty) {
+      tankAttackedAnimationMap.put(e.racketId, GameAnimation.bulletHitAnimationFrame)
+    }
+  }
+
 //  override protected def dropTankCallback(bulletTankId: Int, bulletTankName: String, tank: Tank) = {
 //    setKillCallback(tank)
 //  }
@@ -136,90 +137,87 @@ case class GameContainerClientImpl(
 //  override protected implicit def tankState2Impl(tank: TankState): Tank = {
 //    new TankClientImpl(config, tank, fillBulletCallBack, tankShotgunExpireCallBack)
 //  }
-//
-//  def receiveGameEvent(e: GameEvent) = {
-//    if (e.frame >= systemFrame) {
-//      addGameEvent(e)
-//    } else if (esRecoverSupport) {
-//      println(s"rollback-frame=${e.frame},curFrame=${this.systemFrame},e=${e}")
-//      rollback4GameEvent(e)
-//    }
-//  }
-//
-//  //接受服务器的用户事件
-//  def receiveUserEvent(e: UserActionEvent) = {
-//    if (e.tankId == tankId) {
-//      uncheckedActionMap.get(e.serialNum) match {
-//        case Some(preFrame) =>
-//          if (e.frame != preFrame) {
-//            println(s"preFrame=${preFrame} eventFrame=${e.frame} curFrame=${systemFrame}")
-//            //          require(preFrame <= e.frame)
-//            if (preFrame < e.frame && esRecoverSupport) {
-//              if (preFrame >= systemFrame) {
-//                removePreEvent(preFrame, e.tankId, e.serialNum)
-//                addUserAction(e)
-//              } else if (e.frame >= systemFrame) {
-//                removePreEventHistory(preFrame, e.tankId, e.serialNum)
-//                rollback(preFrame)
-//                addUserAction(e)
-//              } else {
-//                removePreEventHistory(preFrame, e.tankId, e.serialNum)
-//                addUserActionHistory(e)
-//                rollback(preFrame)
-//              }
-//            }
-//          }
-//        case None =>
-//          if (e.frame >= systemFrame) {
-//            addUserAction(e)
-//          } else if (esRecoverSupport) {
-//            rollback4UserActionEvent(e)
-//          }
-//      }
-//    } else {
-//      if (e.frame >= systemFrame) {
-//        addUserAction(e)
-//      } else if (esRecoverSupport) {
-//        rollback4UserActionEvent(e)
-//      }
-//    }
-//  }
-//
-//  def preExecuteUserEvent(action: UserActionEvent) = {
-//    addUserAction(action)
-//    uncheckedActionMap.put(action.serialNum, action.frame)
-//  }
-//
-//  final def addMyAction(action: UserActionEvent): Unit = {
-//    if (action.tankId == tankId) {
-//      myTankMoveAction.get(action.frame - preExecuteFrameOffset) match {
-//        case Some(actionEvents) => myTankMoveAction.put(action.frame - preExecuteFrameOffset, action :: actionEvents)
-//        case None => myTankMoveAction.put(action.frame - preExecuteFrameOffset, List(action))
-//      }
-//    }
-//  }
-//
-//
-//  protected final def handleMyAction(actions:List[UserActionEvent]) = { //处理出现错误动作的帧
-//    var fakeFrameStart = 0l
-//    def isHaveReal(id: Int) = {
-//      var isHave = false
-//      actionEventMap.get(systemFrame).foreach {
-//        list =>
-//          list.foreach {
-//            a =>
-//              if (a.tankId == id) isHave = true
-//          }
-//      }
-//      isHave
-//    }
-//    if (tankMap.contains(tankId)) {
-//      val tank = tankMap(tankId)
-//      if (!isHaveReal(tankId)) {
+
+  def receiveGameEvent(e: GameEvent) = {
+    if (e.frame >= systemFrame) {
+      addGameEvent(e)
+    } else if (esRecoverSupport) {
+      println(s"rollback-frame=${e.frame},curFrame=${this.systemFrame},e=${e}")
+      rollback4GameEvent(e)
+    }
+  }
+
+  //接受服务器的用户事件
+  def receiveUserEvent(e: UserActionEvent) = {
+    if (e.racketId == racketId) {
+      uncheckedActionMap.get(e.serialNum) match {
+        case Some(preFrame) =>
+          if (e.frame != preFrame) {
+            println(s"preFrame=${preFrame} eventFrame=${e.frame} curFrame=${systemFrame}")
+            //          require(preFrame <= e.frame)
+            if (preFrame < e.frame && esRecoverSupport) {
+              if (preFrame >= systemFrame) {
+                removePreEvent(preFrame, e.racketId, e.serialNum)
+                addUserAction(e)
+              } else if (e.frame >= systemFrame) {
+                removePreEventHistory(preFrame, e.racketId, e.serialNum)
+                rollback(preFrame)
+                addUserAction(e)
+              } else {
+                removePreEventHistory(preFrame, e.racketId, e.serialNum)
+                addUserActionHistory(e)
+                rollback(preFrame)
+              }
+            }
+          }
+        case None =>
+          if (e.frame >= systemFrame) {
+            addUserAction(e)
+          } else if (esRecoverSupport) {
+            rollback4UserActionEvent(e)
+          }
+      }
+    } else {
+      if (e.frame >= systemFrame) {
+        addUserAction(e)
+      } else if (esRecoverSupport) {
+        rollback4UserActionEvent(e)
+      }
+    }
+  }
+
+  def preExecuteUserEvent(action: UserActionEvent) = {
+    addUserAction(action)
+    uncheckedActionMap.put(action.serialNum, action.frame)
+  }
+
+  final def addMyAction(action: UserActionEvent): Unit = {
+    if (action.racketId == racketId) {
+      myRacketMoveAction.get(action.frame - preExecuteFrameOffset) match {
+        case Some(actionEvents) => myRacketMoveAction.put(action.frame - preExecuteFrameOffset, action :: actionEvents)
+        case None => myRacketMoveAction.put(action.frame - preExecuteFrameOffset, List(action))
+      }
+    }
+  }
+
+
+  protected final def handleMyAction(actions:List[UserActionEvent]) = { //处理出现错误动作的帧
+    def isHaveReal(id: Int) = {
+      var isHave = false
+      actionEventMap.get(systemFrame).foreach {
+        list =>
+          list.foreach {
+            a =>
+              if (a.racketId == id) isHave = true
+          }
+      }
+      isHave
+    }
+    if (racketMap.contains(racketId)) {
+      val tank = racketMap(racketId)
+      if (!isHaveReal(racketId)) {
+        //fixme
 //        if (!tank.getMoveState()) {
-//          tank.isFakeMove = true
-//          tank.fakePosition = tank.getPosition
-//          fakeFrameStart = systemFrame
 //          val tankMoveSet = mutable.Set[Byte]()
 //          actions.sortBy(t => t.serialNum).foreach {
 //            case a: UserPressKeyDown =>
@@ -228,16 +226,10 @@ case class GameContainerClientImpl(
 //          }
 //          tank.setTankDirection(tankMoveSet.toSet)
 //        }
-//      }else{
-//        if(tank.isFakeMove) {
-//          tank.canvasFrame = 1
-//          tank.fakeFrame = systemFrame - fakeFrameStart
-//        }
-//        tank.isFakeMove = false
-//      }
-//    }
-//  }
-//
+      }
+    }
+  }
+
 //  protected def handleFakeActionNow():Unit = {
 //    if(com.neo.sk.tank.shared.model.Constants.fakeRender) {
 //      handleMyAction(myTankMoveAction.getOrElse(systemFrame,Nil).reverse)
@@ -263,50 +255,50 @@ case class GameContainerClientImpl(
 //    snap.shotExpireList.foreach(addFollowEvent(_))
 //  }
 //
-//  protected def handleGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
-//    systemFrame = gameContainerAllState.f
-//    quadTree.clear()
-//    tankMap.clear()
-//    obstacleMap.clear()
+  protected def handleGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
+    systemFrame = gameContainerAllState.f
+    quadTree.clear()
+    racketMap.clear()
+    obstacleMap.clear()
 //    propMap.clear()
-//    tankMoveAction.clear()
-//    bulletMap.clear()
+    racketMoveAction.clear()
+    ballMap.clear()
 //    environmentMap.clear()
-//
-//    gameContainerAllState.tanks.foreach { t =>
-//      val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
-//      quadTree.insert(tank)
-//      tankMap.put(t.tankId, tank)
-//      tankHistoryMap.put(t.tankId,tank.name)
-//    }
-//    gameContainerAllState.obstacle.foreach { o =>
-//      val obstacle = Obstacle(config, o)
-//      quadTree.insert(obstacle)
-//      obstacleMap.put(o.oId, obstacle)
-//    }
+
+    gameContainerAllState.rackets.foreach { t =>
+      val tank = new Racket(config, t)
+      quadTree.insert(tank)
+      racketMap.put(t.racketId, tank)
+      racketHistoryMap.put(t.racketId,tank.name)
+    }
+    gameContainerAllState.obstacles.foreach { o =>
+      val obstacle = new Brick(config, o)
+      quadTree.insert(obstacle)
+      obstacleMap.put(o.oId, obstacle)
+    }
 //    gameContainerAllState.props.foreach { t =>
 //      val prop = Prop(t, config.propRadius)
 //      quadTree.insert(prop)
 //      propMap.put(t.pId, prop)
 //    }
-//    gameContainerAllState.tankMoveAction.foreach { t =>
-//      val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Byte]())
-//      t._2.foreach(l=>l.foreach(set.add))
-//      tankMoveAction.put(t._1, set)
-//    }
-//    gameContainerAllState.bullet.foreach { t =>
-//      val bullet = new Bullet(config, t)
-//      quadTree.insert(bullet)
-//      bulletMap.put(t.bId, bullet)
-//    }
+    gameContainerAllState.racketMoveAction.foreach { t =>
+      val set = racketMoveAction.getOrElse(t._1, mutable.HashSet[Byte]())
+      t._2.foreach(l=>l.foreach(set.add))
+      racketMoveAction.put(t._1, set)
+    }
+    gameContainerAllState.balls.foreach { t =>
+      val bullet = new Ball(config, t)
+      quadTree.insert(bullet)
+      ballMap.put(t.bId, bullet)
+    }
 //    gameContainerAllState.environment.foreach { t =>
 //      val obstacle = Obstacle(config, t)
 //      quadTree.insert(obstacle)
 //      environmentMap.put(obstacle.oId, obstacle)
 //    }
-//    waitSyncData = false
-//  }
-//
+    waitSyncData = false
+  }
+
 //  protected def handleGameContainerState(gameContainerState: GameContainerState) = {
 //    val curFrame = systemFrame
 //    val startTime = System.currentTimeMillis()
@@ -376,10 +368,10 @@ case class GameContainerClientImpl(
 //        true
 //    }
 //  }
-//
-//  def receiveGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
-//    gameContainerAllStateOpt = Some(gameContainerAllState)
-// }
+
+  def receiveGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
+    gameContainerAllStateOpt = Some(gameContainerAllState)
+ }
 //
 //  def receiveGameContainerState(gameContainerState: GameContainerState) = {
 //    if (gameContainerState.f > systemFrame) {
@@ -408,18 +400,19 @@ case class GameContainerClientImpl(
 //  }
 //
 //
-//  override def update(): Unit = {
-//    //    val startTime = System.currentTimeMillis()
-//    if (gameContainerAllStateOpt.nonEmpty) {
-//      val gameContainerAllState = gameContainerAllStateOpt.get
-//      info(s"立即同步所有数据，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerAllState.f}")
-//      handleGameContainerAllState(gameContainerAllState)
-//      gameContainerAllStateOpt = None
-//      if (esRecoverSupport) {
-//        clearEsRecoverData()
-//        addGameSnapShot(systemFrame, this.getGameContainerAllState())
-//      }
-//    } else if (gameContainerStateOpt.nonEmpty && (gameContainerStateOpt.get.f - 1 == systemFrame || gameContainerStateOpt.get.f - 2 > systemFrame)) {
+  override def update(): Unit = {
+    //    val startTime = System.currentTimeMillis()
+    if (gameContainerAllStateOpt.nonEmpty) {
+      val gameContainerAllState = gameContainerAllStateOpt.get
+      info(s"立即同步所有数据，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerAllState.f}")
+      handleGameContainerAllState(gameContainerAllState)
+      gameContainerAllStateOpt = None
+      if (esRecoverSupport) {
+        clearEsRecoverData()
+        addGameSnapShot(systemFrame, this.getGameContainerAllState())
+      }
+    }
+//    else if (gameContainerStateOpt.nonEmpty && (gameContainerStateOpt.get.f - 1 == systemFrame || gameContainerStateOpt.get.f - 2 > systemFrame)) {
 //      info(s"同步数据，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerStateOpt.get.f}")
 //      handleGameContainerState(gameContainerStateOpt.get)
 //      gameContainerStateOpt = None
@@ -427,27 +420,27 @@ case class GameContainerClientImpl(
 //        clearEsRecoverData()
 //        addGameSnapShot(systemFrame, this.getGameContainerAllState())
 //      }
-//    } else {
-//      super.update()
-//      if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
 //    }
-//  }
-//
-//  override protected def clearEventWhenUpdate(): Unit = {
-//    if (esRecoverSupport) {
-//      addEventHistory(systemFrame, gameEventMap.getOrElse(systemFrame, Nil), actionEventMap.getOrElse(systemFrame, Nil))
-//    }
-//    handleFakeActionNow()
-//    gameEventMap -= systemFrame
-//    actionEventMap -= systemFrame
-//    followEventMap -= systemFrame - maxFollowFrame
-//    systemFrame += 1
-//  }
-//
-//  protected def rollbackUpdate(): Unit = {
-//    super.update()
-//    if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
-//  }
+    else {
+      super.update()
+      if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
+    }
+  }
+
+  override protected def clearEventWhenUpdate(): Unit = {
+    if (esRecoverSupport) {
+      addEventHistory(systemFrame, gameEventMap.getOrElse(systemFrame, Nil), actionEventMap.getOrElse(systemFrame, Nil))
+    }
+    gameEventMap -= systemFrame
+    actionEventMap -= systemFrame
+    followEventMap -= systemFrame
+    systemFrame += 1
+  }
+
+  protected def rollbackUpdate(): Unit = {
+    super.update()
+    if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
+  }
 //
 //  //  def drawGame(time: Long, networkLatency: Long, dataSize:String): Unit = {
 //  def drawGame(time: Long, networkLatency: Long, dataSizeList: List[String], supportLiveLimit: Boolean = false): Unit = {
