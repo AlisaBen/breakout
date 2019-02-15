@@ -32,14 +32,14 @@ object UserActor {
 
   def flow(actor:ActorRef[UserActor.Command]):Flow[WebSocketMsg,BreakoutGameEvent.WsMsgSource,Any] = {
     val in = Flow[WebSocketMsg].to(
-      ActorSink.actorRef[Command](actor,CompleteMsgFront,FailMsgFront.apply)(actor)
+      ActorSink.actorRef[Command](actor,CompleteMsgFront,FailMsgFront.apply)
     )
     val out = ActorSource.actorRef[BreakoutGameEvent.WsMsgSource](
       completionMatcher = {
         case BreakoutGameEvent.CompleteMsgServer =>
       },
       failureMatcher = {
-        case BreakoutGameEvent.FailMsgFrontServer(e) => e
+        case BreakoutGameEvent.FailMsgServer(e) => e
       },
       bufferSize = 128,
       overflowStrategy = OverflowStrategy.dropHead

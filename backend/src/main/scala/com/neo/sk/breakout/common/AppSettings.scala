@@ -1,6 +1,9 @@
 package com.neo.sk.breakout.common
 
 import java.util.concurrent.TimeUnit
+
+import com.neo.sk.breakout.core.control.BreakoutGameConfigServerImpl
+import com.neo.sk.breakout.shared.config.GameConfig
 import com.neo.sk.utils.SessionSupport.SessionConfig
 import com.typesafe.config.{Config, ConfigFactory}
 import org.slf4j.LoggerFactory
@@ -30,7 +33,7 @@ object AppSettings {
 
   val log = LoggerFactory.getLogger(this.getClass)
   val config = ConfigFactory.parseResources("product.conf").withFallback(ConfigFactory.load())
-//  val tankGameConfig:TankGameConfig = TankGameConfigServerImpl(ConfigFactory.parseResources("tankGame.conf"))
+  val breakoutGameConfig:GameConfig = BreakoutGameConfigServerImpl(ConfigFactory.parseResources("tankGame.conf"))
 
 
 

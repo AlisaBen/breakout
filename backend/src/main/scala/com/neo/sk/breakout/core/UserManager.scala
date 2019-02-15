@@ -8,9 +8,10 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.stream.{ActorAttributes, Supervision}
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
-import com.neo.sk.breakout.core.RoomManager.ChildDead
 import org.slf4j.LoggerFactory
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
+import com.neo.sk.breakout.Boot.roomManager
+import scala.collection.mutable
 /**
   * created by benyafang on 2019/2/3 15:52
   * A5
@@ -30,6 +31,10 @@ object UserManager {
   case class GetAllUserActor(replyTo:ActorRef[List[ActorRef[UserActor.Command]]]) extends Command
 
   case class GetUserActor(name:String,replyTo:ActorRef[ActorRef[UserActor.Command]]) extends Command
+
+  case class ChooseModel(name:String,model:Int) extends Command
+
+  private val userMap:mutable.HashMap[String, ActorRef[UserActor.Command]] = mutable.HashMap[String, ActorRef[UserActor.Command]]()
 
   def create(): Behavior[Command] = {
     log.debug(s"UserManager start...")
@@ -57,6 +62,10 @@ object UserManager {
 
         case GetUserActor(name,replyTo) =>
           replyTo ! getUserActor(ctx,name)
+          Behaviors.same
+
+        case ChooseModel(name,model) =>
+          roomManager ! RoomManager.ChooseModel(name,model,userMap)
           Behaviors.same
 
         case unknowMsg =>

@@ -24,7 +24,7 @@ object RoomManager {
 
   case class ChildDead[U](childName:String,ctx:ActorRef[U]) extends Command
 
-  case class ChooseModel(name:String,model:Int) extends Command
+  case class ChooseModel(name:String,model:Int,userMap:mutable.HashMap[String,ActorRef[UserActor.Command]]) extends Command
 
   case class WaitingTimeOut(name:String,model:Int) extends Command
 
@@ -49,7 +49,7 @@ object RoomManager {
   ):Behavior[Command] = {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {
-        case ChooseModel(name,model) =>
+        case ChooseModel(name,model,userMap) =>
           //fixme 优先考虑用户加入的时间
           if(waithingToMatch.contains(model)){
             val enemy = waithingToMatch(model)((new util.Random).nextInt(waithingToMatch(model).length))
@@ -58,7 +58,8 @@ object RoomManager {
             }else{
               waithingToMatch.put(model,waithingToMatch(model).filterNot(_ == enemy))
             }
-            getRoomActor(name,enemy,ctx) ! RoomActor.BeginGame
+
+            getRoomActor(name,enemy,userMap.filter(t => t._1 == name || t._1 == enemy),ctx) ! RoomActor.BeginGame
           }else{
             waithingToMatch.put(model,List(name))
           }
@@ -81,10 +82,10 @@ object RoomManager {
   }
 
 
-  private def getRoomActor(nameA:String,nameB:String,ctx:ActorContext[Command]) = {
+  private def getRoomActor(nameA:String,nameB:String,playerMap:mutable.HashMap[String,ActorRef[UserActor.Command]],ctx:ActorContext[Command]) = {
     val childName = s"RoomActor--${nameA}+${nameB}"
     ctx.child(childName).getOrElse{
-      val actor = ctx.spawn(RoomActor.create(nameA,nameB),childName)
+      val actor = ctx.spawn(RoomActor.create(nameA,nameB,playerMap),childName)
       ctx.watchWith(actor,ChildDead(childName,actor))
       actor
     }

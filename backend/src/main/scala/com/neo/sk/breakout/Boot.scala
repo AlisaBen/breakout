@@ -53,7 +53,6 @@ object Boot extends HttpService {
 
 
 
-
   def main(args: Array[String]) {
     log.info("Starting.")
     val binding = Http().bindAndHandle(routes, httpInterface, httpPort)

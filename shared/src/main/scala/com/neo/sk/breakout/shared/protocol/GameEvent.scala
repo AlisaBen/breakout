@@ -73,6 +73,8 @@ object BreakoutGameEvent {
     val serialNum:Byte
   }
 
+  final case class UserJoinRoom(name:String, racketState:RacketState,ballState:BallState, override val frame: Long) extends  UserEvent with WsMsgServer
+
   final case class UserTouchStart(
                                    racketId:Int,
                                    override val frame: Long,
@@ -89,6 +91,7 @@ object BreakoutGameEvent {
                                  touchEnd: Byte,
                                  override val serialNum: Byte
                                ) extends UserActionEvent with WsMsgFront with WsMsgServer
+  final case class GenerateObstacle(override val frame:Long,obstacleState: ObstacleState) extends EnvironmentEvent with WsMsgServer
 
   final case class ObstacleRemove(obstacleId:Int, override val frame:Long) extends EnvironmentEvent with WsMsgServer
   /**球运动方向重新计算，分数计算*/

@@ -36,7 +36,7 @@ object Obstacle{
   def apply(config: GameConfig, obstacleState: ObstacleState): Obstacle = obstacleState.t match {
 //    case ObstacleType.airDropBox => new AirDropBox(config,obstacleState)
     case ObstacleType.brick => new Brick(config,obstacleState)
-    case ObstacleType.racket => new Racket(config,obstacleState)
+//    case ObstacleType.racket => new Racket(config,obstacleState)
 
   }
 }

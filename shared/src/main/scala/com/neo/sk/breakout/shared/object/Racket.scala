@@ -34,6 +34,9 @@ case class Racket(
   //todo 拍子的移动速度，可考虑移动到config中
   val moveSpeed: model.Point = RacketParameter.speed
 
+  def isIntersectsObject(o:Seq[ObjectOfGame]):Boolean = {
+    o.exists(t => t.isIntersects(this))
+  }
 
   def move(quadTree:QuadTree,boundary:Point)(implicit breakoutGameConfig:GameConfig) = {
     if(isMove){

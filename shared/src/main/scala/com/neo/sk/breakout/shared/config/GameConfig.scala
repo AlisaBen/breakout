@@ -1,6 +1,7 @@
 package com.neo.sk.breakout.shared.config
 
 import com.neo.sk.breakout.shared.model.Point
+import javafx.scene.input.ScrollEvent.HorizontalTextScrollUnits
 
 /**
   * Created by hongruying on 2018/8/28
@@ -76,8 +77,9 @@ final case class GridBoundary(width:Int,height:Int){
 //                                  )
 
 final case class BrickParameters(
-                                  blood:Int,
-                                  num:Int
+                                horizontalNum:Int,
+                                verticalNum:Int,
+                                brickHeight:Double
                                 )
 
 final case class RacketParameters(
@@ -99,7 +101,7 @@ final case class ObstacleParameters(
                                      collisionWidthOffset: Float,
 //                                     airDropParameters: AirDropParameters,
                                      brickParameters: BrickParameters,
-                                     racketParameters:RacketParameters
+//                                     racketParameters:RacketParameters
 //                                     riverParameters: RiverParameters,
 //                                     steelParameters: SteelParameters
                                    )
@@ -107,9 +109,8 @@ final case class ObstacleParameters(
 
 final case class BallParameters(
 //                                   ballLevelParameters:List[(Float,Int)], //size,damage length 3
-                                   maxFlyFrame:Int,
                                    ballSpeed:Int,
-                                   ballRadius:Float
+                                   ballRadius:Double
                                  ){
 //  require(ballLevelParameters.size >= 3,println(s"bullet level parameter failed"))
 
@@ -131,14 +132,11 @@ final case class BallParameters(
 trait GameConfig{
   def frameDuration:Long
   def playRate:Int
-  def replayRate:Int
 
-  def getBallRadius:Float
+  def getBallRadius:Double
 //  def getBallDamage(l:Byte):Int
 //  def getBLevel(damage:Int):Byte
 //  def getBulletMaxLevel():Byte
-
-  def maxFlyFrame:Int
 
   def ballSpeed:Point
 
@@ -152,8 +150,9 @@ trait GameConfig{
 //  def airDropBlood:Int
 //  def airDropNum:Int
 
-  def brickBlood:Int
-  def brickNum:Int
+  def brickVerticalNum:Int
+  def brickHorizontalNum:Int
+  def brickHeight:Double
 
 //  def riverPosType:List[List[(Int, Int)]]
 //  def steelPosType:List[List[(Int, Int)]]
@@ -184,7 +183,7 @@ trait GameConfig{
 
 //  def getBulletRadiusByDamage(d:Int):Float
 
-  def getMoveDistanceByFrame:Point
+  def getMoveDistanceByFrame:Point = getRacketSpeedByType * frameDuration / 1000
 
   def getGameConfigImpl(): GameConfigImpl
 
@@ -195,9 +194,9 @@ case class GameConfigImpl(
                                gridBoundary: GridBoundary,
                                frameDuration:Long,
                                playRate: Int,
-                               replayRate: Int,
                                ballParameters: BallParameters,
-                               obstacleParameters: ObstacleParameters
+                               obstacleParameters: ObstacleParameters,
+                               racketParameters: RacketParameters
 //                               propParameters: PropParameters,
 //                               tankParameters: TankParameters
                              ) extends GameConfig{
@@ -217,7 +216,7 @@ case class GameConfigImpl(
 
 //  def getBallMaxLevel():Byte = ballParameters.ballLevelParameters.size.toByte
 
-  def maxFlyFrame = ballParameters.maxFlyFrame
+
 //  def getBulletRadiusByDamage(d:Int):Float = ballParameters.getBallRadiusByDamage(d)
 
   def ballSpeed = Point(ballParameters.ballSpeed,0)
@@ -232,9 +231,9 @@ case class GameConfigImpl(
 //  def airDropBlood = obstacleParameters.airDropParameters.blood
 //  def airDropNum = obstacleParameters.airDropParameters.num
 
-  def brickBlood = obstacleParameters.brickParameters.blood
-  def brickNum = obstacleParameters.brickParameters.num
-
+  def brickVerticalNum:Int = obstacleParameters.brickParameters.verticalNum
+  def brickHorizontalNum:Int = obstacleParameters.brickParameters.horizontalNum
+  def brickHeight:Double = obstacleParameters.brickParameters.brickHeight
 //  def riverPosType = obstacleParameters.riverParameters.typePos
 //  def steelPosType = obstacleParameters.steelParameters.typePos
 
@@ -253,8 +252,8 @@ case class GameConfigImpl(
 //  def fillBulletDuration = tankParameters.fillBulletDuration
 //  def initInvincibleDuration = tankParameters.initInvincibleDuration
 //  def getTankReliveDuration = tankParameters.tankReliveDuration
-  def getRacketSpeedByType = obstacleParameters.racketParameters.speed
-  def getMoveDistanceByFrame = getRacketSpeedByType * frameDuration / 1000
+  def getRacketSpeedByType = racketParameters.speed
+//  def getMoveDistanceByFrame = getRacketSpeedByType * frameDuration / 1000
 //  def getTankSpeedMaxLevel():Byte = tankParameters.tankSpeed.speeds.size.toByte
 //
 //  def getTankBloodMaxLevel():Byte = tankParameters.tankBloodLevel.size.toByte

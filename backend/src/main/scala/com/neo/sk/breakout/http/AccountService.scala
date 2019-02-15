@@ -26,6 +26,7 @@ trait AccountService extends ServiceUtils{
       case Right(req) =>
         dealFutureResult{
           insertUserInfo(rUserInfo(-1,req.userName,req.password,req.timestamp)).map{r =>
+            //fixme 给userManager发消息
             complete(SuccessRsp())
           }.recover{
             case e:Exception =>

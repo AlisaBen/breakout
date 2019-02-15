@@ -67,10 +67,10 @@ trait GameContainer extends KillInformation{
   protected val gameEventMap = mutable.HashMap[Long,List[GameEvent]]() //frame -> List[GameEvent] 待处理的事件 frame >= curFrame
   protected val actionEventMap = mutable.HashMap[Long,List[UserActionEvent]]() //frame -> List[UserActionEvent]
   protected val followEventMap = mutable.HashMap[Long,List[FollowEvent]]()  // 记录游戏逻辑中产生事件
-//  final protected def handleUserJoinRoomEvent(l:List[UserJoinRoom]) :Unit = {
-//    l foreach handleUserJoinRoomEvent
-//  }
-//
+  final protected def handleUserJoinRoomEvent(l:List[UserJoinRoom]) :Unit = {
+    l foreach handleUserJoinRoomEvent
+  }
+
 //  protected def handleRemoveHistoryMapNow():Unit={
 //    removeTankHistoryMap.get(systemFrame) match {
 //      case Some(l)=>
@@ -81,23 +81,28 @@ trait GameContainer extends KillInformation{
 //  }
 //
 
-//  protected def handleUserJoinRoomEvent(e:UserJoinRoom) :Unit = {
-////    println(s"-------------------处理用户加入房间事件")
-//    val tank : Tank = e.tankState
-//    tankMap.put(e.tankState.tankId,tank)
-//    tankHistoryMap.put(e.tankState.tankId,e.tankState.name)
-//    quadTree.insert(tank)
-//  }
+  protected def handleUserJoinRoomEvent(e:UserJoinRoom) :Unit = {
+//    println(s"-------------------处理用户加入房间事件")
+    val racket:Racket = e.racketState
+    racketMap.put(e.racketState.racketId,racket)
+    racketHistoryMap.put(e.racketState.racketId,e.racketState.name)
+    quadTree.insert(racket)
+    val ball:Ball = e.ballState
+    ballMap.put(e.ballState.bId,ball)
+    quadTree.insert(ball)
+  }
+
+  //服务器和客户端执行的逻辑不一样
+  protected implicit def racketState2Impl(racket:RacketState):Racket = new Racket(config,racket)
+
+  protected implicit def ballState2Impl(ball:BallState):Ball = new Ball(config,ball)
 //
-//  //服务器和客户端执行的逻辑不一样
-//  protected implicit def tankState2Impl(tank:TankState):Tank
-//
-//  //服务器和客户端执行的逻辑不一致
-//  protected def handleUserJoinRoomEventNow() = {
-//    gameEventMap.get(systemFrame).foreach{ events =>
-//      handleUserJoinRoomEvent(events.filter(_.isInstanceOf[UserJoinRoom]).map(_.asInstanceOf[UserJoinRoom]).reverse)
-//    }
-//  }
+  //服务器和客户端执行的逻辑不一致
+  protected def handleUserJoinRoomEventNow() = {
+    gameEventMap.get(systemFrame).foreach{ events =>
+      handleUserJoinRoomEvent(events.filter(_.isInstanceOf[UserJoinRoom]).map(_.asInstanceOf[UserJoinRoom]).reverse)
+    }
+  }
 //
 //  final protected def handleUserReliveEvent(l:List[UserRelive]):Unit = {
 //    l foreach handleUserReliveEvent

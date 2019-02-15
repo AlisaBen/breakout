@@ -3,8 +3,8 @@ package com.neo.sk.breakout.http
 import akka.http.scaladsl.server.Directives._
 import com.neo.sk.breakout.shared.model.Constants
 import com.neo.sk.breakout.shared.ptcl.{ErrorRsp, GameHallProtocol, SuccessRsp}
-import com.neo.sk.breakout.Boot.roomManager
-import com.neo.sk.breakout.core.RoomManager
+import com.neo.sk.breakout.Boot.userManager
+import com.neo.sk.breakout.core.{RoomManager, UserManager}
 import org.slf4j.LoggerFactory
 /**
   * created by benyafang on 2019/2/8 21:28
@@ -24,7 +24,7 @@ trait GameHallService extends ServiceUtils{
   private val chooseGameModel = (path("chooseGameModel") & post){
     entity(as[Either[Error,GameHallProtocol.GameModelReq]]){
       case Right(req) =>
-        roomManager ! RoomManager.ChooseModel(req.name,req.model)
+        userManager ! UserManager.ChooseModel(req.name,req.model)
         complete(SuccessRsp())
       case Left(error) =>
         log.debug(s"选择游戏模式请求失败：${error}")

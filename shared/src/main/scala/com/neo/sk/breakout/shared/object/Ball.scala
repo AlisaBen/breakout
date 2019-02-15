@@ -31,7 +31,7 @@ case class Ball(
 
 //  val momentum: Point = momentum
   //todo
-  override val radius: Float = config.getBallRadius
+  override val radius: Float = config.getBallRadius.toFloat
 
   // 获取子弹外形
   override def getObjectRect(): model.Rectangle = {
@@ -47,6 +47,10 @@ case class Ball(
   //子弹碰撞检测
   def isIntersectsObject(o: ObjectOfGame):Boolean = {
     this.isIntersects(o)
+  }
+
+  def isIntersectsObject(o:Seq[ObjectOfGame]):Boolean = {
+    o.exists(t => t.isIntersects(this))
   }
 
   // 生命周期是否截至或者打到地图边界
