@@ -115,7 +115,8 @@ object LoginPage extends Page{
     Http.postJsonAndParse[SuccessRsp](AccountRoute.adminLoginRoute,data).map{rsp =>
       if(rsp.errCode == 0){
         LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
-        dom.window.location.hash = s"#/main/user"
+        dom.window.location.hash = s"#/gameHall"
+        GameHall.playerName = name
       }
       else{
         showWarning := true
@@ -132,7 +133,7 @@ object LoginPage extends Page{
       Http.postJsonAndParse[SuccessRsp](AccountRoute.adminLoginRoute,data).map{rsp =>
         if(rsp.errCode == 0){
           LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
-          dom.window.location.hash = s"#/main/user"
+          dom.window.location.hash = s"#/gameHall"
         }
         else{
           showWarning := true

@@ -28,7 +28,7 @@ case class BreakoutGameConfigServerImpl(
   import Helpers.ConfigOps
 
   private[this] val gridBoundaryWidth = config.getInt("tankGame.gridBoundary.width")
-    .requiring(_ > 100,"minimum supported grid boundary width is 100")
+    .requiring(_ > 50,"minimum supported grid boundary width is 100")
   private[this] val gridBoundaryHeight = config.getInt("tankGame.gridBoundary.height")
     .requiring(_ > 50,"minimum supported grid boundary height is 50")
   private[this] val gridBoundary = GridBoundary(gridBoundaryWidth,gridBoundaryHeight)

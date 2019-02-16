@@ -85,6 +85,7 @@ object UserActor {
         Behaviors.withTimers[Command] {
           implicit timer =>
             implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
+            implicit val sendBuffer = new MiddleBufferInJvm(8192)
 //            val uidGenerator = new AtomicLong(1L)
             idle(name)
 //            Behaviors.same

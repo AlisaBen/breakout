@@ -19,6 +19,10 @@ object Routes {
     val loginRoute = base + "/account/login"
   }
 
+  object GameHall{
+    val chooseGameModelRoute = base + "/gameHall/chooseGameModel"
+  }
+
   def genImgUrl(imgName:String) = base + s"/static/img/${imgName}"
 
 

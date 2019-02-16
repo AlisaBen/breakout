@@ -34,18 +34,19 @@ object RoomManager {
     log.debug(s"UserManager start...")
     Behaviors.setup[Command] {
       ctx =>
+        implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
         Behaviors.withTimers[Command] {
           implicit timer =>
             val uidGenerator = new AtomicLong(1L)
 //            idle(uidGenerator)
-            Behaviors.same
+//            Behaviors.same
+            idle(mutable.HashMap[Int,List[String]]())
         }
     }
   }
 
   def idle(waithingToMatch:mutable.HashMap[Int,List[String]])(
     implicit stashBuffer:StashBuffer[Command],
-    sendBuffer:MiddleBufferInJvm,
     timer:TimerScheduler[Command]
   ):Behavior[Command] = {
     Behaviors.receive[Command]{(ctx,msg) =>

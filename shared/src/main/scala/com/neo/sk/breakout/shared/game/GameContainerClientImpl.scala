@@ -441,19 +441,18 @@ case class GameContainerClientImpl(
     super.update()
     if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
   }
-//
-//  //  def drawGame(time: Long, networkLatency: Long, dataSize:String): Unit = {
-//  def drawGame(time: Long, networkLatency: Long, dataSizeList: List[String], supportLiveLimit: Boolean = false): Unit = {
-//    val offsetTime = math.min(time, config.frameDuration)
-//    val h = canvasSize.y
-//    val w = canvasSize.x
-//    //    val startTime = System.currentTimeMillis()
-//    if (!waitSyncData) {
-//      ctx.setLineCap("round")
-//      ctx.setLineJoin("round")
-//      tankMap.get(tankId) match {
-//        case Some(tank) =>
-//          val offset = canvasSize / 2 - tank.asInstanceOf[TankClientImpl].getPosition4Animation(boundary, quadTree, offsetTime)
+
+  def drawGame(time: Long, networkLatency: Long, dataSizeList: List[String], supportLiveLimit: Boolean = false): Unit = {
+    val offsetTime = math.min(time, config.frameDuration)
+    val h = canvasSize.y
+    val w = canvasSize.x
+    //    val startTime = System.currentTimeMillis()
+    if (!waitSyncData) {
+      ctx.setLineCap("round")
+      ctx.setLineJoin("round")
+      racketMap.get(racketId) match {
+        case Some(racket) =>
+//          val offset = canvasSize / 2 - racket.asInstanceOf[Racket].getPosition4Animation(boundary, quadTree, offsetTime)
 //          drawBackground(offset)
 //          drawObstacles(offset, Point(w, h))
 //          drawEnvironment(offset, Point(w, h))
@@ -472,19 +471,19 @@ case class GameContainerClientImpl(
 //          if (tank.canvasFrame >= 1) {
 //            tank.canvasFrame += 1
 //          }
-//          val endTime = System.currentTimeMillis()
-//        //          renderTimes += 1
-//        //          renderTime += endTime - startTime
-//
-//
-//        case None =>
-//        //          info(s"tankid=${myTankId} has no in tankMap.....................................")
-//        //          setGameState(GameState.stop)
-//        //          if(isObserve) drawDeadImg()
-//      }
-//    }
-//  }
-//
+          val endTime = System.currentTimeMillis()
+        //          renderTimes += 1
+        //          renderTime += endTime - startTime
+
+
+        case None =>
+        //          info(s"tankid=${myTankId} has no in tankMap.....................................")
+        //          setGameState(GameState.stop)
+        //          if(isObserve) drawDeadImg()
+      }
+    }
+  }
+
 //  def findAllTank(thisTank: Int) = {
 //    if (tankMap.contains(thisTank))
 //      Some(quadTree.retrieve(tankMap(thisTank)).filter(_.isInstanceOf[Tank]).map(_.asInstanceOf[Tank]))
