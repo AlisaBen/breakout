@@ -3,7 +3,7 @@ package com.neo.sk.breakout.core.control
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.typed.ActorRef
-import com.neo.sk.breakout.core.RoomActor
+import com.neo.sk.breakout.core.{RoomActor, UserActor}
 import com.neo.sk.breakout.shared.`object`.{Ball, Brick, Racket}
 import com.neo.sk.breakout.shared.config.GameConfig
 import com.neo.sk.breakout.shared.game.GameContainer
@@ -12,6 +12,7 @@ import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import javax.xml.ws.Dispatch
 import org.slf4j.Logger
 
+import scala.collection.mutable
 import scala.util.Random
 
 /**
@@ -30,6 +31,7 @@ import scala.util.Random
 case class GameContainerServerImpl(
                                     config: GameConfig,
                                     log:Logger,
+                                    roomActorRef:ActorRef[RoomActor.Command],
                                     dispatch: BreakoutGameEvent.WsMsgServer => Unit,
                                     dispatchTo: (String, BreakoutGameEvent.WsMsgServer) => Unit
                                   ) extends GameContainer {
@@ -70,9 +72,9 @@ case class GameContainerServerImpl(
     }
   }
 
-  def generateBall(position:Point,brickId:Int) = {
+  def generateBall(position:Point,racketId:Int) = {
     val ballId = ballIdGenerator.getAndIncrement()
-    val ball = Ball(config,position,0,config.ballSpeed,ballId,brickId)
+    val ball = Ball(config,position,0,config.ballSpeed,ballId,racketId)
     val objects = quadTree.retrieveFilter(ball).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
     if(ball.isIntersectsObject(objects)){
       log.debug(s"拍子位置错误")
@@ -106,9 +108,37 @@ case class GameContainerServerImpl(
     clearEventWhenUpdate()
   }
 
-  def generateRacketAndBall(nameA:String,nameB:String): Unit = {
-
-
+  def generateRacketAndBall(nameA:String,nameB:String,playerMap:mutable.HashMap[String,ActorRef[UserActor.Command]]): Unit = {
+    val racketAOpt = generateRacket(Point(config.boundary.x,config.boundary.y - 10),nameA)
+    val racketBOpt = generateRacket(Point(config.boundary.x,10),nameB)
+    racketAOpt.foreach{racketA =>
+      generateBall(Point(config.boundary.x,config.boundary.y - 10 - 10),racketA.racketId)
+        .foreach{ball =>
+          val event = BreakoutGameEvent.UserJoinRoom(nameA,racketA.getRacketState(),ball.getBallState(),systemFrame)
+          dispatch(event)
+          addGameEvent(event)
+          racketMap.put(racketA.racketId,racketA)
+          quadTree.insert(racketA)
+          racketHistoryMap.put(racketA.racketId,racketA.name)
+          ballMap.put(ball.bId,ball)
+          quadTree.insert(ball)
+          playerMap(nameA) ! UserActor.JoinRoomSuccess(racketA,config.getGameConfigImpl(),roomActorRef)
+        }
+    }
+    racketBOpt.foreach{racketB =>
+      generateBall(Point(config.boundary.x,config.boundary.y - 10 - 10),racketB.racketId)
+        .foreach{ball =>
+          val event = BreakoutGameEvent.UserJoinRoom(nameB,racketB.getRacketState(),ball.getBallState(),systemFrame)
+          dispatch(event)
+          addGameEvent(event)
+          racketMap.put(racketB.racketId,racketB)
+          quadTree.insert(racketB)
+          racketHistoryMap.put(racketB.racketId,racketB.name)
+          ballMap.put(ball.bId,ball)
+          quadTree.insert(ball)
+          playerMap(nameB) ! UserActor.JoinRoomSuccess(racketB,config.getGameConfigImpl(),roomActorRef)
+        }
+    }
   }
 
   def getGameContainerState(frameOnly:Boolean = false): BreakoutGameEvent.GameContainerAllState = {

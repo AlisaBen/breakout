@@ -49,7 +49,6 @@ object BreakoutGameEvent {
 
   final case class StartGame(roomId:Option[Long]) extends WsMsgFront
   final case class PlayerInfo(
-                             userId:String,
                              racketId:Int,//0-1 boolean?
                              name:String
                              )

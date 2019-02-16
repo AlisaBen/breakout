@@ -27,6 +27,7 @@ object RoomManager {
   case class ChooseModel(name:String,model:Int,userMap:mutable.HashMap[String,ActorRef[UserActor.Command]]) extends Command
 
   case class WaitingTimeOut(name:String,model:Int) extends Command
+  case class LeftRoom[U](actorRef:ActorRef[U]) extends Command
 
 
   def create(): Behavior[Command] = {
@@ -63,6 +64,10 @@ object RoomManager {
           }else{
             waithingToMatch.put(model,List(name))
           }
+          Behaviors.same
+
+        case LeftRoom(actorRef) =>
+          ctx.unwatch(actorRef)
           Behaviors.same
 
         case WaitingTimeOut(name,model) =>

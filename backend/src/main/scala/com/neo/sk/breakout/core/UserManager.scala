@@ -36,12 +36,13 @@ object UserManager {
 
   private val userMap:mutable.HashMap[String, ActorRef[UserActor.Command]] = mutable.HashMap[String, ActorRef[UserActor.Command]]()
 
-  def create(): Behavior[Command] = {
+  def create(name:String): Behavior[Command] = {
     log.debug(s"UserManager start...")
     Behaviors.setup[Command] {
       ctx =>
         Behaviors.withTimers[Command] {
           implicit timer =>
+            implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
             val uidGenerator = new AtomicLong(1L)
 //            idle(uidGenerator)
             Behaviors.same
@@ -49,7 +50,7 @@ object UserManager {
     }
   }
 
-  def idle()(
+  def idle(name:String)(
     implicit stashBuffer:StashBuffer[Command],
     sendBuffer:MiddleBufferInJvm,
     timer:TimerScheduler[Command]

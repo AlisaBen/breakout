@@ -36,6 +36,7 @@ object RoomActor {
   case object BeginGame extends Command
 
   case object GameLoop extends Command
+  case class WebSocketMsg(uid: String, tankId: Int, req: BreakoutGameEvent.UserActionEvent) extends Command with RoomManager.Command
 
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
 
@@ -47,7 +48,13 @@ object RoomActor {
         implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
         Behaviors.withTimers[Command]{implicit timer =>
           implicit val sendBuffer = new MiddleBufferInJvm(81920)
-          val gameContainer = GameContainerServerImpl(AppSettings.breakoutGameConfig,log, dispatch(playerMap), dispatchTo(playerMap))
+          val gameContainer = GameContainerServerImpl(
+            AppSettings.breakoutGameConfig,
+            log,
+            ctx.self,
+            dispatch(playerMap),
+            dispatchTo(playerMap)
+          )
 //          val map = mutable.HashMap[String,UserActor.Command]()
           timer.startPeriodicTimer(GameLoopKey, GameLoop, (gameContainer.config.frameDuration / gameContainer.config.playRate).millis)
           idle(nameA,nameB,playerMap,gameContainer,0)
@@ -71,7 +78,7 @@ object RoomActor {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match{
         case BeginGame =>
-          gameContainer.generateRacketAndBall(nameA,nameB)
+          gameContainer.generateRacketAndBall(nameA,nameB,subscribesMap)
           val state = gameContainer.getGameContainerState()
           dispatch(subscribesMap)(BreakoutGameEvent.SyncGameAllState(state))
           Behaviors.same
