@@ -48,7 +48,7 @@ trait GameContainer extends KillInformation{
 //
 //  val maxFollowFrame=math.max(math.max(config.shotgunDuration,config.initInvincibleDuration),config.fillBulletDuration)
 
-  var racketId = -1
+//  var racketId = -1
   var systemFrame:Long = 0L //系统帧数
 
   val racketMap = mutable.HashMap[Int,Racket]() //tankId -> Tank

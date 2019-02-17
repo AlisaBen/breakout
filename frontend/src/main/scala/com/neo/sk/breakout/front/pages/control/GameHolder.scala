@@ -174,10 +174,10 @@ abstract class GameHolder(name:String)  extends NetworkInfo  {
 
       case GameState.stop =>
         dom.document.getElementById("input_mask_id").asInstanceOf[dom.html.Div].focus()
-        if(tickCount % rankCycle == 1){
+//        if(tickCount % rankCycle == 1){
 //          gameContainerOpt.foreach(_.updateRanks())
 //          gameContainerOpt.foreach(t => t.rankUpdated = true)
-        }
+//        }
         gameContainerOpt.foreach{r =>
           r.update()
 //          if(!r.isKillerAlive(r.getCurTankId)){
@@ -187,21 +187,16 @@ abstract class GameHolder(name:String)  extends NetworkInfo  {
         }
         logicFrameTime = System.currentTimeMillis()
         ping()
-        tickCount += 1
+//        tickCount += 1
 
 
       case _ => println(s"state=$gameState failed")
     }
   }
 
-//  //  private def drawGame(offsetTime: Long) = {
-//  //    gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency, dateSize))
   private def drawGame(offsetTime: Long,supportLiveLimit:Boolean = false) = {
     gameContainerOpt.foreach(_.drawGame(offsetTime, getNetworkLatency,dataSizeList,supportLiveLimit))
   }
-
-//
-  //  protected def drawGameRestart()
 
   protected def wsConnectSuccess(e: Event) = {
     println(s"连接服务器成功")

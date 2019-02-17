@@ -35,6 +35,7 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
   private var eKeyBoardState4AddBlood = true
   private val preExecuteFrameOffset = com.neo.sk.breakout.shared.model.Constants.PreExecuteFrameOffset
 //  private val startGameModal = new StartGameModal(gameStateVar, start, name)
+  private var lastTouchMoveFrame = 0L
 
   private val watchKeys = Set(
     KeyCode.Left,
@@ -66,8 +67,8 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
 
   def start(name: String, roomIdOpt: Option[Long]): Unit = {
     canvas.getCanvas.focus()
-    dom.window.cancelAnimationFrame(nextFrame)
-    Shortcut.cancelSchedule(timer)
+//    dom.window.cancelAnimationFrame(nextFrame)
+//    Shortcut.cancelSchedule(timer)
     if (firstCome) {
       firstCome = false
       addUserActionListenEvent()
@@ -97,17 +98,48 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
       JsFunc.alert("网络连接失败，请重新刷新")
     }
   }
+//  var touchFlag = 0//0--没有触摸，1--touchstart,2--touchmove,3--touchend
+
+  var touchStartX :Double= 0
+  var touchMoveEndX :Double= 0
 
   private def handleTouchStart(e:TouchEvent) = {
+    touchStartX = e.touches.item(0).clientX
+    //fixme 需要确定这个是不是需要
+    e.preventDefault()
+  }
 
+  object MoveSpace{
+    val LEFT = 1
+    val RIGHT = 2
   }
 
   private def handleTouchMove(e:TouchEvent) = {
+    touchMoveEndX = e.changedTouches.item(0).clientX
+    if(gameState == GameState.play && gameContainerOpt.nonEmpty && lastTouchMoveFrame != gameContainerOpt.get.systemFrame){
+      if(touchMoveEndX - touchStartX > 0){
+        val preExecuteAction = BreakoutGameEvent.UserTouchMove(gameContainerOpt.get.racketId,
+          gameContainerOpt.get.systemFrame + preExecuteFrameOffset,MoveSpace.RIGHT.toByte,getActionSerialNum)
+        lastTouchMoveFrame = gameContainerOpt.get.systemFrame
+        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+        sendMsg2Server(preExecuteAction)
+      }else if(touchMoveEndX - touchStartX < 0){
+        val preExecuteAction = BreakoutGameEvent.UserTouchMove(gameContainerOpt.get.racketId,
+          gameContainerOpt.get.systemFrame + preExecuteFrameOffset,MoveSpace.LEFT.toByte,getActionSerialNum)
+        lastTouchMoveFrame = gameContainerOpt.get.systemFrame
+        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+        sendMsg2Server(preExecuteAction)
+      }
+    }
+    touchStartX = touchMoveEndX
+    e.preventDefault()
 
   }
 
   private def handleTouchEnd(e:TouchEvent) = {
-
+    touchStartX = 0
+    touchMoveEndX = 0
+    e.preventDefault()
   }
 
   private def addUserActionListenEvent(): Unit = {
@@ -133,81 +165,42 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
         println(s"玩家信息${e}")
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)
         MatchPlayer.changeModalState
-        //        audioForBgm.play()
         /**
           * 更新游戏数据
           **/
-//        drawFrame: MiddleFrame,
-//    ctx: MiddleContext,
-//    override val config: GameConfig,
-//    myRacketId: Int,
-//    myName: String,
-//    var canvasSize: Point,
-//    var canvasUnit: Int,
-//    setKillCallback: Racket => Unit
         gameContainerOpt = Some(GameContainerClientImpl(drawFrame, ctx, e.config, e.players.racketId, e.players.name, canvasBoundary, canvasUnit, setKillCallback))
-//        gameContainerOpt.get(e.tankId)
-      //        gameContainerOpt.foreach(e =>)
-
-//      case e: BreakoutGameEvent.TankFollowEventSnap =>
-//        println(s"game TankFollowEventSnap =${e} systemFrame=${gameContainerOpt.get.systemFrame} tankId=${gameContainerOpt.get.myTankId} ")
-//        gameContainerOpt.foreach(_.receiveTankFollowEventSnap(e))
+        gameContainerOpt.get.changeRacketId(e.players.racketId)
 
       case e: BreakoutGameEvent.GameOver =>
-
-        /**
-          * 死亡重玩
-          **/
-//        gameContainerOpt.foreach(_.updateDamageInfo(e.killTankNum, e.name, e.damageStatistics))
-        //        dom.window.cancelAnimationFrame(nextFrame)
-        //        gameContainerOpt.foreach(_.drawGameStop())
-//        if ((Constants.supportLiveLimit && !e.hasLife) || (!Constants.supportLiveLimit)) {
-          setGameState(GameState.stop)
-//          gameContainerOpt.foreach(_.changeTankId(e.tankId))
-          //          audioForBgm.pause()
-          //          audioForDead.play()
-//        }
+        setGameState(GameState.stop)
 
       case e: BreakoutGameEvent.SyncGameAllState =>
         //fixme
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
-
-      case e: BreakoutGameEvent.SyncGameAllState =>
-        gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
-        dom.window.cancelAnimationFrame(nextFrame)
-        nextFrame = dom.window.requestAnimationFrame(gameRender())
-        setGameState(GameState.play)
+        if(firstCome){
+          dom.window.cancelAnimationFrame(nextFrame)
+          nextFrame = dom.window.requestAnimationFrame(gameRender())
+          setGameState(GameState.play)
+        }
 
       case e: BreakoutGameEvent.UserActionEvent =>
         e match {
           case e:BreakoutGameEvent.UserTouchMove=>
-//            if(gameContainerOpt.nonEmpty){
-//              if(gameContainerOpt.get.myTankId!=e.tankId){
-//                gameContainerOpt.foreach(_.receiveUserEvent(e))
-//              }
-//            }
+            //fixme
+            if(gameContainerOpt.nonEmpty){
+              if(gameContainerOpt.get.myRacketId != e.racketId){
+                gameContainerOpt.foreach(_.receiveUserEvent(e))
+              }
+            }
           case _=>
             gameContainerOpt.foreach(_.receiveUserEvent(e))
         }
 
-
       case e: BreakoutGameEvent.GameEvent =>
         gameContainerOpt.foreach(_.receiveGameEvent(e))
-//        e match {
-//          case e: BreakoutGameEvent.UserRelive =>
-//            if (e.userId == gameContainerOpt.get.myId) {
-//              dom.window.cancelAnimationFrame(nextFrame)
-//              nextFrame = dom.window.requestAnimationFrame(gameRender())
-//            }
-//          case _ =>
-//        }
 
       case e: BreakoutGameEvent.PingPackage =>
         receivePingPackage(e)
-
-//      case BreakoutGameEvent.RebuildWebSocket =>
-//        gameContainerOpt.foreach(_.drawReplayMsg("存在异地登录。。"))
-//        closeHolder
 
       case _ => println(s"unknow msg={sss}")
     }

@@ -40,11 +40,11 @@ case class GameContainerClientImpl(
   protected var damageNum: Int = 0
   protected var killerName: String = ""
 
-  var myId: Int = myRacketId
+  var racketId: Int = myRacketId
   protected val myRacketMoveAction = mutable.HashMap[Long,List[UserActionEvent]]()
-//
-//  def changeTankId(id: Int) = tankId = id
-//
+
+  def changeRacketId(id: Int) = racketId = id
+
 //  def updateDamageInfo(myKillNum: Int, name: String, myDamageNum: Int): Unit = {
 //    killerList = killerList :+ name
 //    killerName = name
@@ -266,10 +266,10 @@ case class GameContainerClientImpl(
 //    environmentMap.clear()
 
     gameContainerAllState.rackets.foreach { t =>
-      val tank = new Racket(config, t)
-      quadTree.insert(tank)
-      racketMap.put(t.racketId, tank)
-      racketHistoryMap.put(t.racketId,tank.name)
+      val racket = new Racket(config, t)
+      quadTree.insert(racket)
+      racketMap.put(t.racketId, racket)
+      racketHistoryMap.put(t.racketId,racket.name)
     }
     gameContainerAllState.obstacles.foreach { o =>
       val obstacle = new Brick(config, o)
@@ -370,7 +370,17 @@ case class GameContainerClientImpl(
 //  }
 
   def receiveGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
+    //fixme
     gameContainerAllStateOpt = Some(gameContainerAllState)
+    if(gameContainerAllState.f > systemFrame){
+      gameContainerAllStateOpt = Some(gameContainerAllState)
+    }else if(gameContainerAllState.f == systemFrame){
+      info(s"收到同步数据，立即同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerAllState.f}")
+      gameContainerAllStateOpt = None
+      handleGameContainerAllState(gameContainerAllState)
+    }else{
+      info(s"收到同步数据，但未同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerAllState.f}")
+    }
  }
 //
 //  def receiveGameContainerState(gameContainerState: GameContainerState) = {
