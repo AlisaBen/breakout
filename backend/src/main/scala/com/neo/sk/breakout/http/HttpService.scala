@@ -86,7 +86,7 @@ trait HttpService
 
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath){
-    resourceRoutes ~ platEnterRoute ~ account ~ gameHall
+    resourceRoutes ~ platEnterRoute ~ account ~ gameHall ~
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
