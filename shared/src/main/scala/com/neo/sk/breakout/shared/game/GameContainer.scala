@@ -92,7 +92,7 @@ trait GameContainer extends KillInformation{
     quadTree.insert(ball)
   }
 
-  //服务器和客户端执行的逻辑不一样
+  //fixme 重写服务器和客户端执行的逻辑不一样
   protected implicit def racketState2Impl(racket:RacketState):Racket = new Racket(config,racket)
 
   protected implicit def ballState2Impl(ball:BallState):Ball = new Ball(config,ball)

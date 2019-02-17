@@ -462,28 +462,28 @@ case class GameContainerClientImpl(
       ctx.setLineJoin("round")
       racketMap.get(racketId) match {
         case Some(racket) =>
-//          val offset = canvasSize / 2 - racket.asInstanceOf[Racket].getPosition4Animation(boundary, quadTree, offsetTime)
-//          drawBackground(offset)
-//          drawObstacles(offset, Point(w, h))
+          val offset = canvasSize / 2 - racket.asInstanceOf[Racket].getPosition4Animation(boundary, quadTree, offsetTime)
+          drawBackground(offset)
+          drawObstacles(offset, Point(w, h))
 //          drawEnvironment(offset, Point(w, h))
 //          drawProps(offset, Point(w, h))
-//          drawBullet(offset, offsetTime, Point(w, h))
-//          drawTank(offset, offsetTime, Point(w, h))
+          drawBall(offset, offsetTime, Point(w, h))
+          drawRackets(offset, offsetTime, Point(w, h))
 //          drawObstacleBloodSlider(offset)
 //          drawMyTankInfo(tank.asInstanceOf[TankClientImpl], supportLiveLimit)
 //          drawMinimap(tank)
 //          drawRank(supportLiveLimit,tank.tankId,tank.name)
-//          renderFps(networkLatency, dataSizeList)
+          renderFps(networkLatency, dataSizeList)
 //          drawKillInformation()
 //          drawRoomNumber()
 //          drawCurMedicalNum(tank.asInstanceOf[TankClientImpl])
 //
-//          if (tank.canvasFrame >= 1) {
-//            tank.canvasFrame += 1
-//          }
+          if (racket.canvasFrame >= 1) {
+            racket.canvasFrame += 1
+          }
           val endTime = System.currentTimeMillis()
-        //          renderTimes += 1
-        //          renderTime += endTime - startTime
+//                  renderTimes += 1
+//                  renderTime += endTime - startTime
 
 
         case None =>

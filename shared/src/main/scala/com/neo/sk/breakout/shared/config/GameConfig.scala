@@ -83,6 +83,8 @@ final case class BrickParameters(
                                 )
 
 final case class RacketParameters(
+                                 racketWidth:Double,
+                                 racketHeight:Double,
                                  speed:Point
                                  )
 
@@ -173,6 +175,8 @@ trait GameConfig{
 //  def initInvincibleDuration:Int
 //  def getTankReliveDuration:Int
   def getRacketSpeedByType:Point
+  def getRacketWidth:Double
+  def getRacketHeight:Double
 //  def getTankAccByLevel(l: Byte): Int
 //  def getTankDecByLevel(l: Byte): Int
 //  def getTankSpeedMaxLevel():Byte
@@ -253,6 +257,8 @@ case class GameConfigImpl(
 //  def initInvincibleDuration = tankParameters.initInvincibleDuration
 //  def getTankReliveDuration = tankParameters.tankReliveDuration
   def getRacketSpeedByType = racketParameters.speed
+  def getRacketWidth = racketParameters.racketWidth
+  def getRacketHeight = racketParameters.racketHeight
 //  def getMoveDistanceByFrame = getRacketSpeedByType * frameDuration / 1000
 //  def getTankSpeedMaxLevel():Byte = tankParameters.tankSpeed.speeds.size.toByte
 //

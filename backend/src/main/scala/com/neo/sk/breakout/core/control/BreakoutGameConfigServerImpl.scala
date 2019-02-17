@@ -42,8 +42,12 @@ case class BreakoutGameConfigServerImpl(
     .requiring(_ >= 0,"bullet radius size has 3 type")
 //    .asScala.toList.map(_.toFloat)
 
-private[this] val racketSpeed = config.getInt("tankGame.tank.tankSpeedLevel")
+  private[this] val racketSpeed = config.getInt("tankGame.tank.tankSpeedLevel")
   .requiring(_ > 0,"minimum supported tank speed size is 3")
+  private[this] val racketWidth = config.getInt("tankGame.tank.racketWidth")
+    .requiring(_ > 0,"minimum supported tank speed size is 3")
+  private[this] val racketHeight = config.getInt("tankGame.tank.racketHeight")
+    .requiring(_ > 0,"minimum supported tank speed size is 3")
 //  .asScala.map(_.toInt).toList
 
 //  private[this] val maxFlyFrameData = config.getInt("tankGame.bullet.maxFlyFrame")
@@ -71,7 +75,7 @@ private[this] val racketSpeed = config.getInt("tankGame.tank.tankSpeedLevel")
     brickParameters = BrickParameters(brickHorizontalNumData,brickVerticalNumData,brickHeightData),
   )
 
-  private val racketParameters = RacketParameters(Point(racketSpeed,0))
+  private val racketParameters = RacketParameters(racketWidth,racketHeight,Point(racketSpeed,0))
 
   private val breakoutGameConfig = GameConfigImpl(gridBoundary,gameFameDuration,gamePlayRate,bulletParameters,obstacleParameters,racketParameters)
 
@@ -99,6 +103,10 @@ private[this] val racketSpeed = config.getInt("tankGame.tank.tankSpeedLevel")
   def brickHeight:Double = breakoutGameConfig.obstacleParameters.brickParameters.brickHeight
 
   def getRacketSpeedByType:Point = breakoutGameConfig.racketParameters.speed
+
+  override def getRacketHeight: Double = breakoutGameConfig.racketParameters.racketHeight
+
+  override def getRacketWidth: Double = breakoutGameConfig.racketParameters.racketWidth
 
 //  def getMoveDistanceByFrame:Point
 

@@ -19,7 +19,7 @@ case class Racket(
                    config: GameConfig,
                    var position:Point,
                    name:String
-                 ) extends RectangleObjectOfGame{
+                 ) extends RectangleObjectOfGame with ObstacleBall {
   def this(config:GameConfig,racketState:RacketState) = {
     this(racketState.racketId,racketState.direction,racketState.isMove,config,racketState.position,racketState.name)
   }
@@ -28,6 +28,7 @@ case class Racket(
   override protected val height: Float = config.obstacleWidth
   override protected val width: Float = config.obstacleWidth
   override protected val collisionOffset: Float = config.obstacleWO
+  var canvasFrame = 0
 
   def getRacketState():RacketState = RacketState(racketId,name,position,direction,isMove)
 
@@ -55,5 +56,46 @@ case class Racket(
     }
 
   }
+
+  def canMove(boundary:Point, quadTree:QuadTree, canvasFrameLeft:Int)(implicit gameConfig: GameConfig):Option[Point] = {
+      if(isMove){
+        var moveDistance = gameConfig.getMoveDistanceByFrame.rotate(direction)
+        val horizontalDistance = moveDistance.copy(y = 0)
+        val verticalDistance = moveDistance.copy(x = 0)
+
+        val originPosition = this.position
+
+        List(horizontalDistance,verticalDistance).foreach{ d =>
+          if(d.x != 0 || d.y != 0){
+            val pos = this.position
+            this.position = this.position + d
+            val movedRec = Rectangle(this.position-Point(config.getRacketWidth.toFloat / 2,config.getRacketHeight.toFloat / 2),
+              this.position+Point(config.getRacketWidth.toFloat / 2,config.getRacketHeight.toFloat / 2))
+            val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleBall])
+            if(!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0,0) && movedRec.downRight < boundary){
+              quadTree.updateObject(this)
+            }else{
+              this.position = pos
+              moveDistance -= d
+            }
+          }
+        }
+        this.position = originPosition
+        Some(moveDistance)
+      }else{
+        None
+      }
+  }
+
+  def getPosition4Animation(boundary: Point, quadTree: QuadTree, offSetTime: Long): Point = {
+    val logicMoveDistanceOpt = this.canMove(boundary, quadTree, 4)(config)
+    if (logicMoveDistanceOpt.nonEmpty) {
+      if (canvasFrame <= 0 || canvasFrame >= 4) {
+        this.position + logicMoveDistanceOpt.get / config.frameDuration * offSetTime
+      } else position
+    } else position
+  }
+
+
 
 }

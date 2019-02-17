@@ -1,7 +1,9 @@
 package com.neo.sk.breakout.shared.game.view
 
 import com.neo.sk.breakout.shared.game.GameContainerClientImpl
+import com.neo.sk.breakout.shared.model.Constants.ObstacleType
 import com.neo.sk.breakout.shared.model.Point
+import com.neo.sk.breakout.shared.util.canvas.MiddleContext
 
 import scala.collection.mutable
 
@@ -25,50 +27,50 @@ trait BrickDrawUtil{ this:GameContainerClientImpl =>
 //  //todo  此处需要调研图片complete
 //  protected def obstacleImgComplete: Boolean = steelImg.isComplete && riverImg.isComplete
 //
-//  private def generateObstacleCacheCanvas(width: Float, height: Float, color: String): Any = {
-//    val cacheCanvas = drawFrame.createCanvas((width * canvasUnit).toInt, (height * canvasUnit).toInt)
-//    val ctxCache = cacheCanvas.getCtx
-//    drawObstacle(Point(width / 2, height / 2), width, height, 1, color, ctxCache)
-//    cacheCanvas.change2Image()
-//  }
-//
-//  private def drawObstacle(centerPosition:Point, width:Float, height:Float, bloodPercent:Float, color:String, context:MiddleContext = ctx):Unit = {
-//    context.setFill(color)
-//    context.setStrokeStyle(color)
-//    context.setLineWidth(2)
-//    context.beginPath()
-//    context.fillRec((centerPosition.x - width / 2) * canvasUnit, (centerPosition.y + height / 2 - bloodPercent * height) * canvasUnit,
-//      width * canvasUnit, bloodPercent * height * canvasUnit)
-//    context.closePath()
-//    context.beginPath()
-//    context.rect((centerPosition.x - width / 2) * canvasUnit, (centerPosition.y - height / 2) * canvasUnit,
-//      width * canvasUnit, height * canvasUnit
-//    )
-//    context.stroke()
-//    context.closePath()
-//    context.setLineWidth(1)
-//  }
-//
-//
-//  protected def drawObstacles(offset:Point,view:Point) = {
-//    obstacleMap.values.foreach{ obstacle =>
-//      if((obstacle.getPosition + offset).in(view,Point(obstacle.getWidth,obstacle.getHeight))) {
-//        val isAttacked: Boolean = obstacleAttackedAnimationMap.get(obstacle.oId).nonEmpty
-//        val color = (obstacle.obstacleType, obstacleAttackedAnimationMap.get(obstacle.oId).nonEmpty) match {
+  private def generateObstacleCacheCanvas(width: Float, height: Float, color: String): Any = {
+    val cacheCanvas = drawFrame.createCanvas((width * canvasUnit).toInt, (height * canvasUnit).toInt)
+    val ctxCache = cacheCanvas.getCtx
+    drawObstacle(Point(width / 2, height / 2), width, height, 1, color, ctxCache)
+    cacheCanvas.change2Image()
+  }
+
+  private def drawObstacle(centerPosition:Point, width:Float, height:Float, bloodPercent:Float, color:String, context:MiddleContext = ctx):Unit = {
+    context.setFill(color)
+    context.setStrokeStyle(color)
+    context.setLineWidth(2)
+    context.beginPath()
+    context.fillRec((centerPosition.x - width / 2) * canvasUnit, (centerPosition.y + height / 2 - bloodPercent * height) * canvasUnit,
+      width * canvasUnit, bloodPercent * height * canvasUnit)
+    context.closePath()
+    context.beginPath()
+    context.rect((centerPosition.x - width / 2) * canvasUnit, (centerPosition.y - height / 2) * canvasUnit,
+      width * canvasUnit, height * canvasUnit
+    )
+    context.stroke()
+    context.closePath()
+    context.setLineWidth(1)
+  }
+
+
+  protected def drawObstacles(offset:Point,view:Point) = {
+    obstacleMap.values.foreach{ obstacle =>
+      if((obstacle.getPosition + offset).in(view,Point(obstacle.getWidth,obstacle.getHeight))) {
+        val isAttacked: Boolean = obstacleAttackedAnimationMap.get(obstacle.oId).nonEmpty
+        val color = (obstacle.obstacleType, obstacleAttackedAnimationMap.get(obstacle.oId).nonEmpty) match {
 //          case (ObstacleType.airDropBox, true) =>
 //            if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
 //            else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
 //            "rgba(99, 255, 255, 0.5)"
 //          case (ObstacleType.airDropBox, false) => "rgba(0, 255, 255, 1)"
-//          case (ObstacleType.brick, true) =>
-//            if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
-//            else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
-//            "rgba(139, 105, 105, 0.5)"
-//          case (ObstacleType.brick, false) => "rgba(139, 105, 105, 1)"
-//          case _ =>
-//            println(s"the obstacle=${obstacle} has not color")
-//            "rgba(139, 105, 105, 1)"
-//        }
+          case (ObstacleType.brick, true) =>
+            if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
+            else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
+            "rgba(139, 105, 105, 0.5)"
+          case (ObstacleType.brick, false) => "rgba(139, 105, 105, 1)"
+          case _ =>
+            println(s"the obstacle=${obstacle} has not color")
+            "rgba(139, 105, 105, 1)"
+        }
 //        if(obstacle.obstacleType == ObstacleType.airDropBox){
 //          val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
 //          if (isAttacked){
@@ -82,19 +84,19 @@ trait BrickDrawUtil{ this:GameContainerClientImpl =>
 //          }
 //        }else{
 //          if (obstacle.bloodPercent() > 0.9999999) {
-//            val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
-//            val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false), generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
-//            ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
+            val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
+            val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false), generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
+            ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
 //          } else {
 //            drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color)
 //          }
 //        }
-//
-//
-//      }
-//    }
-//  }
-//
+
+
+      }
+    }
+  }
+
 //
 //  def drawObstacleBloodSlider(offset:Point) = {
 //    obstacleMap.values.filter(_.isInstanceOf[AirDropBox]).foreach{ obstacle =>
