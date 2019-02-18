@@ -91,6 +91,10 @@ object RoomActor {
           }
           idle(nameA,nameB,subscribesMap,gameContainer,tickCount + 1)
 
+        case WebSocketMsg(uid, tankId, req) =>
+          gameContainer.receiveUserAction(req)
+          Behaviors.same
+
         case ChildDead(name,childRef) =>
           ctx.unwatch(childRef)
           Behaviors.same

@@ -54,15 +54,18 @@ object RoomManager {
         case ChooseModel(name,model,userMap) =>
           //fixme 优先考虑用户加入的时间
           if(waithingToMatch.contains(model)){
-            val enemy = waithingToMatch(model)((new util.Random).nextInt(waithingToMatch(model).length))
-            if(waithingToMatch(model).filterNot(_ == enemy).isEmpty){
-              waithingToMatch.-=(model)
+            if(waithingToMatch(model).contains(name)){
+              log.debug(s"${ctx.self.path} 正在匹配请耐心等待...")
             }else{
-              waithingToMatch.put(model,waithingToMatch(model).filterNot(t => t == enemy || t == name))
-
+              val enemy = waithingToMatch(model)((new util.Random).nextInt(waithingToMatch(model).length))
+              if(waithingToMatch(model).filterNot(_ == enemy).isEmpty){
+                waithingToMatch.-=(model)
+              }else{
+                waithingToMatch.put(model,waithingToMatch(model).filterNot(t => t == enemy || t == name))
+              }
+              getRoomActor(name,enemy,userMap.filter(t => t._1 == name || t._1 == enemy),ctx) ! RoomActor.BeginGame
             }
 
-            getRoomActor(name,enemy,userMap.filter(t => t._1 == name || t._1 == enemy),ctx) ! RoomActor.BeginGame
           }else{
             waithingToMatch.put(model,List(name))
           }

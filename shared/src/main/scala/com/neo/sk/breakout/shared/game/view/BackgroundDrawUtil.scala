@@ -91,35 +91,37 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 //
   protected def drawBackground(offset:Point) = {
     clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, ctx)
-    val boundStart = Point(canvasBoundary.x/2, canvasBoundary.y/2)
-    val boundEnd = Point(canvasBoundary.x/2 + boundary.x, canvasBoundary.y/2 + boundary.y)
-    val canvasStart = Point(-offset.x + canvasBoundary.x/2, -offset.y + canvasBoundary.y/2)
-    val canvasEnd = Point(-offset.x + canvasBoundary.x/2 * 3, -offset.y + canvasBoundary.y/2 * 3)
-    val start = Point(math.max(boundStart.x, canvasStart.x), math.max(boundStart.y, canvasStart.y))
-    val end = Point(math.min(boundEnd.x, canvasEnd.x), math.min(boundEnd.y, canvasEnd.y))
-    val width = end.x - start.x
-    val height = end.y - start.y
-    if(canvasStart.x < boundStart.x && canvasStart.y > boundStart.y){
-      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, 0))
-    }
-    else if(canvasStart.x > boundStart.x && canvasStart.y < boundStart.y){
-      clearScreen("#E8E8E8", 1, width, height, ctx, Point(0, canvasBoundary.y - height))
-    }
-    else if(canvasStart.x < boundStart.x && canvasStart.y < boundStart.y){
-      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, canvasBoundary.y - height))
-    }
-    else{
-      clearScreen("#E8E8E8", 1, width, height, ctx)
-    }
-    ctx.setLineWidth(3)
-    ctx.setStrokeStyle("rgba(0,0,0,0.05)")
+//    val boundStart = Point(canvasBoundary.x/2, canvasBoundary.y/2)
+//    val boundEnd = Point(canvasBoundary.x/2 + boundary.x, canvasBoundary.y/2 + boundary.y)
+//    val canvasStart = Point(-offset.x + canvasBoundary.x/2, -offset.y + canvasBoundary.y/2)
+//    val canvasEnd = Point(-offset.x + canvasBoundary.x/2 * 3, -offset.y + canvasBoundary.y/2 * 3)
+//    val start = Point(math.max(boundStart.x, canvasStart.x), math.max(boundStart.y, canvasStart.y))
+//    val end = Point(math.min(boundEnd.x, canvasEnd.x), math.min(boundEnd.y, canvasEnd.y))
+//    val width = end.x - start.x
+//    val height = end.y - start.y
+//    if(canvasStart.x < boundStart.x && canvasStart.y > boundStart.y){
+//      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, 0))
+//    }
+//    else if(canvasStart.x > boundStart.x && canvasStart.y < boundStart.y){
+//      clearScreen("#E8E8E8", 1, width, height, ctx, Point(0, canvasBoundary.y - height))
+//    }
+//    else if(canvasStart.x < boundStart.x && canvasStart.y < boundStart.y){
+//      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, canvasBoundary.y - height))
+//    }
+//    else{
+//      clearScreen("#E8E8E8", 1, width, height, ctx)
+//    }
+//    ctx.setLineWidth(3)
+//    ctx.setStrokeStyle("rgba(0,0,0,0.05)")
+    drawLine(Point(0,canvasBoundary.y / 2),Point(canvasBoundary.x, canvasBoundary.y / 2),ctx)
 
-    for(i <- (64 - canvasStart.x % 64) to canvasBoundary.x by 64f){
-      drawLine(Point(i,0), Point(i, canvasBoundary.y), ctx)
-    }
-    for(i <- (64 - canvasStart.y % 64) to canvasBoundary.y by 64f){
-      drawLine(Point(0, i), Point(canvasBoundary.x, i), ctx)
-    }
+
+//    for(i <- (64 - canvasStart.x % 64) to canvasBoundary.x by 64f){
+//      drawLine(Point(i,0), Point(i, canvasBoundary.y), ctx)
+//    }
+//    for(i <- (64 - canvasStart.y % 64) to canvasBoundary.y by 64f){
+//      drawLine(Point(0, i), Point(canvasBoundary.x, i), ctx)
+//    }
 
   }
 

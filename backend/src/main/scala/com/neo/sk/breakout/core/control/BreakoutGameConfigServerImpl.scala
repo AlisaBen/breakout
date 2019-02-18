@@ -75,14 +75,18 @@ case class BreakoutGameConfigServerImpl(
     brickParameters = BrickParameters(brickHorizontalNumData,brickVerticalNumData,brickHeightData),
   )
 
+  val rankHeight = config.getDouble("breakoutGame.rankHeight")
+    .requiring(_ >= 0,"minimum supported is 0").toFloat
+
   private val racketParameters = RacketParameters(racketWidth,racketHeight,Point(racketSpeed,0))
 
-  private val breakoutGameConfig = GameConfigImpl(gridBoundary,gameFameDuration,gamePlayRate,ballParameters,obstacleParameters,racketParameters)
+  private val breakoutGameConfig = GameConfigImpl(gridBoundary,gameFameDuration,gamePlayRate,rankHeight,ballParameters,obstacleParameters,racketParameters)
 
 
   def getBreakoutGameConfigImpl(): GameConfigImpl = breakoutGameConfig
   def getGameConfigImpl(): GameConfigImpl = breakoutGameConfig
 
+  override def getRankHeight: Float = breakoutGameConfig.rankHeight
   /***/
   def frameDuration:Long = breakoutGameConfig.frameDuration
   def playRate:Int = breakoutGameConfig.playRate

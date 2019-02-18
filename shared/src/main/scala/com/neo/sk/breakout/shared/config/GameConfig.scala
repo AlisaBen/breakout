@@ -177,6 +177,8 @@ trait GameConfig{
   def getRacketSpeedByType:Point
   def getRacketWidth:Float
   def getRacketHeight:Float
+
+  def getRankHeight:Float
   //  def getTankAccByLevel(l: Byte): Int
   //  def getTankDecByLevel(l: Byte): Int
   //  def getTankSpeedMaxLevel():Byte
@@ -198,6 +200,7 @@ case class GameConfigImpl(
                            gridBoundary: GridBoundary,
                            frameDuration:Long,
                            playRate: Int,
+                           rankHeight:Float,
                            ballParameters: BallParameters,
                            obstacleParameters: ObstacleParameters,
                            racketParameters: RacketParameters
@@ -259,6 +262,8 @@ case class GameConfigImpl(
   def getRacketSpeedByType = racketParameters.speed
   def getRacketWidth = racketParameters.racketWidth
   def getRacketHeight = racketParameters.racketHeight
+
+  override def getRankHeight: Float = rankHeight
   //  def getMoveDistanceByFrame = getRacketSpeedByType * frameDuration / 1000
   //  def getTankSpeedMaxLevel():Byte = tankParameters.tankSpeed.speeds.size.toByte
   //

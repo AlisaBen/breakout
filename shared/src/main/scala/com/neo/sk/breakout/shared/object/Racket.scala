@@ -25,8 +25,8 @@ case class Racket(
   }
 //  var position:Point = Point(config.boundary.x / 2)
   //todo racket height width
-  override protected val height: Float = config.obstacleWidth
-  override protected val width: Float = config.obstacleWidth
+  override protected val height: Float = config.getRacketHeight
+  override protected val width: Float = config.getRacketWidth
   override protected val collisionOffset: Float = config.obstacleWO
   var canvasFrame = 0
 

@@ -25,7 +25,7 @@ trait RacketDrawUtil {this:GameContainerClientImpl =>
 
   private def drawRacket(centerPosition:Point, width:Float, height:Float, bloodPercent:Float, color:String, context:MiddleContext = ctx):Unit = {
     context.setFill(color)
-    context.setStrokeStyle(color)
+    context.setStrokeStyle("#43CD80")
     context.setLineWidth(2)
     context.beginPath()
     context.fillRec((centerPosition.x - width / 2) * canvasUnit, (centerPosition.y + height / 2 - bloodPercent * height) * canvasUnit,
@@ -42,10 +42,11 @@ trait RacketDrawUtil {this:GameContainerClientImpl =>
 
   protected def drawRackets(offset:Point,offsetTime:Long,view:Point) = {
     racketMap.values.foreach{r =>
-      val p = r.getPosition4Animation(boundary,quadTree,offsetTime) + offset
-      if (p.in(view, Point(r.getWidth * 2, r.getHeight * 2))){
+//      val p = r.getPosition4Animation(boundary,quadTree,offsetTime) + offset
+      if (r.getPosition.in(view, Point(r.getWidth * 2, r.getHeight * 2))){
+        val position = r.getPosition + offset - Point(r.getWidth / 2, r.getHeight / 2)
         val cache = racketCanvasCacheMap.getOrElseUpdate(r.racketId.toByte, generateRacketCacheCanvas(r.getWidth, r.getHeight, "rgba(0, 255, 255, 1)"))
-        ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
+        ctx.drawImage(cache, position.x * canvasUnit, position.y * canvasUnit)
       }
     }
   }

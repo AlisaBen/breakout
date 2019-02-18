@@ -129,13 +129,16 @@ trait GameContainer extends KillInformation{
       * */
     //fixme
     actions.sortBy(t => (t.racketId,t.serialNum)).foreach{ action =>
-      val tankMoveSet = racketMoveAction.getOrElse(action.racketId,mutable.HashSet[Byte]())
+      val racketMoveSet = racketMoveAction.getOrElse(action.racketId,mutable.HashSet[Byte]())
       racketMap.get(action.racketId) match {
         case Some(racket) =>
           action match {
-            case a:UserTouchStart =>
             case a:UserTouchMove =>
+              racketMoveSet.add(a.touchMove)
+              racketMoveAction.put(a.racketId,racketMoveSet)
             case a:UserTouchEnd =>
+//              racketMoveSet
+
           }
         case None => info(s"tankId=${action.racketId} action=${action} is no valid,because the tank is not exist")
       }

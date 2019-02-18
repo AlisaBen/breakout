@@ -98,7 +98,7 @@ case class GameContainerServerImpl(
     (1 to config.brickVerticalNum).foreach{verticalIndex =>
       (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
         val x = (horizontalIndex - 1) * width + width / 2
-        val y = (verticalIndex - 1) * config.brickHeight +  config.brickHeight / 2 + config.boundary.y / 2
+        val y = (verticalIndex - 1) * config.brickHeight +  config.brickHeight / 2 + config.boundary.y / 2 + config.getRankHeight / 2
         val brickOpt= generateBrick(Point(x,y.toFloat))
         brickOpt match{
           case Some(brick) =>
@@ -114,7 +114,8 @@ case class GameContainerServerImpl(
     (1 to config.brickVerticalNum).foreach{verticalIndex =>
       (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
         val x = (horizontalIndex - 1) * width + width / 2
-        val y = config.boundary.y / 2 - ((verticalIndex - 1) * config.brickHeight +  config.brickHeight / 2)
+        config.getRankHeight
+        val y = config.boundary.y / 2 - config.getRankHeight / 2 - ((verticalIndex - 1) * config.brickHeight +  config.brickHeight / 2)
         val brickOpt= generateBrick(Point(x,y.toFloat))
         brickOpt match{
           case Some(brick) =>
@@ -132,11 +133,11 @@ case class GameContainerServerImpl(
   }
 
   def generateRacketAndBall(nameA:String,nameB:String,playerMap:mutable.HashMap[String,ActorRef[UserActor.Command]]): Unit = {
-    val racketAOpt = generateRacket(Point(config.boundary.x,(config.boundary.y - config.getRacketHeight / 2 - 3).toFloat),nameA)//自己
-    val racketBOpt = generateRacket(Point(config.boundary.x,(config.getRacketHeight / 2 + 3).toFloat),nameB)//对方
+    val racketAOpt = generateRacket(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3).toFloat),nameA)//自己
+    val racketBOpt = generateRacket(Point(config.boundary.x / 2 ,(config.getRacketHeight / 2 + 3).toFloat),nameB)//对方
     if(racketAOpt.nonEmpty && racketBOpt.nonEmpty){
       racketAOpt.foreach{racketA =>
-        generateBall(Point(config.boundary.x,(config.boundary.y - config.getRacketHeight / 2 - 3 - config.getRacketHeight / 2 - config.getBallRadius).toFloat),racketA.racketId)
+        generateBall(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3 - config.getRacketHeight / 2 - config.getBallRadius).toFloat),racketA.racketId)
           .foreach{ball =>
             val event = BreakoutGameEvent.UserJoinRoom(nameA,racketA.getRacketState(),ball.getBallState(),systemFrame)
             dispatch(event)
@@ -150,7 +151,7 @@ case class GameContainerServerImpl(
           }
       }
       racketBOpt.foreach{racketB =>
-        generateBall(Point(config.boundary.x,(3 + config.getRacketHeight / 2 + config.getBallRadius).toFloat),racketB.racketId)
+        generateBall(Point(config.boundary.x / 2,(3 + config.getRacketHeight / 2 + config.getBallRadius).toFloat),racketB.racketId)
           .foreach{ball =>
             val event = BreakoutGameEvent.UserJoinRoom(nameB,racketB.getRacketState(),ball.getBallState(),systemFrame)
             dispatch(event)
@@ -184,5 +185,24 @@ case class GameContainerServerImpl(
     actionEventMap -= systemFrame - 1
     followEventMap -= systemFrame - 1
     systemFrame += 1
+  }
+
+  def receiveUserAction(preExecuteUserAction: BreakoutGameEvent.UserActionEvent): Unit = {
+    //    println(s"receive user action preExecuteUserAction frame=${preExecuteUserAction.frame}----system fram=${systemFrame}")
+    val f = math.max(preExecuteUserAction.frame, systemFrame)
+    if (preExecuteUserAction.frame != f) {
+      log.debug(s"preExecuteUserAction fame=${preExecuteUserAction.frame}, systemFrame=${systemFrame}")
+    }
+    val action = preExecuteUserAction match {
+      case a: BreakoutGameEvent.UserTouchMove => a.copy(frame = f)
+    }
+
+    addUserAction(action)
+    dispatch(action)
+//    preExecuteUserAction match {
+//      case a:BreakoutGameEvent.UserTouchMove =>
+//      case _ =>dispatch(action)
+//    }
+    //    dispatch(action)
   }
 }

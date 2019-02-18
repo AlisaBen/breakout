@@ -462,7 +462,8 @@ case class GameContainerClientImpl(
       ctx.setLineJoin("round")
       racketMap.get(racketId) match {
         case Some(racket) =>
-          val offset = canvasSize / 2 - racket.asInstanceOf[Racket].getPosition4Animation(boundary, quadTree, offsetTime)
+//          val offset = canvasSize / 2 - racket.asInstanceOf[Racket].getPosition4Animation(boundary, quadTree, offsetTime)
+          val offset = Point(0,0)
           drawBackground(offset)
           drawObstacles(offset, Point(w, h))
 //          drawEnvironment(offset, Point(w, h))

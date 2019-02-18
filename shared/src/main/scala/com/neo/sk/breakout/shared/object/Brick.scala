@@ -21,8 +21,8 @@ case class Brick(
 
 
   override val obstacleType = ObstacleType.brick
-  override protected val height: Float = config.obstacleWidth
-  override protected val width: Float = config.obstacleWidth
+  override protected val height: Float = config.brickHeight
+  override protected val width: Float = config.boundary.x / config.brickHorizontalNum
   override protected val collisionOffset: Float = config.obstacleWO
 
   def getObstacleState():ObstacleState = ObstacleState(oId,obstacleType,position)

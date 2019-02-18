@@ -74,11 +74,6 @@ object BreakoutGameEvent {
 
   final case class UserJoinRoom(name:String, racketState:RacketState,ballState:BallState, override val frame: Long) extends  UserEvent with WsMsgServer
 
-  final case class UserTouchStart(
-                                   racketId:Int,
-                                   override val frame: Long,
-                                   touchStart:Byte,
-                                   override val serialNum: Byte) extends UserActionEvent with WsMsgFront with WsMsgServer
   final case class UserTouchMove(
                                   racketId:Int,
                                   override val frame: Long,
@@ -87,7 +82,6 @@ object BreakoutGameEvent {
   final case class UserTouchEnd(
                                  racketId:Int,
                                  override val frame: Long,
-                                 touchEnd: Byte,
                                  override val serialNum: Byte
                                ) extends UserActionEvent with WsMsgFront with WsMsgServer
   final case class GenerateObstacle(override val frame:Long,obstacleState: ObstacleState) extends EnvironmentEvent with WsMsgServer

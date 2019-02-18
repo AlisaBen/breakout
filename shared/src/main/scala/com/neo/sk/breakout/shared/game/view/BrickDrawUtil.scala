@@ -14,7 +14,7 @@ import scala.collection.mutable
   */
 trait BrickDrawUtil{ this:GameContainerClientImpl =>
 
-  private val obstacleCanvasCacheMap = mutable.HashMap[(Byte, Boolean), Any]()
+  private val obstacleCanvasCacheMap = mutable.HashMap[Byte, Any]()
 
 //  private val steelImg =drawFrame.createImage("/img/钢铁.png")
 //  private val riverImg =drawFrame.createImage("/img/river.png")
@@ -36,12 +36,14 @@ trait BrickDrawUtil{ this:GameContainerClientImpl =>
 
   private def drawObstacle(centerPosition:Point, width:Float, height:Float, bloodPercent:Float, color:String, context:MiddleContext = ctx):Unit = {
     context.setFill(color)
-    context.setStrokeStyle(color)
+    context.setStrokeStyle("#4D4D4D")
     context.setLineWidth(2)
+
     context.beginPath()
     context.fillRec((centerPosition.x - width / 2) * canvasUnit, (centerPosition.y + height / 2 - bloodPercent * height) * canvasUnit,
       width * canvasUnit, bloodPercent * height * canvasUnit)
     context.closePath()
+
     context.beginPath()
     context.rect((centerPosition.x - width / 2) * canvasUnit, (centerPosition.y - height / 2) * canvasUnit,
       width * canvasUnit, height * canvasUnit
@@ -85,7 +87,7 @@ trait BrickDrawUtil{ this:GameContainerClientImpl =>
 //        }else{
 //          if (obstacle.bloodPercent() > 0.9999999) {
             val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
-            val cache = obstacleCanvasCacheMap.getOrElseUpdate((obstacle.obstacleType, false), generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
+            val cache = obstacleCanvasCacheMap.getOrElseUpdate(obstacle.oId.toByte, generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
             ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
 //          } else {
 //            drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color)
