@@ -95,7 +95,7 @@ case class WebSocketClient(
     bytesDecode[BreakoutGameEvent.WsMsgServer](middleDataInJs) match {
       case Right(r) =>
         try {
-          setDateSize(s"${r.getClass.toString.split("TankGameEvent").last.drop(1)}",s)
+          setDateSize(s"${r.getClass.toString.split("GameEvent").last.drop(1)}",s)
         }catch {case exception: Exception=> println(exception.getCause)}
         r
       case Left(e) =>

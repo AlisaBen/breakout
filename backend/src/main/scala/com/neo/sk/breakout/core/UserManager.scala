@@ -11,6 +11,7 @@ import akka.util.ByteString
 import org.slf4j.LoggerFactory
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import com.neo.sk.breakout.Boot.roomManager
+
 import scala.collection.mutable
 /**
   * created by benyafang on 2019/2/3 15:52
@@ -61,6 +62,17 @@ object UserManager {
   ) = {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {
+        case GetWebSocketFlow(name,replyTo,roomIdOpt) =>
+          println(s"ssssss,$roomIdOpt")
+          getUserActorOpt(ctx,name) match {
+            case Some(userActor) =>
+              userActor ! UserActor.ChangeBehaviorToInit
+            case None =>
+          }
+          val userActor = getUserActor(ctx, name)
+          replyTo ! getWebSocketFlow(userActor)
+          Behaviors.same
+
         case GetAllUserActor(replyTo) =>
           replyTo ! getAllUserActor(ctx)
           Behaviors.same
@@ -89,6 +101,10 @@ object UserManager {
       actor
     }
       .upcast[UserActor.Command]
+  }
+  private def getUserActorOpt(ctx: ActorContext[Command],name:String):Option[ActorRef[UserActor.Command]] = {
+    val childName = s"userActor--${name}"
+    ctx.child(childName).map(_.upcast[UserActor.Command])
   }
 
   def getAllUserActor(ctx:ActorContext[Command]) = {

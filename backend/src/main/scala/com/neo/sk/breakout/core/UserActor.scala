@@ -39,7 +39,7 @@ object UserActor {
 
   case class JoinRoomSuccess(racket:Racket,config:GameConfigImpl,roomActor:ActorRef[RoomActor.Command]) extends Command
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
-
+  case object ChangeBehaviorToInit extends Command
   final case class SwitchBehavior(
                                    name: String,
                                    behavior: Behavior[Command],
@@ -101,6 +101,7 @@ object UserActor {
     Behaviors.receive[Command] { (ctx, msg) =>
       msg match {
         case UserFrontActor(frontActor) =>
+          log.debug(s"${ctx.self.path} 收到消息：${msg.getClass}")
           ctx.watchWith(frontActor,UserLeft(frontActor))
           switchBehavior(ctx,"idle",idle(name,frontActor))
 
@@ -111,6 +112,9 @@ object UserActor {
         case TimeOut(m) =>
           log.debug(s"${ctx.self.path} is time out when busy,msg=${m}")
           Behaviors.stopped
+
+        case ChangeBehaviorToInit =>
+          Behaviors.same
 
         case unknowMsg =>
           stashBuffer.stash(unknowMsg)
@@ -143,6 +147,11 @@ object UserActor {
           )
           //fixme .get
           switchBehavior(ctx,"play",play(racket.name,racket,frontActor,roomActor))
+
+        case ChangeBehaviorToInit =>
+          ctx.unwatch(frontActor)
+          switchBehavior(ctx,"init",init(name),InitTime,TimeOut("init"))
+
 
 
         case unknowMsg =>

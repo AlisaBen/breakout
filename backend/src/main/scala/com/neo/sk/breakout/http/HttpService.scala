@@ -89,6 +89,7 @@ trait HttpService
       'name,
       'roomId.as[Long].?
     ){(name,roomIdOpt) =>
+      log.debug(s"-------")
       val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_,roomIdOpt))
       dealFutureResult(flowFuture.map(t => handleWebSocketMessages(t)))
     }

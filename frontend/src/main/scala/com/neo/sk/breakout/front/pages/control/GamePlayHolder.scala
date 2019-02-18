@@ -25,29 +25,9 @@ import scala.xml.Elem
   * */
 class GamePlayHolder(name:String) extends GameHolder(name) {
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
-  private var spaceKeyUpState = true
-  private var lastMouseMoveAngle: Byte = 0
-  private val perMouseMoveFrame = 3
-  private var lastMoveFrame = -1L
-  private val poKeyBoardMoveTheta = 2 * math.Pi / 72 //炮筒顺时针转
-  private val neKeyBoardMoveTheta = -2 * math.Pi / 72 //炮筒逆时针转
-  private var poKeyBoardFrame = 0L
-  private var eKeyBoardState4AddBlood = true
   private val preExecuteFrameOffset = com.neo.sk.breakout.shared.model.Constants.PreExecuteFrameOffset
 //  private val startGameModal = new StartGameModal(gameStateVar, start, name)
   private var lastTouchMoveFrame = 0L
-
-  private val watchKeys = Set(
-    KeyCode.Left,
-    KeyCode.Up,
-    KeyCode.Right,
-    KeyCode.Down
-  )
-
-  private val gunAngleAdjust = Set(
-    KeyCode.K,
-    KeyCode.L
-  )
 
   private val myKeySet = mutable.HashSet[Int]()
 
@@ -73,24 +53,12 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
       firstCome = false
       addUserActionListenEvent()
       setGameState(GameState.loadingPlay)
-      webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, None, roomIdOpt))
+      webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, roomIdOpt))
       //      webSocketClient.sendMsg(TankGameEvent.StartGame(roomIdOpt,None))
 
       gameLoop()
 
     } else if (webSocketClient.getWsState) {
-      gameContainerOpt match {
-        case Some(gameContainer) =>
-//          gameContainerOpt.foreach(_.changeTankId(gameContainer.myTankId))
-          if (Constants.supportLiveLimit) {
-//            webSocketClient.sendMsg(BreakoutGameEvent.RestartGame(Some(gameContainer.myTankId), name))
-          } else {
-//            webSocketClient.sendMsg(BreakoutGameEvent.RestartGame(None, name))
-          }
-
-        case None =>
-//          webSocketClient.sendMsg(BreakoutGameEvent.RestartGame(None, name))
-      }
       setGameState(GameState.loadingPlay)
       gameLoop()
 
@@ -156,6 +124,7 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
   }
 
   override protected def wsMessageHandler(data: BreakoutGameEvent.WsMsgServer): Unit = {
+    println(s"${data.getClass}")
     data match {
       case e: BreakoutGameEvent.WsSuccess =>
         webSocketClient.sendMsg(BreakoutGameEvent.StartGame(e.roomId))

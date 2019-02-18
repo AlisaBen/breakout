@@ -60,14 +60,9 @@ object Routes {
 
 
 
-  def getJoinGameWebSocketUri(name:String, playerInfoOpt: Option[PlayerInfo],roomIdOpt:Option[Long]): String = {
+  def getJoinGameWebSocketUri(name:String,roomIdOpt:Option[Long]): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    playerInfoOpt match {
-      case Some(playerInfo) =>
-        s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name,playerInfo.userId, playerInfo.userName, playerInfo.accessCode, playerInfo.roomIdOpt)}"
-      case None =>
-        s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name,roomIdOpt)}"
-    }
+    s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name,roomIdOpt)}"
   }
 
 
