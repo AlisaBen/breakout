@@ -58,7 +58,8 @@ object RoomManager {
             if(waithingToMatch(model).filterNot(_ == enemy).isEmpty){
               waithingToMatch.-=(model)
             }else{
-              waithingToMatch.put(model,waithingToMatch(model).filterNot(_ == enemy))
+              waithingToMatch.put(model,waithingToMatch(model).filterNot(t => t == enemy || t == name))
+
             }
 
             getRoomActor(name,enemy,userMap.filter(t => t._1 == name || t._1 == enemy),ctx) ! RoomActor.BeginGame

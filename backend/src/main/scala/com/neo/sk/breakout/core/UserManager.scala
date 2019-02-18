@@ -33,6 +33,8 @@ object UserManager {
   case class GetUserActor(name:String,replyTo:ActorRef[ActorRef[UserActor.Command]]) extends Command
 
   case class ChooseModel(name:String,model:Int) extends Command
+  final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]], roomId:Option[Long] = None) extends Command
+
 
   private val userMap:mutable.HashMap[String, ActorRef[UserActor.Command]] = mutable.HashMap[String, ActorRef[UserActor.Command]]()
 
@@ -68,6 +70,7 @@ object UserManager {
           Behaviors.same
 
         case ChooseModel(name,model) =>
+          userMap.put(name,getUserActor(ctx,name))
           roomManager ! RoomManager.ChooseModel(name,model,userMap)
           Behaviors.same
 

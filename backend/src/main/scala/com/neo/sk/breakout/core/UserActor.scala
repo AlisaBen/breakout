@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory
 import scala.language.implicitConversions
 import org.seekloud.byteobject.ByteObject._
 import scala.concurrent.duration.FiniteDuration
-
+import scala.concurrent.duration._
 /**
   * created by benyafang on 2019/2/3 15:52
   *
@@ -27,7 +27,7 @@ object UserActor {
   private val log = LoggerFactory.getLogger(this.getClass)
 
   trait Command
-
+  private final val InitTime = Some(5.minutes)
   case object BehaviorChangeKey extends Command
 
   case class WebSocketMsg(reqOpt:Option[BreakoutGameEvent.WsMsgFront]) extends Command
@@ -87,13 +87,41 @@ object UserActor {
             implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
             implicit val sendBuffer = new MiddleBufferInJvm(8192)
 //            val uidGenerator = new AtomicLong(1L)
-            idle(name)
-//            Behaviors.same
+            switchBehavior(ctx,"init",init(name),InitTime,TimeOut("init"))
+          //            Behaviors.same
         }
     }
   }
 
-  def idle(name:String,frontActor:Option[ActorRef[BreakoutGameEvent.WsMsgSource]] = None)(
+  private def init(name:String)(
+    implicit stashBuffer:StashBuffer[Command],
+    sendBuffer:MiddleBufferInJvm,
+    timer:TimerScheduler[Command]
+  ): Behavior[Command] =
+    Behaviors.receive[Command] { (ctx, msg) =>
+      msg match {
+        case UserFrontActor(frontActor) =>
+          ctx.watchWith(frontActor,UserLeft(frontActor))
+          switchBehavior(ctx,"idle",idle(name,frontActor))
+
+        case UserLeft(actor) =>
+          ctx.unwatch(actor)
+          Behaviors.stopped
+
+        case TimeOut(m) =>
+          log.debug(s"${ctx.self.path} is time out when busy,msg=${m}")
+          Behaviors.stopped
+
+        case unknowMsg =>
+          stashBuffer.stash(unknowMsg)
+          //          log.warn(s"got unknown msg: $unknowMsg")
+          Behavior.same
+      }
+    }
+
+
+
+  def idle(name:String,frontActor:ActorRef[BreakoutGameEvent.WsMsgSource])(
     implicit stashBuffer:StashBuffer[Command],
     sendBuffer:MiddleBufferInJvm,
     timer:TimerScheduler[Command]
@@ -102,15 +130,19 @@ object UserActor {
       msg match {
         case UserFrontActor(frontActor) =>
           ctx.watchWith(frontActor,UserLeft(frontActor))
-          idle(name,Some(frontActor))
+          idle(name,frontActor)
 //          switchBehavior(ctx,"idle",idle(uId, userInfo,System.currentTimeMillis(), frontActor))
         case UserLeft(actor) =>
           ctx.unwatch(actor)
           Behaviors.stopped
 
         case JoinRoomSuccess(racket,config,roomActor) =>
-          frontActor.foreach(t => t ! BreakoutGameEvent.Wrap(BreakoutGameEvent.YourInfo(BreakoutGameEvent.PlayerInfo(racket.racketId,racket.name),config).asInstanceOf[BreakoutGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result()))
-          switchBehavior(ctx,"play",play(racket.name,racket,frontActor.get,roomActor))
+          frontActor ! BreakoutGameEvent.Wrap(
+            BreakoutGameEvent.YourInfo(BreakoutGameEvent.PlayerInfo(racket.racketId,racket.name),config)
+              .asInstanceOf[BreakoutGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result()
+          )
+          //fixme .get
+          switchBehavior(ctx,"play",play(racket.name,racket,frontActor,roomActor))
 
 
         case unknowMsg =>
@@ -148,7 +180,7 @@ object UserActor {
         case DispatchMsg(m) =>
           if(m.asInstanceOf[BreakoutGameEvent.Wrap].isKillMsg) {
             frontActor ! m
-            switchBehavior(ctx,"idle",idle(name,Some(frontActor)))
+            switchBehavior(ctx,"idle",idle(name,frontActor))
           }else{
             frontActor ! m
             Behaviors.same

@@ -77,15 +77,15 @@ final case class GridBoundary(width:Int,height:Int){
 //                                  )
 
 final case class BrickParameters(
-                                horizontalNum:Int,
-                                verticalNum:Int,
-                                brickHeight:Double
+                                  horizontalNum:Int,
+                                  verticalNum:Int,
+                                  brickHeight:Float
                                 )
 
 final case class RacketParameters(
-                                 racketWidth:Double,
-                                 racketHeight:Double,
-                                 speed:Point
+                                   racketWidth:Float,
+                                   racketHeight:Float,
+                                   speed:Point
                                  )
 
 //final case class RiverParameters(
@@ -101,44 +101,44 @@ final case class RacketParameters(
 final case class ObstacleParameters(
                                      width:Float,
                                      collisionWidthOffset: Float,
-//                                     airDropParameters: AirDropParameters,
+                                     //                                     airDropParameters: AirDropParameters,
                                      brickParameters: BrickParameters,
-//                                     racketParameters:RacketParameters
-//                                     riverParameters: RiverParameters,
-//                                     steelParameters: SteelParameters
+                                     //                                     racketParameters:RacketParameters
+                                     //                                     riverParameters: RiverParameters,
+                                     //                                     steelParameters: SteelParameters
                                    )
 
 
 final case class BallParameters(
-//                                   ballLevelParameters:List[(Float,Int)], //size,damage length 3
-                                   ballSpeed:Int,
-                                   ballRadius:Double
-                                 ){
-//  require(ballLevelParameters.size >= 3,println(s"bullet level parameter failed"))
+                                 //                                   ballLevelParameters:List[(Float,Int)], //size,damage length 3
+                                 ballSpeed:Int,
+                                 ballRadius:Float
+                               ){
+  //  require(ballLevelParameters.size >= 3,println(s"bullet level parameter failed"))
 
   def getBallRadius = ballRadius
 
-//  def getBallDamage(l:Byte) = {
-//    ballLevelParameters(l-1)._2
-//  }
+  //  def getBallDamage(l:Byte) = {
+  //    ballLevelParameters(l-1)._2
+  //  }
 
-//  def getBallRadiusByDamage(d:Int):Float = {
-//    ballLevelParameters.find(_._2 == d).map(_._1).getOrElse(ballLevelParameters.head._1)
-//  }
+  //  def getBallRadiusByDamage(d:Int):Float = {
+  //    ballLevelParameters.find(_._2 == d).map(_._1).getOrElse(ballLevelParameters.head._1)
+  //  }
 
-//  def getBallLevelByDamage(d:Int):Byte = {
-//    (ballLevelParameters.zipWithIndex.find(_._1._2 == d).map(_._2).getOrElse(0) + 1).toByte
-//  }
+  //  def getBallLevelByDamage(d:Int):Byte = {
+  //    (ballLevelParameters.zipWithIndex.find(_._1._2 == d).map(_._2).getOrElse(0) + 1).toByte
+  //  }
 }
 
 trait GameConfig{
   def frameDuration:Long
   def playRate:Int
 
-  def getBallRadius:Double
-//  def getBallDamage(l:Byte):Int
-//  def getBLevel(damage:Int):Byte
-//  def getBulletMaxLevel():Byte
+  def getBallRadius:Float
+  //  def getBallDamage(l:Byte):Int
+  //  def getBLevel(damage:Int):Byte
+  //  def getBulletMaxLevel():Byte
 
   def ballSpeed:Point
 
@@ -149,61 +149,61 @@ trait GameConfig{
   def obstacleWidth:Float
   def obstacleWO: Float
 
-//  def airDropBlood:Int
-//  def airDropNum:Int
+  //  def airDropBlood:Int
+  //  def airDropNum:Int
 
   def brickVerticalNum:Int
   def brickHorizontalNum:Int
-  def brickHeight:Double
+  def brickHeight:Float
 
-//  def riverPosType:List[List[(Int, Int)]]
-//  def steelPosType:List[List[(Int, Int)]]
+  //  def riverPosType:List[List[(Int, Int)]]
+  //  def steelPosType:List[List[(Int, Int)]]
 
-//  def barrierPos4River:List[List[(Int,Int)]]
-//  def barrierPos4Steel:List[List[(Int,Int)]]
+  //  def barrierPos4River:List[List[(Int,Int)]]
+  //  def barrierPos4Steel:List[List[(Int,Int)]]
 
-//  def propRadius:Float
-//  def propMedicalBlood:Int
-//  def shotgunDuration:Int
+  //  def propRadius:Float
+  //  def propMedicalBlood:Int
+  //  def shotgunDuration:Int
 
 
-//  def tankRadius:Float
-//  def tankGunWidth:Float
-//  def tankGunHeight:Float
-//  def maxBulletCapacity:Int
-//  def fillBulletDuration:Int
-//  def initInvincibleDuration:Int
-//  def getTankReliveDuration:Int
+  //  def tankRadius:Float
+  //  def tankGunWidth:Float
+  //  def tankGunHeight:Float
+  //  def maxBulletCapacity:Int
+  //  def fillBulletDuration:Int
+  //  def initInvincibleDuration:Int
+  //  def getTankReliveDuration:Int
   def getRacketSpeedByType:Point
-  def getRacketWidth:Double
-  def getRacketHeight:Double
-//  def getTankAccByLevel(l: Byte): Int
-//  def getTankDecByLevel(l: Byte): Int
-//  def getTankSpeedMaxLevel():Byte
-//  def getTankBloodByLevel(l:Byte):Int
-//  def getTankBloodMaxLevel():Byte
-//  def getTankLivesLimit:Int
-//  def getTankMedicalLimit:Int
+  def getRacketWidth:Float
+  def getRacketHeight:Float
+  //  def getTankAccByLevel(l: Byte): Int
+  //  def getTankDecByLevel(l: Byte): Int
+  //  def getTankSpeedMaxLevel():Byte
+  //  def getTankBloodByLevel(l:Byte):Int
+  //  def getTankBloodMaxLevel():Byte
+  //  def getTankLivesLimit:Int
+  //  def getTankMedicalLimit:Int
 
-//  def getBulletRadiusByDamage(d:Int):Float
+  //  def getBulletRadiusByDamage(d:Int):Float
 
   def getMoveDistanceByFrame:Point = getRacketSpeedByType * frameDuration / 1000
 
   def getGameConfigImpl(): GameConfigImpl
 
-//  def getPropDisappearFrame: Short
+  //  def getPropDisappearFrame: Short
 }
 
 case class GameConfigImpl(
-                               gridBoundary: GridBoundary,
-                               frameDuration:Long,
-                               playRate: Int,
-                               ballParameters: BallParameters,
-                               obstacleParameters: ObstacleParameters,
-                               racketParameters: RacketParameters
-//                               propParameters: PropParameters,
-//                               tankParameters: TankParameters
-                             ) extends GameConfig{
+                           gridBoundary: GridBoundary,
+                           frameDuration:Long,
+                           playRate: Int,
+                           ballParameters: BallParameters,
+                           obstacleParameters: ObstacleParameters,
+                           racketParameters: RacketParameters
+                           //                               propParameters: PropParameters,
+                           //                               tankParameters: TankParameters
+                         ) extends GameConfig{
 
   def getGameConfigImpl(): GameConfigImpl = this
 
@@ -212,16 +212,16 @@ case class GameConfigImpl(
     ballParameters.getBallRadius
   }
 
-//  def getBallDamage(l:Byte) = {
-//    ballParameters.getBallDamage(l)
-//  }
+  //  def getBallDamage(l:Byte) = {
+  //    ballParameters.getBallDamage(l)
+  //  }
 
-//  def getBallLevel(damage:Int):Byte = ballParameters.getBallLevelByDamage(damage)
+  //  def getBallLevel(damage:Int):Byte = ballParameters.getBallLevelByDamage(damage)
 
-//  def getBallMaxLevel():Byte = ballParameters.ballLevelParameters.size.toByte
+  //  def getBallMaxLevel():Byte = ballParameters.ballLevelParameters.size.toByte
 
 
-//  def getBulletRadiusByDamage(d:Int):Float = ballParameters.getBallRadiusByDamage(d)
+  //  def getBulletRadiusByDamage(d:Int):Float = ballParameters.getBallRadiusByDamage(d)
 
   def ballSpeed = Point(ballParameters.ballSpeed,0)
 
@@ -232,49 +232,49 @@ case class GameConfigImpl(
   def obstacleWidth = obstacleParameters.width
   def obstacleWO:Float = obstacleParameters.collisionWidthOffset
 
-//  def airDropBlood = obstacleParameters.airDropParameters.blood
-//  def airDropNum = obstacleParameters.airDropParameters.num
+  //  def airDropBlood = obstacleParameters.airDropParameters.blood
+  //  def airDropNum = obstacleParameters.airDropParameters.num
 
   def brickVerticalNum:Int = obstacleParameters.brickParameters.verticalNum
   def brickHorizontalNum:Int = obstacleParameters.brickParameters.horizontalNum
-  def brickHeight:Double = obstacleParameters.brickParameters.brickHeight
-//  def riverPosType = obstacleParameters.riverParameters.typePos
-//  def steelPosType = obstacleParameters.steelParameters.typePos
+  def brickHeight:Float = obstacleParameters.brickParameters.brickHeight
+  //  def riverPosType = obstacleParameters.riverParameters.typePos
+  //  def steelPosType = obstacleParameters.steelParameters.typePos
 
-//  def barrierPos4River: List[List[(Int,Int)]] = obstacleParameters.riverParameters.barrierPos
-//  def barrierPos4Steel: List[List[(Int,Int)]] = obstacleParameters.steelParameters.barrierPos
+  //  def barrierPos4River: List[List[(Int,Int)]] = obstacleParameters.riverParameters.barrierPos
+  //  def barrierPos4Steel: List[List[(Int,Int)]] = obstacleParameters.steelParameters.barrierPos
 
-//  def propRadius = propParameters.radius
-//  def propMedicalBlood = propParameters.medicalBlood
-//  def shotgunDuration = propParameters.shotgunDuration
-//
-//
-//  def tankRadius = tankParameters.tankRadius
-//  def tankGunWidth = tankParameters.tankGunWidth
-//  def tankGunHeight = tankParameters.tankGunHeight
-//  def maxBulletCapacity = tankParameters.maxBulletCapacity
-//  def fillBulletDuration = tankParameters.fillBulletDuration
-//  def initInvincibleDuration = tankParameters.initInvincibleDuration
-//  def getTankReliveDuration = tankParameters.tankReliveDuration
+  //  def propRadius = propParameters.radius
+  //  def propMedicalBlood = propParameters.medicalBlood
+  //  def shotgunDuration = propParameters.shotgunDuration
+  //
+  //
+  //  def tankRadius = tankParameters.tankRadius
+  //  def tankGunWidth = tankParameters.tankGunWidth
+  //  def tankGunHeight = tankParameters.tankGunHeight
+  //  def maxBulletCapacity = tankParameters.maxBulletCapacity
+  //  def fillBulletDuration = tankParameters.fillBulletDuration
+  //  def initInvincibleDuration = tankParameters.initInvincibleDuration
+  //  def getTankReliveDuration = tankParameters.tankReliveDuration
   def getRacketSpeedByType = racketParameters.speed
   def getRacketWidth = racketParameters.racketWidth
   def getRacketHeight = racketParameters.racketHeight
-//  def getMoveDistanceByFrame = getRacketSpeedByType * frameDuration / 1000
-//  def getTankSpeedMaxLevel():Byte = tankParameters.tankSpeed.speeds.size.toByte
-//
-//  def getTankBloodMaxLevel():Byte = tankParameters.tankBloodLevel.size.toByte
-//
-//  def getTankBloodByLevel(l:Byte):Int = tankParameters.getTankBloodByLevel(l)
-//
-//  def getTankLivesLimit: Int = tankParameters.tankLivesLimit
-//  def getTankMedicalLimit:Int = tankParameters.tankMedicalLimit
-//
-//
-//  def getTankAccByLevel(l: Byte): Int = tankParameters.tankSpeed.accelerationTime(l - 1)
-//  def getTankDecByLevel(l: Byte): Int = tankParameters.tankSpeed.decelerationTime(l - 1)
-//  def obstacleWO: Float = obstacleParameters.collisionWidthOffset
-//
-//  def getPropDisappearFrame: Short = (propParameters.disappearTime / frameDuration).toShort
+  //  def getMoveDistanceByFrame = getRacketSpeedByType * frameDuration / 1000
+  //  def getTankSpeedMaxLevel():Byte = tankParameters.tankSpeed.speeds.size.toByte
+  //
+  //  def getTankBloodMaxLevel():Byte = tankParameters.tankBloodLevel.size.toByte
+  //
+  //  def getTankBloodByLevel(l:Byte):Int = tankParameters.getTankBloodByLevel(l)
+  //
+  //  def getTankLivesLimit: Int = tankParameters.tankLivesLimit
+  //  def getTankMedicalLimit:Int = tankParameters.tankMedicalLimit
+  //
+  //
+  //  def getTankAccByLevel(l: Byte): Int = tankParameters.tankSpeed.accelerationTime(l - 1)
+  //  def getTankDecByLevel(l: Byte): Int = tankParameters.tankSpeed.decelerationTime(l - 1)
+  //  def obstacleWO: Float = obstacleParameters.collisionWidthOffset
+  //
+  //  def getPropDisappearFrame: Short = (propParameters.disappearTime / frameDuration).toShort
 
 
 

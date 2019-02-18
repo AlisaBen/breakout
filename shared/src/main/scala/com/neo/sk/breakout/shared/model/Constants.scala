@@ -98,7 +98,7 @@ object Constants {
   }
 
 
-  final val WindowView = Point(192,108)
+  final val WindowView = Point(108,192)
 
   object GameModel{
     val doubleFight = 1

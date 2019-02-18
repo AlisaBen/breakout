@@ -31,12 +31,14 @@ object LoginPage extends Page{
     Http.postJsonAndParse[SuccessRsp](AccountRoute.loginRoute,data).map{rsp =>
       if(rsp.errCode == 0){
         LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
-        dom.window.location.hash = s"#/gameHall"
+        gotoPage(s"#/gameHall")
+        //        dom.window.location.hash = s"#/gameHall"
         GameHall.playerName = name
       }
       else{
         showWarning := true
-        dom.window.location.hash = s"#/login"
+        gotoPage(s"#/login")
+        //        dom.window.location.hash = s"#/login"
       }
     }
   }
@@ -49,11 +51,14 @@ object LoginPage extends Page{
       Http.postJsonAndParse[SuccessRsp](AccountRoute.loginRoute,data).map{rsp =>
         if(rsp.errCode == 0){
           LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
-          dom.window.location.hash = s"#/gameHall"
+          GameHall.playerName = name
+          gotoPage(s"#/gameHall")
+          //          dom.window.location.hash = s"#/gameHall"
         }
         else{
           showWarning := true
-          dom.window.location.hash = s"#/login"
+          gotoPage(s"#/login")
+          //          dom.window.location.hash = s"#/login"
         }
       }
     }

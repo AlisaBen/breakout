@@ -6,7 +6,7 @@ import com.neo.sk.breakout.front.utils.{Http, JsFunc}
 import com.neo.sk.breakout.shared.ptcl.GameHallProtocol.GameModelReq
 import com.neo.sk.breakout.shared.ptcl.SuccessRsp
 import org.scalajs.dom
-
+import com.neo.sk.breakout.front.pages.MainPage._
 import scala.xml.Elem
 import scala.concurrent.ExecutionContext.Implicits.global
 /**
@@ -23,19 +23,23 @@ object GameHall extends Page{
 
 
   def chooseModal(modal:Int):Unit = {
-    val url = Routes.GameHall.chooseGameModelRoute
-    val json = GameModelReq(playerName,modal).asJson.toString()
-    Http.postJsonAndParse[SuccessRsp](url,json).map{rsp =>
-      if(rsp.errCode == 0){
-        val gameHolder = new GamePlayHolder(playerName)
-        gameHolder.start(playerName,None)//建立websocket
-        dom.window.location.hash = s"#/matchPlayer"
-      }else{
-        JsFunc.alert(s"模式选择失败")
+    if(modal == 1){
+      JsFunc.alert("当前模式待开发")
+      //      gotoPage("#/")
+    }else{
+      val url = Routes.GameHall.chooseGameModelRoute
+      val json = GameModelReq(playerName,modal).asJson.toString()
+      Http.postJsonAndParse[SuccessRsp](url,json).map{rsp =>
+        if(rsp.errCode == 0){
+          val gameHolder = new GamePlayHolder("GameView")
+          gameHolder.start(playerName,None)//建立websocket
+          gotoPage("#/matchPlayer")
+          //          dom.window.location.hash = s"#/matchPlayer"
+        }else{
+          JsFunc.alert(s"模式选择失败")
+        }
       }
     }
-
-
   }
 
 

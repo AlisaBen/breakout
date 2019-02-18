@@ -15,7 +15,7 @@ object Constants {
 
   val supportLiveLimit = false
 
-  final val WindowView = Point(192,108)
+  final val WindowView = Point(108,192)
 //  object GameState{
 //    val firstCome = 1
 //    val play = 2

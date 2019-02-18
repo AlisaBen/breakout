@@ -11,21 +11,20 @@ import javafx.scene.effect.Light
   * 子弹
   */
 
-case class BallState(bId:Int, brickId:Int, startFrame:Long, position:Point,momentum:Point)
+case class BallState(bId:Int, racketId:Int,position:Point,momentum:Point)
 
 
 case class Ball(
                  config:GameConfig,
                  override protected var position: Point,
-                 startFrame:Long,
 //                 damage:Int, //威力
                  var momentum:Point,//移动的速度
                  bId:Int,
-                 brickId:Int
+                 racketId:Int
                  ) extends CircleObjectOfGame{
 
   def this(config:GameConfig, ballState: BallState){
-    this(config,ballState.position,ballState.startFrame,ballState.momentum,ballState.bId,ballState.brickId)
+    this(config,ballState.position,ballState.momentum,ballState.bId,ballState.racketId)
   }
 
 
@@ -40,7 +39,7 @@ case class Ball(
 
 
   def getBallState(): BallState = {
-    BallState(bId,brickId,startFrame,position,momentum)
+    BallState(bId,racketId,position,momentum)
   }
 
 

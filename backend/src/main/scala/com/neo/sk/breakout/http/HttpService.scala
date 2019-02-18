@@ -12,6 +12,8 @@ import akka.stream.scaladsl.Flow
 import akka.util.Timeout
 import com.neo.sk.breakout.common.AppSettings
 import akka.actor.typed.scaladsl.AskPattern._
+import com.neo.sk.breakout.Boot.userManager
+import com.neo.sk.breakout.core.UserManager
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import com.neo.sk.breakout.shared.ptcl.ErrorRsp
@@ -82,6 +84,17 @@ trait HttpService
     }
   }
 
+  private val webSocketConnection = path("join"){
+    parameter(
+      'name,
+      'roomId.as[Long].?
+    ){(name,roomIdOpt) =>
+      val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_,roomIdOpt))
+      dealFutureResult(flowFuture.map(t => handleWebSocketMessages(t)))
+    }
+  }
+
+
 
 
 
@@ -90,7 +103,7 @@ trait HttpService
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")
-        }
+        } ~ webSocketConnection
       }
   }
 
