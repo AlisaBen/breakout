@@ -12,7 +12,7 @@ import com.neo.sk.breakout.shared.model.Constants.ObstacleType
 case class Brick(
                   config:GameConfig,
                   override val oId: Int,
-                  override protected var position: model.Point
+                  override var position: model.Point
                 ) extends Obstacle with ObstacleBall{
 
   def this(config: GameConfig,obstacleState: ObstacleState){

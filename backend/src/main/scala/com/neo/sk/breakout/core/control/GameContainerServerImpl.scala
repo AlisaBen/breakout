@@ -52,37 +52,40 @@ case class GameContainerServerImpl(
   def generateBrick(position:Point) = {
     val oId = brickIdGenerator.getAndIncrement()
     val brick = new Brick(config,ObstacleState(oId,ObstacleType.brick,position))
-    val objects = quadTree.retrieveFilter(brick).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
-    if (brick.isIntersectsObject(objects)){
-      log.debug(s"砖块位置错误")
-      None
-    }else{
-      Some(brick)
-    }
+//    val objects = quadTree.retrieveFilter(brick).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
+//    if (brick.isIntersectsObject(objects)){
+//      log.debug(s"砖块位置错误")
+//      None
+//    }else{
+      if(true) Some(brick) else None
+//    }
   }
 
   def generateRacket(position:Point,name:String) = {
     val racketId = racketIdGenerator.getAndIncrement()
     val racket = new Racket(config,RacketState(racketId,name,position,0,false))
-    val objects = quadTree.retrieveFilter(racket).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
-    if(racket.isIntersectsObject(objects)){
-      log.debug(s"拍子位置错误")
-      None
-    }else{
-      Some(racket)
-    }
+//    val objects = quadTree.retrieveFilter(racket).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
+//    if(racket.isIntersectsObject(objects)){
+//      log.debug(s"拍子位置错误")
+//      None
+//    }else{
+      if(true) Some(racket) else None
+//    }
   }
 
   def generateBall(position:Point,racketId:Int) = {
     val ballId = ballIdGenerator.getAndIncrement()
     val ball = new Ball(config,BallState(ballId,racketId,position,config.ballSpeed))
-    val objects = quadTree.retrieveFilter(ball).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
-    if(ball.isIntersectsObject(objects)){
-      log.debug(s"拍子位置错误")
-      None
-    }else{
+//    val objects = quadTree.retrieveFilter(ball).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
+//    if(ball.isIntersectsObject(objects)){
+//      log.debug(s"拍子位置错误")
+//      None
+//    }else{
+    if(true){
       Some(ball)
-    }
+    }else None
+
+//    }
   }
 
   init()
@@ -124,6 +127,8 @@ case class GameContainerServerImpl(
         }
       }
     }
+    println(s"---${obstacleMap.values.map(_.position.y).max}")
+    println(s"---${obstacleMap.values.map(_.position.y).min}")
   }
 
   def generateRacketAndBall(nameA:String,nameB:String,playerMap:mutable.HashMap[String,ActorRef[UserActor.Command]]): Unit = {

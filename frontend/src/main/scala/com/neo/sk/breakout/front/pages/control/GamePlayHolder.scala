@@ -50,7 +50,6 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
 //    dom.window.cancelAnimationFrame(nextFrame)
 //    Shortcut.cancelSchedule(timer)
     if (firstCome) {
-      firstCome = false
       addUserActionListenEvent()
       setGameState(GameState.loadingPlay)
       webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, roomIdOpt))
@@ -72,6 +71,7 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
   var touchMoveEndX :Double= 0
 
   private def handleTouchStart(e:TouchEvent) = {
+    println(s"------------------")
     touchStartX = e.touches.item(0).clientX
     //fixme 需要确定这个是不是需要
     e.preventDefault()
@@ -83,6 +83,7 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
   }
 
   private def handleTouchMove(e:TouchEvent) = {
+    println(s"=============")
     touchMoveEndX = e.changedTouches.item(0).clientX
     if(gameState == GameState.play && gameContainerOpt.nonEmpty && lastTouchMoveFrame != gameContainerOpt.get.systemFrame){
       if(touchMoveEndX - touchStartX > 0){
@@ -147,7 +148,8 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
         //fixme
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
         if(firstCome){
-          dom.window.cancelAnimationFrame(nextFrame)
+          firstCome = false
+//          dom.window.cancelAnimationFrame(nextFrame)
           nextFrame = dom.window.requestAnimationFrame(gameRender())
           setGameState(GameState.play)
         }
