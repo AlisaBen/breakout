@@ -118,7 +118,7 @@ object UserActor {
 
         case unknowMsg =>
           stashBuffer.stash(unknowMsg)
-          //          log.warn(s"got unknown msg: $unknowMsg")
+          log.warn(s"got unknown msg: $unknowMsg")
           Behavior.same
       }
     }
@@ -155,6 +155,8 @@ object UserActor {
 
 
         case unknowMsg =>
+          stashBuffer.stash(unknowMsg)
+          log.debug(s"${ctx.self.path} recv an unknown msg${unknowMsg.getClass}")
           Behaviors.same
 
       }
@@ -201,8 +203,9 @@ object UserActor {
           Behaviors.stopped
 
 
-        case _ =>
-          log.debug(s"${ctx.self.path} recv an unknown msg")
+        case unknownMsg =>
+          stashBuffer.stash(unknownMsg)
+          log.debug(s"${ctx.self.path} recv an unknown msg:${unknownMsg.getClass}")
           Behaviors.same
       }
     }

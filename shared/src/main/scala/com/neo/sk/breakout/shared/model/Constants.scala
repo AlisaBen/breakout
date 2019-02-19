@@ -18,7 +18,7 @@ object Constants {
     final val upRight = math.Pi / 4 * 7
     final val up = math.Pi / 2 * 3
     final val upLeft = math.Pi / 4 * 5
-    final val left = math.Pi
+    final val left:Float = math.Pi.toFloat
     final val downLeft = math.Pi / 4 * 3
     final val down = math.Pi / 2
     final val downRight = math.Pi / 4

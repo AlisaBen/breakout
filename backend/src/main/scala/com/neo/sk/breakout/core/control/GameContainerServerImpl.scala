@@ -10,6 +10,7 @@ import com.neo.sk.breakout.shared.game.GameContainer
 import com.neo.sk.breakout.shared.model.Constants.ObstacleType
 import com.neo.sk.breakout.shared.model.Point
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
+import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.ObstacleCollision
 import javax.xml.ws.Dispatch
 import org.slf4j.Logger
 
@@ -47,11 +48,11 @@ case class GameContainerServerImpl(
 
   private val ballIdGenerator = new AtomicInteger(100)
   private val racketIdGenerator = new AtomicInteger(100)
-  private val brickIdGenerator = new AtomicInteger(100)
+  private val obstacleIdGenerator = new AtomicInteger(100)
 
   def generateBrick(position:Point) = {
-    val oId = brickIdGenerator.getAndIncrement()
-    val brick = new Brick(config,ObstacleState(oId,ObstacleType.brick,position))
+    val oId = obstacleIdGenerator.getAndIncrement()
+    val brick = new Brick(config,ObstacleState(oId,ObstacleType.brick,position,0))
 //    val objects = quadTree.retrieveFilter(brick).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
 //    if (brick.isIntersectsObject(objects)){
 //      log.debug(s"砖块位置错误")
@@ -63,7 +64,7 @@ case class GameContainerServerImpl(
 
   def generateRacket(position:Point,name:String) = {
     val racketId = racketIdGenerator.getAndIncrement()
-    val racket = new Racket(config,RacketState(racketId,name,position,0,false))
+    val racket = new Racket(config,RacketState(racketId,name,position,0,false,0))
 //    val objects = quadTree.retrieveFilter(racket).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
 //    if(racket.isIntersectsObject(objects)){
 //      log.debug(s"拍子位置错误")
@@ -75,7 +76,11 @@ case class GameContainerServerImpl(
 
   def generateBall(position:Point,racketId:Int) = {
     val ballId = ballIdGenerator.getAndIncrement()
-    val ball = new Ball(config,BallState(ballId,racketId,position,config.ballSpeed))
+    var randDirection = (new Random).nextFloat() * math.Pi.toFloat
+    while (randDirection == 0 || randDirection == math.Pi){
+      randDirection = (new Random).nextFloat() * math.Pi.toFloat
+    }
+    val ball = new Ball(config,BallState(ballId,racketId,position,config.ballSpeed.rotate(randDirection)))
 //    val objects = quadTree.retrieveFilter(ball).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
 //    if(ball.isIntersectsObject(objects)){
 //      log.debug(s"拍子位置错误")
@@ -128,8 +133,8 @@ case class GameContainerServerImpl(
         }
       }
     }
-    println(s"---${obstacleMap.values.map(_.position.y).max}")
-    println(s"---${obstacleMap.values.map(_.position.y).min}")
+//    println(s"---${obstacleMap.values.map(_.position.y).max}")
+//    println(s"---${obstacleMap.values.map(_.position.y).min}")
   }
 
   def generateRacketAndBall(nameA:String,nameB:String,playerMap:mutable.HashMap[String,ActorRef[UserActor.Command]]): Unit = {
@@ -170,6 +175,19 @@ case class GameContainerServerImpl(
 
   }
 
+  override protected def handleObstacleCollision(e:ObstacleCollision) :Unit = {
+    super.handleObstacleCollision(e)
+    val obstacleState = ObstacleState(obstacleIdGenerator.getAndIncrement(),ObstacleType.brick,
+      Point(e.obstaclePosition.x,e.obstaclePosition.y - 2 * (e.obstaclePosition.y - config.boundary.y / 2)),0)
+    val event = BreakoutGameEvent.GenerateObstacle(systemFrame,obstacleState)
+    dispatch(event)
+    addGameEvent(event)
+    obstacleMap.put(obstacleState.oId,obstacleState)
+    quadTree.insert(obstacleState)
+  }
+
+  implicit def obstacleState2Impl(o:ObstacleState):Obstacle = new Brick(config,o)
+
   def getGameContainerState(frameOnly:Boolean = false): BreakoutGameEvent.GameContainerAllState = {
     BreakoutGameEvent.GameContainerAllState (
       systemFrame,
@@ -195,14 +213,10 @@ case class GameContainerServerImpl(
     }
     val action = preExecuteUserAction match {
       case a: BreakoutGameEvent.UserTouchMove => a.copy(frame = f)
+      case a:BreakoutGameEvent.UserTouchEnd => a.copy(frame = f)
     }
 
     addUserAction(action)
     dispatch(action)
-//    preExecuteUserAction match {
-//      case a:BreakoutGameEvent.UserTouchMove =>
-//      case _ =>dispatch(action)
-//    }
-    //    dispatch(action)
   }
 }

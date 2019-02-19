@@ -473,7 +473,7 @@ case class GameContainerClientImpl(
 //          drawObstacleBloodSlider(offset)
 //          drawMyTankInfo(tank.asInstanceOf[TankClientImpl], supportLiveLimit)
 //          drawMinimap(tank)
-//          drawRank(supportLiveLimit,tank.tankId,tank.name)
+          drawRank(supportLiveLimit)
           renderFps(networkLatency, dataSizeList)
 //          drawKillInformation()
 //          drawRoomNumber()

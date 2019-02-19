@@ -72,6 +72,7 @@ object LoginPage extends Page{
   }
 
   override def render: Elem ={
+    {showWarning := false}
     <div>
       <div class="bgp">
 

@@ -79,7 +79,8 @@ final case class GridBoundary(width:Int,height:Int){
 final case class BrickParameters(
                                   horizontalNum:Int,
                                   verticalNum:Int,
-                                  brickHeight:Float
+                                  brickHeight:Float,
+                                  brickValue:Int
                                 )
 
 final case class RacketParameters(
@@ -155,6 +156,7 @@ trait GameConfig{
   def brickVerticalNum:Int
   def brickHorizontalNum:Int
   def brickHeight:Float
+  def brickValue:Int
 
   //  def riverPosType:List[List[(Int, Int)]]
   //  def steelPosType:List[List[(Int, Int)]]
@@ -241,6 +243,8 @@ case class GameConfigImpl(
   def brickVerticalNum:Int = obstacleParameters.brickParameters.verticalNum
   def brickHorizontalNum:Int = obstacleParameters.brickParameters.horizontalNum
   def brickHeight:Float = obstacleParameters.brickParameters.brickHeight
+
+  override def brickValue: Int = obstacleParameters.brickParameters.brickValue
   //  def riverPosType = obstacleParameters.riverParameters.typePos
   //  def steelPosType = obstacleParameters.steelParameters.typePos
 

@@ -2,6 +2,7 @@ package com.neo.sk.breakout.shared.game
 
 import com.neo.sk.breakout.shared.`object`._
 import com.neo.sk.breakout.shared.config.GameConfig
+import com.neo.sk.breakout.shared.model.Constants.ObstacleType
 import com.neo.sk.breakout.shared.model.{Point, Rectangle, Score}
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent._
@@ -53,7 +54,7 @@ trait GameContainer extends KillInformation{
 
   val racketMap = mutable.HashMap[Int,Racket]() //tankId -> Tank
   val ballMap = mutable.HashMap[Int,Ball]() //bulletId -> Bullet
-  val obstacleMap = mutable.HashMap[Int,Brick]() //obstacleId -> Obstacle  可打击的砖头
+  val obstacleMap = mutable.HashMap[Int,Obstacle]() //obstacleId -> Obstacle  可打击的砖头
 //  val environmentMap = mutable.HashMap[Int,Obstacle]() //obstacleId -> steel and river  不可打击
 //  val propMap = mutable.HashMap[Int,Prop]() //propId -> prop 道具信息
 //
@@ -134,11 +135,9 @@ trait GameContainer extends KillInformation{
         case Some(racket) =>
           action match {
             case a:UserTouchMove =>
-              racketMoveSet.add(a.touchMove)
-              racketMoveAction.put(a.racketId,racketMoveSet)
+              racket.setRacketDirection(Some(a.touchMove))
             case a:UserTouchEnd =>
-//              racketMoveSet
-
+              racket.setRacketDirection(None)
           }
         case None => info(s"tankId=${action.racketId} action=${action} is no valid,because the tank is not exist")
       }
@@ -193,10 +192,25 @@ trait GameContainer extends KillInformation{
   }
 
   protected def handleObstacleCollision(e:ObstacleCollision) :Unit = {
+    /**
+      * 这里需要增加对方对应位置增加砖块,后端执行不同
+      * */
     ballMap.get(e.ballId).foreach(_.changeDirection(e.isLeft))
     obstacleMap.get(e.brickId).foreach{ obstacle =>
       quadTree.remove(obstacle)
       obstacleMap.remove(e.brickId)
+      val ballRacketOpt = racketMap.get(e.ballId) match{
+        case Some(ball) =>
+          racketMap.get(ball.racketId) match {
+            case Some(racket) =>Some(racket)
+            case None =>None
+          }
+        case None =>None
+      }
+      if(obstacle.isInstanceOf[Brick]){
+        ballRacketOpt.foreach(_.damageStatistics += obstacle.asInstanceOf[Brick].value)
+      }
+
     }
   }
 
@@ -274,23 +288,25 @@ trait GameContainer extends KillInformation{
 //      handleGenerateProp(events.filter(_.isInstanceOf[GenerateProp]).map(_.asInstanceOf[GenerateProp]).reverse)
 //    }
 //  }
-//
-//  protected def handleGenerateObstacle(e:GenerateObstacle) :Unit = {
-//    val obstacle = Obstacle(config,e.obstacleState)
-//    if (e.obstacleState.t <= ObstacleType.brick) obstacleMap.put(obstacle.oId,obstacle)
-//    else environmentMap.put(obstacle.oId,obstacle)
-//    quadTree.insert(obstacle)
-//  }
-//
-//  protected final def handleGenerateObstacle(es:List[GenerateObstacle]) :Unit = {
-//    es foreach handleGenerateObstacle
-//  }
-//
-//  final protected def handleGenerateObstacleNow() = {
-//    gameEventMap.get(systemFrame).foreach{ events =>
-//      handleGenerateObstacle(events.filter(_.isInstanceOf[GenerateObstacle]).map(_.asInstanceOf[GenerateObstacle]).reverse)
-//    }
-//  }
+
+  protected def handleGenerateObstacle(e:GenerateObstacle) :Unit = {
+    val obstacle = Obstacle(config,e.obstacleState)
+    if (e.obstacleState.t <= ObstacleType.brick){
+      obstacleMap.put(obstacle.oId,obstacle)
+      quadTree.insert(obstacle)
+    }
+
+  }
+
+  protected final def handleGenerateObstacle(es:List[GenerateObstacle]) :Unit = {
+    es foreach handleGenerateObstacle
+  }
+
+  final protected def handleGenerateObstacleNow() = {
+    gameEventMap.get(systemFrame).foreach{ events =>
+      handleGenerateObstacle(events.filter(_.isInstanceOf[GenerateObstacle]).map(_.asInstanceOf[GenerateObstacle]).reverse)
+    }
+  }
 
   protected def handleObstacleRemove(e:ObstacleRemove) :Unit = {
     obstacleMap.get(e.obstacleId).foreach { obstacle =>
@@ -389,8 +405,9 @@ trait GameContainer extends KillInformation{
 
 
   protected def ballFlyEndCallback(ball: Ball):Unit = {
-    ballMap.remove(ball.bId)
-    quadTree.remove(ball)
+    ball.changeDirection()
+//    ballMap.remove(ball.bId)
+//    quadTree.remove(ball)
   }
 
   //游戏后端需要重写，生成伤害事件
@@ -405,7 +422,7 @@ trait GameContainer extends KillInformation{
   protected def collisionObstacleCallBack(ball: Ball)(o:Obstacle):Unit = {
     //fixme
     ball.changeDirection()
-    val event = BreakoutGameEvent.ObstacleCollision(o.oId,ball.bId,frame = systemFrame)
+    val event = BreakoutGameEvent.ObstacleCollision(o.oId,ball.bId,o.getObstacleState().p,frame = systemFrame)
     addFollowEvent(event)
   }
 
@@ -484,8 +501,8 @@ trait GameContainer extends KillInformation{
 //
 //    handlePropLifecycleNow()
 
-    handleObstacleRemoveNow() //此处需要结合坦克攻击，在移动之后
-//    handleGenerateObstacleNow()
+//    handleObstacleRemoveNow() //此处需要结合坦克攻击，在移动之后
+    handleGenerateObstacleNow()
 //    handleGeneratePropNow()
 
 //    handleGenerateBulletNow()

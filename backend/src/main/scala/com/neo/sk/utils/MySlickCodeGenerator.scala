@@ -21,7 +21,7 @@ object MySlickCodeGenerator {
 //  val jdbcDriver = "org.h2.Driver"
   val jdbcDriver = "org.h2.Driver"
 //  val url = "jdbc:postgresql://127.0.0.1:5432/breakout?useUnicode=true&characterEncoding=utf-8"
-  val url = "jdbc:h2:D:/doc/breakout/backend/src/main/resources/sql\\breakout"
+  val url = "jdbc:h2:D:\\doc\\project\\breakout\\backend\\src\\main\\resources\\sql\\breakout"
   val outputFolder = "target/gencode/genTablesPsql"
   val pkg = "com.neo.sk.breakout.models"
   val user = "breakout"

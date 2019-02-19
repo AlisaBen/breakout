@@ -25,7 +25,7 @@ trait RacketDrawUtil {this:GameContainerClientImpl =>
 
   private def drawRacket(centerPosition:Point, width:Float, height:Float, bloodPercent:Float, color:String, context:MiddleContext = ctx):Unit = {
     context.setFill(color)
-    context.setStrokeStyle("#43CD80")
+    context.setStrokeStyle("#3B3B3B")
     context.setLineWidth(2)
     context.beginPath()
     context.fillRec((centerPosition.x - width / 2) * canvasUnit, (centerPosition.y + height / 2 - bloodPercent * height) * canvasUnit,

@@ -2,7 +2,7 @@ package com.neo.sk.breakout.shared.`object`
 
 import com.neo.sk.breakout.shared.config.GameConfig
 import com.neo.sk.breakout.shared.model
-import com.neo.sk.breakout.shared.model.Constants.{ObstacleType, RacketParameter}
+import com.neo.sk.breakout.shared.model.Constants.{DirectionType, ObstacleType, RacketParameter}
 import com.neo.sk.breakout.shared.model.{Point, Rectangle}
 import com.neo.sk.breakout.shared.util.QuadTree
 
@@ -11,17 +11,18 @@ import com.neo.sk.breakout.shared.util.QuadTree
   *
   * */
 
-case class RacketState(racketId:Int,name:String,position:Point,direction:Float,isMove:Boolean)
+case class RacketState(racketId:Int,name:String,position:Point,direction:Float,isMove:Boolean,damageStatistic:Int)
 case class Racket(
                    racketId:Int,
                    var direction:Float,
                    var isMove:Boolean,
                    config: GameConfig,
                    var position:Point,
+                   var damageStatistics:Int,
                    name:String
                  ) extends RectangleObjectOfGame with ObstacleBall {
   def this(config:GameConfig,racketState:RacketState) = {
-    this(racketState.racketId,racketState.direction,racketState.isMove,config,racketState.position,racketState.name)
+    this(racketState.racketId,racketState.direction,racketState.isMove,config,racketState.position,racketState.damageStatistic,racketState.name)
   }
 //  var position:Point = Point(config.boundary.x / 2)
   //todo racket height width
@@ -30,7 +31,7 @@ case class Racket(
   override protected val collisionOffset: Float = config.obstacleWO
   var canvasFrame = 0
 
-  def getRacketState():RacketState = RacketState(racketId,name,position,direction,isMove)
+  def getRacketState():RacketState = RacketState(racketId,name,position,direction,isMove,damageStatistics)
 
   //todo 拍子的移动速度，可考虑移动到config中
   val moveSpeed: model.Point = RacketParameter.speed
@@ -95,6 +96,24 @@ case class Racket(
       } else position
     } else position
   }
+
+  def setRacketDirection(action:Option[Byte]) = {
+    val targetDirectionOpt = action match{
+      case Some(direction) =>
+        if(direction == 1)Some(DirectionType.left)
+        else if(direction == 2) Some(DirectionType.right)
+        else None
+      case None =>None
+
+    }
+    if(targetDirectionOpt.nonEmpty){
+      isMove = true
+      this.direction = targetDirectionOpt.get
+    }
+    else isMove = false
+  }
+
+
 
 
 

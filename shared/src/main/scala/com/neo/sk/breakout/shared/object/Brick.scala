@@ -12,11 +12,12 @@ import com.neo.sk.breakout.shared.model.Constants.ObstacleType
 case class Brick(
                   config:GameConfig,
                   override val oId: Int,
-                  override var position: model.Point
+                  override var position: model.Point,
+                  value:Int
                 ) extends Obstacle with ObstacleBall{
 
   def this(config: GameConfig,obstacleState: ObstacleState){
-    this(config,obstacleState.oId,obstacleState.p)
+    this(config,obstacleState.oId,obstacleState.p,obstacleState.value)
   }
 
 
@@ -25,6 +26,6 @@ case class Brick(
   override protected val width: Float = config.boundary.x / config.brickHorizontalNum
   override protected val collisionOffset: Float = config.obstacleWO
 
-  def getObstacleState():ObstacleState = ObstacleState(oId,obstacleType,position)
+  def getObstacleState():ObstacleState = ObstacleState(oId,obstacleType,position,value)
 
 }

@@ -39,6 +39,11 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
     case origin => origin
   }
 
+  object MoveSpace{
+    val LEFT = 1
+    val RIGHT = 2
+  }
+
   def getActionSerialNum: Byte = (actionSerialNumGenerator.getAndIncrement()%127).toByte
 
 //  def getStartGameModal(): Elem = {
@@ -77,11 +82,6 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
     e.preventDefault()
   }
 
-  object MoveSpace{
-    val LEFT = 1
-    val RIGHT = 2
-  }
-
   private def handleTouchMove(e:TouchEvent) = {
     println(s"=============")
     touchMoveEndX = e.changedTouches.item(0).clientX
@@ -108,6 +108,10 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
   private def handleTouchEnd(e:TouchEvent) = {
     touchStartX = 0
     touchMoveEndX = 0
+    val preExecuteAction = BreakoutGameEvent.UserTouchEnd(gameContainerOpt.get.racketId,
+      gameContainerOpt.get.systemFrame + preExecuteFrameOffset,getActionSerialNum)
+    gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+    sendMsg2Server(preExecuteAction)
     e.preventDefault()
   }
 
