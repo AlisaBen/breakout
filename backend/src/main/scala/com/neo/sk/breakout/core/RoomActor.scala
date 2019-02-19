@@ -7,7 +7,9 @@ import com.neo.sk.breakout.core.control.GameContainerServerImpl
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import org.seekloud.byteobject.MiddleBufferInJvm
 import com.neo.sk.breakout.Boot.userManager
-import com.neo.sk.breakout.shared.model.Point
+import com.neo.sk.breakout.models.DAO.AccountDAO
+import com.neo.sk.breakout.models.SlickTables
+import com.neo.sk.breakout.shared.model.{Point, Score}
 
 import scala.language.implicitConversions
 import org.seekloud.byteobject.ByteObject._
@@ -37,6 +39,8 @@ object RoomActor {
 
   case object GameLoop extends Command
   case class WebSocketMsg(uid: String, tankId: Int, req: BreakoutGameEvent.UserActionEvent) extends Command with RoomManager.Command
+
+  case class GameBattleRecord(scores:List[Score]) extends Command
 
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
 
@@ -95,6 +99,11 @@ object RoomActor {
           gameContainer.receiveUserAction(req)
           Behaviors.same
 
+        case GameBattleRecord(ls) =>
+          log.debug(s"${ctx.self.path} 插入战绩")
+          AccountDAO.insertBattleRecord(SlickTables.rBattleRecord(-1l,System.currentTimeMillis(),ls(0).n,ls(1).n,Some(ls(0).score),Some(ls(1).score)))
+          Behaviors.stopped
+
         case ChildDead(name,childRef) =>
           ctx.unwatch(childRef)
           Behaviors.same
@@ -114,7 +123,7 @@ object RoomActor {
   }
 
   def dispatchTo(subscribes:mutable.HashMap[String,ActorRef[UserActor.Command]])(name:String,msg:BreakoutGameEvent.WsMsgServer)(implicit sendBuffer:MiddleBufferInJvm) = {
-    subscribes.get(name).foreach(_ ! UserActor.DispatchMsg(BreakoutGameEvent.Wrap(msg.asInstanceOf[BreakoutGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),false)))
+    subscribes.get(name).foreach(_ ! UserActor.DispatchMsg(BreakoutGameEvent.Wrap(msg.asInstanceOf[BreakoutGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result(),msg.isInstanceOf[BreakoutGameEvent.GameOver])))
   }
 
 

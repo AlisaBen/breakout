@@ -162,7 +162,11 @@ trait GameContainer extends KillInformation{
     /**
       * 球的运行方向改变
       * */
-    ballMap.get(e.ballId).foreach(_.changeDirection())
+    racketMap.get(e.racketId) match{
+      case Some(racket) =>
+        ballMap.get(e.ballId).foreach(_.changeDirection(racket.getPosition,racket.getWidth,racket.getHeight))
+      case None =>
+    }
 //    val bulletTankOpt = tankMap.get(e.bulletTankId)
 //    tankMap.get(e.tankId).foreach{ tank =>
 //      tank.attackedDamage(e.damage)
@@ -195,8 +199,8 @@ trait GameContainer extends KillInformation{
     /**
       * 这里需要增加对方对应位置增加砖块,后端执行不同
       * */
-    ballMap.get(e.ballId).foreach(_.changeDirection(e.isLeft))
     obstacleMap.get(e.brickId).foreach{ obstacle =>
+      ballMap.get(e.ballId).foreach(_.changeDirection(obstacle.getPosition,obstacle.getWidth,obstacle.getHeight))
       quadTree.remove(obstacle)
       obstacleMap.remove(e.brickId)
       val ballRacketOpt = racketMap.get(e.ballId) match{
@@ -391,6 +395,8 @@ trait GameContainer extends KillInformation{
 //  //后台需要重写，生成吃到道具事件，客户端不必重写
 //  protected def tankEatPropCallback(tank:Tank)(prop: Prop):Unit = {}
 //
+  protected def gameOverCallBack(racket: Racket):Unit = {}
+
   protected def ballMove():Unit = {
     ballMap.toList.sortBy(_._1).map(_._2).foreach{ ball =>
       val objects = quadTree.retrieveFilter(ball)
@@ -399,29 +405,51 @@ trait GameContainer extends KillInformation{
           ball.checkAttackObject(t,collisionRacketCallBack(ball))}
       objects.filter(t => t.isInstanceOf[ObstacleBall] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
         .foreach(t => ball.checkAttackObject(t,collisionObstacleCallBack(ball)))
-      ball.move(boundary,systemFrame,ballFlyEndCallback)
+      if(ball.getPosition.y <= config.boundary.y / 2){
+        val gameOver = ball.move(Rectangle(Point(0,0),Point(config.boundary.x,config.boundary.y / 2)),systemFrame)
+        if(gameOver){
+          racketMap.get(ball.racketId) match{
+            case Some(racket) =>
+              gameOverCallBack(racket)
+            case None =>
+          }
+        }
+
+      }else{
+        val gameOver = ball.move(Rectangle(Point(0,config.boundary.y / 2),boundary),systemFrame)
+        if(gameOver){
+          racketMap.get(ball.racketId) match{
+            case Some(racket) =>
+              gameOverCallBack(racket)
+            case None =>
+          }
+        }
+      }
     }
   }
 
 
-  protected def ballFlyEndCallback(ball: Ball):Unit = {
-    ball.changeDirection()
-//    ballMap.remove(ball.bId)
-//    quadTree.remove(ball)
-  }
+//  protected def ballFlyEndCallback(ball: Ball):Unit = {
+//    ball.changeDirection()
+////    ballMap.remove(ball.bId)
+////    quadTree.remove(ball)
+//  }
 
   //游戏后端需要重写，生成伤害事件
   protected def collisionRacketCallBack(ball: Ball)(racket: Racket):Unit = {
-    ball.changeDirection()
-    val event = BreakoutGameEvent.RacketCollision(racket.racketId,ball.bId,systemFrame)
-    addFollowEvent(event)
+    /**
+      * 判断球和racket的碰撞的面
+      * */
+    ball.changeDirection(racket.getPosition,racket.getWidth,racket.getHeight)
+//    val event = BreakoutGameEvent.RacketCollision(racket.racketId,ball.bId,systemFrame)
+//    addFollowEvent(event)
   }
 
 
   //子弹攻击到障碍物的回调函数，游戏后端需要重写,生成伤害事件
   protected def collisionObstacleCallBack(ball: Ball)(o:Obstacle):Unit = {
     //fixme
-    ball.changeDirection()
+    ball.changeDirection(o.getObstacleState().p,o.getWidth,o.getHeight)
     val event = BreakoutGameEvent.ObstacleCollision(o.oId,ball.bId,o.getObstacleState().p,frame = systemFrame)
     addFollowEvent(event)
   }

@@ -3,7 +3,6 @@ package com.neo.sk.breakout.front.pages.control
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.breakout.front.common.{Constants, Routes}
-import com.neo.sk.breakout.front.pages.MatchPlayer
 import com.neo.sk.breakout.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.breakout.shared.`object`.Racket
 import com.neo.sk.breakout.shared.game.GameContainerClientImpl
@@ -138,7 +137,7 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
         println(s"new game the id is ${e.players}")
         println(s"玩家信息${e}")
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)
-        MatchPlayer.changeModalState
+
         /**
           * 更新游戏数据
           **/
@@ -146,6 +145,8 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
         gameContainerOpt.get.changeRacketId(e.players.racketId)
 
       case e: BreakoutGameEvent.GameOver =>
+        //fixme 结算页面
+        e.score
         setGameState(GameState.stop)
 
       case e: BreakoutGameEvent.SyncGameAllState =>

@@ -60,7 +60,7 @@ abstract class GameHolder(name:String)  extends NetworkInfo  {
   protected var firstCome = true
 
   protected val gameStateVar: Var[Int] = Var(GameState.firstCome)
-  protected var gameState: Int = GameState.firstCome
+  var gameState: Int = GameState.firstCome
 //
 //  //  protected var killerName:String = ""
 //
@@ -163,10 +163,10 @@ abstract class GameHolder(name:String)  extends NetworkInfo  {
       case GameState.play =>
 
         /** */
-//        if(tickCount % rankCycle == 1){
+        if(tickCount % rankCycle == 1){
 //          gameContainerOpt.foreach(_.updateRanks())
-//          gameContainerOpt.foreach(t => t.rankUpdated = true)
-//        }
+          gameContainerOpt.foreach(t => t.rankUpdated = true)
+        }
         gameContainerOpt.foreach(_.update())
         logicFrameTime = System.currentTimeMillis()
         ping()

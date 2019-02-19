@@ -19,6 +19,10 @@ object AccountDAO {
     db.run(tUserInfo.filter(t => t.userName === userName && t.password === password).length.result)
   }
 
+  def insertBattleRecord(r:rBattleRecord) = {
+    db.run(tBattleRecord.returning(tBattleRecord.map(_.recordId)) += r)
+  }
+
 
 
 }

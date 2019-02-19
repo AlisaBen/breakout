@@ -3,12 +3,13 @@ package com.neo.sk.breakout.core.control
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.typed.ActorRef
+import com.neo.sk.breakout.core.RoomActor.GameBattleRecord
 import com.neo.sk.breakout.core.{RoomActor, UserActor}
 import com.neo.sk.breakout.shared.`object`._
 import com.neo.sk.breakout.shared.config.GameConfig
 import com.neo.sk.breakout.shared.game.GameContainer
 import com.neo.sk.breakout.shared.model.Constants.ObstacleType
-import com.neo.sk.breakout.shared.model.Point
+import com.neo.sk.breakout.shared.model.{Point, Score}
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.ObstacleCollision
 import javax.xml.ws.Dispatch
@@ -74,13 +75,9 @@ case class GameContainerServerImpl(
 //    }
   }
 
-  def generateBall(position:Point,racketId:Int) = {
+  def generateBall(position:Point,racketId:Int,direction:Float) = {
     val ballId = ballIdGenerator.getAndIncrement()
-    var randDirection = (new Random).nextFloat() * math.Pi.toFloat
-    while (randDirection == 0 || randDirection == math.Pi){
-      randDirection = (new Random).nextFloat() * math.Pi.toFloat
-    }
-    val ball = new Ball(config,BallState(ballId,racketId,position,config.ballSpeed.rotate(randDirection)))
+    val ball = new Ball(config,BallState(ballId,racketId,position,config.ballSpeed.rotate(direction)))
 //    val objects = quadTree.retrieveFilter(ball).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
 //    if(ball.isIntersectsObject(objects)){
 //      log.debug(s"拍子位置错误")
@@ -138,11 +135,15 @@ case class GameContainerServerImpl(
   }
 
   def generateRacketAndBall(nameA:String,nameB:String,playerMap:mutable.HashMap[String,ActorRef[UserActor.Command]]): Unit = {
-    val racketAOpt = generateRacket(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3).toFloat),nameA)//自己
+    val racketAOpt = generateRacket(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 10).toFloat),nameA)//自己
     val racketBOpt = generateRacket(Point(config.boundary.x / 2 ,(config.getRacketHeight / 2 + 3).toFloat),nameB)//对方
     if(racketAOpt.nonEmpty && racketBOpt.nonEmpty){
       racketAOpt.foreach{racketA =>
-        generateBall(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3 - config.getRacketHeight / 2 - config.getBallRadius).toFloat),racketA.racketId)
+        var randDirection = (new Random).nextFloat() * math.Pi.toFloat + math.Pi.toFloat
+        while (randDirection == 2*math.Pi || randDirection == math.Pi){
+          randDirection = (new Random).nextFloat() * math.Pi.toFloat + math.Pi.toFloat
+        }
+        generateBall(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3 - config.getRacketHeight / 2 - config.getBallRadius).toFloat),racketA.racketId,randDirection)
           .foreach{ball =>
             val event = BreakoutGameEvent.UserJoinRoom(nameA,racketA.getRacketState(),ball.getBallState(),systemFrame)
             dispatch(event)
@@ -156,7 +157,11 @@ case class GameContainerServerImpl(
           }
       }
       racketBOpt.foreach{racketB =>
-        generateBall(Point(config.boundary.x / 2,(3 + config.getRacketHeight / 2 + config.getBallRadius).toFloat),racketB.racketId)
+        var randDirection = (new Random).nextFloat() * math.Pi.toFloat
+        while (randDirection == 2*math.Pi || randDirection == math.Pi){
+          randDirection = (new Random).nextFloat() * math.Pi.toFloat
+        }
+        generateBall(Point(config.boundary.x / 2,(10 + config.getRacketHeight / 2 + config.getBallRadius).toFloat),racketB.racketId,randDirection)
           .foreach{ball =>
             val event = BreakoutGameEvent.UserJoinRoom(nameB,racketB.getRacketState(),ball.getBallState(),systemFrame)
             dispatch(event)
@@ -173,6 +178,13 @@ case class GameContainerServerImpl(
       log.debug(s"${roomActorRef.path}生成拍子错误")
     }
 
+  }
+
+  override protected def gameOverCallBack(racket: Racket): Unit = {
+    //fixme
+    val gameOverEvent = BreakoutGameEvent.GameOver(racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
+    dispatch(gameOverEvent)
+    roomActorRef ! GameBattleRecord(racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
   }
 
   override protected def handleObstacleCollision(e:ObstacleCollision) :Unit = {

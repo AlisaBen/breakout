@@ -1,0 +1,35 @@
+.loginForm{
+    text-align: center;
+    margin-top: 40%;
+    font-size: 40px;
+}
+
+#account, #password, #confirm_password{
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+#loginBtn, #registerBtn{
+    width: 150px;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 10px;
+    color: white;
+    background: blue;
+}
+
+#modal{
+    font-size: 150px;
+    margin-top: 10px;
+    margin-bottom: 90px;
+    background-color: blueviolet;
+    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.07);
+    border-radius: 20px;
+    height: 400px;
+    color: white;
+}
+
+#gameHall{
+    text-align: center;
+    font-size: 80px;
+}

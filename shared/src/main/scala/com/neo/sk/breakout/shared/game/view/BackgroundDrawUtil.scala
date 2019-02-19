@@ -166,8 +166,8 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
       context.setTextBaseline("middle")
       context.setLineCap("round")
       drawTextLine(header, currentRankCanvas.getWidth() / 2 , 1 * unit, context)
-      context.setStrokeStyle("RGB(137,188,255)")
-      context.setLineWidth(1.8 * unit)
+      context.setStrokeStyle("#262626")
+      context.setLineWidth(3 * unit)
       drawTextLine(
         s"${this.racketMap(racketId).damageStatistics}:${this.racketMap.filterNot(t => t._1 == racketId).head._2.damageStatistics}",
         currentRankCanvas.getWidth(),

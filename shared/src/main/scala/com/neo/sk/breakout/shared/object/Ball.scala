@@ -2,7 +2,7 @@ package com.neo.sk.breakout.shared.`object`
 
 import com.neo.sk.breakout.shared.config.GameConfig
 import com.neo.sk.breakout.shared.model
-import com.neo.sk.breakout.shared.model.Point
+import com.neo.sk.breakout.shared.model.{Point, Rectangle}
 import javafx.scene.effect.Light
 
 /**
@@ -53,40 +53,48 @@ case class Ball(
   }
 
   // 生命周期是否截至或者打到地图边界
-  def isFlyEnd(boundary: Point,flyEndCallBack:Ball => Unit):Int = {
-    if(position.x - radius <= 0 || position.x + radius >= boundary.x){
+  def isFlyEnd(boundary: Rectangle):Int = {
+    if(position.x - radius <= boundary.topLeft.x || position.x + radius >= boundary.downRight.x){
       //左右边界
       1
     }else if(position.y - radius <= 0){
-      //上下边界
+      //上边界
       2
-    }else if(position.y + radius >= boundary.y){
-      flyEndCallBack(this)
+    }else if(position.y + radius >= boundary.downRight.y){
       4
     }else
       3
   }
 
   // 先检测是否生命周期结束，如果没结束继续移动
-  def move(boundary: Point,frame:Long,flyEndCallBack:Ball => Unit):Unit = {
-    isFlyEnd(boundary,flyEndCallBack) match{
+  def move(boundary: Rectangle,frame:Long) = {
+    isFlyEnd(boundary) match{
       case 1 =>
         //左右边界，不改变y轴的移动速度，改变x轴
-        momentum.*(Point(-1,1))
+        momentum = Point(-1 * momentum.x,momentum.y)
+        this.position = this.position + momentum
+//        val a  = momentum.*(Point(-1,1))
+        false
       case 2 =>
         //上下边界，改变y轴
-        momentum.*(Point(1,-1))
+        momentum = Point(momentum.x,-1 * momentum.y)
+        this.position = this.position + momentum
+        false
+//        momentum.*(Point(1,-1))
       case 3 =>
+        this.position = this.position + momentum
+        false
+      case 4 => true
+        //游戏结束
     }
-    this.position = this.position + momentum
   }
 
-  def changeDirection(isLeftOpt:Option[Boolean] = None) = {
-    isLeftOpt match {
-      case Some(isLeft) =>
-        momentum.*(Point(-1,1))
-      case None => momentum.*(Point(1, -1))
-    }
+  def changeDirection(obstaclePosition:Point,obstacleWidth:Float,obstacleHeight:Float) = {
+    val rightOrLeftCondition = position.x >= obstaclePosition.x + obstacleWidth / 2 && position.y <= obstaclePosition.y + obstacleHeight / 2 ||
+    position.x <= obstaclePosition.x - obstacleWidth / 2 && position.y >= obstaclePosition.y - obstacleHeight / 2
+
+    if(rightOrLeftCondition)momentum = Point(-1 * momentum.x,momentum.y)
+    else momentum = Point(momentum.x,-1 * momentum.y)
   }
 
   // 检测是否子弹有攻击到，攻击到，执行回调函数
