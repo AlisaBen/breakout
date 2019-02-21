@@ -6,7 +6,13 @@ import com.neo.sk.breakout.shared.ptcl.{AccountProtocol, ErrorRsp, SuccessRsp}
 import org.slf4j.LoggerFactory
 import com.neo.sk.breakout.models.DAO.AccountDAO._
 import com.neo.sk.breakout.models.SlickTables._
-import com.neo.sk.breakout.Boot.executor
+import com.neo.sk.breakout.Boot.{executor, scheduler, timeout, userManager}
+import com.neo.sk.breakout.core.UserManager.GetUserId
+import akka.actor.typed.scaladsl.AskPattern._
+import com.neo.sk.breakout.shared.ptcl.AccountProtocol.LoginRsp
+import com.neo.sk.utils.TimeUtil
+
+import scala.concurrent.Future
 
 /**
   * created by benyafang on 2019/2/2 pm 13:48
@@ -42,26 +48,32 @@ trait AccountService extends ServiceUtils{
   }
 
   //登录
-  private def loginErrorRsp(msg:String) = ErrorRsp(100012,msg)
+  private def loginErrorRsp(errCode:Int,msg:String) = ErrorRsp(errCode,msg)
   val login = (path("login") & post){
     entity(as[Either[Error,AccountProtocol.LoginReq]]){
       case Right(req) =>
         dealFutureResult{
           confirmUserInfo(req.userName,req.password).map{l =>
-            if(l > 0){
-              complete(SuccessRsp())
+            if(l.length > 0){
+              if(l.head){
+                log.debug(s"已经被禁用用户请求登录${req.userName}--${TimeUtil.format_yyyyMMddHH(System.currentTimeMillis())}")
+                complete(loginErrorRsp(10022,s"该账户已经被禁用"))
+              }else{
+                val uid:Future[Long] = userManager ? (GetUserId(req.userName,true,_))
+                dealFutureResult(uid.map(t =>complete(LoginRsp(t))))
+              }
             }else{
-              complete(loginErrorRsp("用户名或者密码错误，请重新输入"))
+              complete(loginErrorRsp(100012,"用户名或者密码错误，请重新输入"))
             }
           }.recover{
             case e:Exception =>
               log.debug(s"用户登录失败，查询数据库错误：${e}")
-              complete(loginErrorRsp(s"用户登录失败，查询数据库错误：${e}"))
+              complete(loginErrorRsp(100012,s"用户登录失败，查询数据库错误：${e}"))
           }
         }
       case Left(error) =>
         log.debug(s"用户登录失败,请求格式错误：${error}")
-        complete(loginErrorRsp(s"用户登录失败,请求格式错误：${error}"))
+        complete(loginErrorRsp(100012,s"用户登录失败,请求格式错误：${error}"))
     }
   }
 

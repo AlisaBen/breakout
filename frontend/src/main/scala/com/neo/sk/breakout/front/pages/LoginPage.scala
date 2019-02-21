@@ -3,14 +3,20 @@ package com.neo.sk.breakout.front.pages
 import com.neo.sk.breakout.front.common.{Page, Routes}
 import com.neo.sk.breakout.front.utils.{Http, JsFunc, LocalStorageUtil}
 import com.neo.sk.breakout.shared.ptcl.{AccountProtocol, SuccessRsp}
-import mhtml.Var
+import mhtml.{Var, emptyHTML}
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.{KeyboardEvent, html}
 import com.neo.sk.breakout.front.common.Routes._
+import com.neo.sk.breakout.front.model.PlayerInfo
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.Elem
 import com.neo.sk.breakout.front.pages.MainPage._
+import com.neo.sk.breakout.front.control.GamePlayHolder
+import org.scalajs.dom.html.Div
+//import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.PlayerInfo
+import com.neo.sk.breakout.shared.ptcl.AccountProtocol.LoginRsp
 /**
   * Created by wmy
   * Date on 2018/12/12
@@ -24,16 +30,19 @@ object LoginPage extends Page{
 
   val showWarning = Var(false)
 
+  private val modal = Var(emptyHTML)
+  private val canvas = <canvas id="GameView" tabindex="1"></canvas>
+
   def enter:Unit = {
     val name = dom.window.document.getElementById("account").asInstanceOf[html.Input].value
     val pwd = dom.window.document.getElementById("password").asInstanceOf[html.Input].value
     val data = AccountProtocol.LoginReq(name,pwd).asJson.noSpaces
-    Http.postJsonAndParse[SuccessRsp](AccountRoute.loginRoute,data).map{rsp =>
+    Http.postJsonAndParse[LoginRsp](AccountRoute.loginRoute,data).map{rsp =>
       if(rsp.errCode == 0){
-        LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
-        gotoPage(s"#/gameHall")
-        //        dom.window.location.hash = s"#/gameHall"
-        GameHall.playerName = name
+        LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uid,name,true))
+        val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uid,name,true,None))
+        modal := gamePlayHolder.getStartGameModal()
+        dom.document.getElementById("loginBg").asInstanceOf[Div].setAttribute("class","invisible")
       }
       else{
         showWarning := true
@@ -43,16 +52,19 @@ object LoginPage extends Page{
     }
   }
 
-  def keyDownEnter(e:KeyboardEvent):Unit = {
+  private def keyDownEnter(e:KeyboardEvent):Unit = {
     if(e.keyCode == KeyCode.Enter) {
       val name = dom.window.document.getElementById("account").asInstanceOf[html.Input].value
       val pwd = dom.window.document.getElementById("password").asInstanceOf[html.Input].value
       val data =  AccountProtocol.LoginReq(name,pwd).asJson.noSpaces
-      Http.postJsonAndParse[SuccessRsp](AccountRoute.loginRoute,data).map{rsp =>
+      Http.postJsonAndParse[LoginRsp](AccountRoute.loginRoute,data).map{rsp =>
         if(rsp.errCode == 0){
-          LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
-          GameHall.playerName = name
-          gotoPage(s"#/gameHall")
+          LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uid,name,true))
+          val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uid,name,true,None))
+          modal := gamePlayHolder.getStartGameModal()
+          dom.document.getElementById("loginBg").asInstanceOf[Div].setAttribute("class","invisible")
+//          GameHall.playerName = name
+//          gotoPage(s"#/gameHall")
           //          dom.window.location.hash = s"#/gameHall"
         }
         else{
@@ -75,9 +87,10 @@ object LoginPage extends Page{
     {showWarning := false}
     <div>
       <div class="bgp">
-
+        {modal}
+        <div>{canvas}</div>
       </div>
-      <div class="loginBg" onkeydown = {e:KeyboardEvent => keyDownEnter(e)}>
+      <div id="loginBg" class="visible" onkeydown = {e:KeyboardEvent => keyDownEnter(e)}>
         <div class="loginForm">
           <p id="loginTip">请登录</p>
           <p id="loginWar" style={displayOfP}>您输入的账户名或密码有误<button onclick={() => showWarning:=false}></button></p>
@@ -86,6 +99,7 @@ object LoginPage extends Page{
           <p>
             <button id="loginBtn" onclick={() => enter}>登录</button>
             <button id="registerBtn" onclick={() => gotoPage(s"#/register")}>注册</button>
+            <button id="visitorBtn" onclick={() => gotoPage(s"#/visitor")}>游客</button>
           </p>
         </div>
       </div>

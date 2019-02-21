@@ -29,7 +29,7 @@ object RegisterPage extends Page{
     }else{
       Http.postJsonAndParse[SuccessRsp](AccountRoute.registerRoute,data).map{rsp =>
         if(rsp.errCode == 0){
-          LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
+//          LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
           //todo
           dom.window.location.hash = s"#/login"
         }
@@ -53,7 +53,7 @@ object RegisterPage extends Page{
       }else{
         Http.postJsonAndParse[SuccessRsp](AccountRoute.registerRoute,data).map{rsp =>
           if(rsp.errCode == 0){
-            LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
+//            LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
             //todo
             dom.window.location.hash = s"#/login"
           }

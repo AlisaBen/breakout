@@ -16,7 +16,15 @@ object AccountProtocol {
                      password:String
                      )
 
+  case class LoginRsp(
+                     uid:Long,
+                     errCode:Int = 0,
+                     msg:String = "ok"
+                     )
+
   case class NameStorage(
-                        name:String
+                        uid:Long,
+                        name:String,
+                        isVisitor:Boolean
                         )
 }

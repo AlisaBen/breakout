@@ -6,8 +6,15 @@ package com.neo.sk.breakout.shared.ptcl
   * */
 object GameHallProtocol {
   case class GameModelReq(
+                         uid:Long,
                          name:String,
+                         isVisitor:Boolean,
                          model:Int
                          )
+
+  case class GetUId4Visitor(
+                           name:String,
+                           isVisitor:Boolean
+                           )
 
 }

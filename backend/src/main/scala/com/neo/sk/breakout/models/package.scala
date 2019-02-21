@@ -5,11 +5,10 @@ package com.neo.sk.breakout
   */
 package object models {
 
-  case class TankGameUserInfo(
+  case class GameUserInfo(
                      userId:String,
                      nickName:String,
-                     name:String,
-                     isFlatUser:Boolean
+                     isVisitor:Boolean
                      )
 
 }

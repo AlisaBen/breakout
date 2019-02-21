@@ -36,7 +36,7 @@ case class GameContainerServerImpl(
                                     log:Logger,
                                     roomActorRef:ActorRef[RoomActor.Command],
                                     dispatch: BreakoutGameEvent.WsMsgServer => Unit,
-                                    dispatchTo: (String, BreakoutGameEvent.WsMsgServer) => Unit
+                                    dispatchTo: (Long, BreakoutGameEvent.WsMsgServer) => Unit
                                   ) extends GameContainer {
 
   import scala.language.implicitConversions
@@ -63,9 +63,9 @@ case class GameContainerServerImpl(
 //    }
   }
 
-  def generateRacket(position:Point,name:String) = {
+  def generateRacket(position:Point,uid:Long,name:String) = {
     val racketId = racketIdGenerator.getAndIncrement()
-    val racket = new Racket(config,RacketState(racketId,name,position,0,false,0))
+    val racket = new Racket(config,RacketState(racketId,uid,name,position,0,false,0))
 //    val objects = quadTree.retrieveFilter(racket).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
 //    if(racket.isIntersectsObject(objects)){
 //      log.debug(s"拍子位置错误")
@@ -134,10 +134,12 @@ case class GameContainerServerImpl(
 //    println(s"---${obstacleMap.values.map(_.position.y).min}")
   }
 
-  def generateRacketAndBall(nameA:String,nameB:String,playerMap:mutable.HashMap[String,ActorRef[UserActor.Command]]): Unit = {
-    val racketAOpt = generateRacket(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 10).toFloat),nameA)//自己
-    val racketBOpt = generateRacket(Point(config.boundary.x / 2 ,(config.getRacketHeight / 2 + 3).toFloat),nameB)//对方
+  def generateRacketAndBall(nameA:String,nameB:String,uidA:Long,uidB:Long,playerMap:mutable.HashMap[Long,ActorRef[UserActor.Command]]): Unit = {
+    val racketAOpt = generateRacket(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3).toFloat),uidA,nameA)//自己
+    val racketBOpt = generateRacket(Point(config.boundary.x / 2 ,(config.getRacketHeight / 2 + 3).toFloat),uidB,nameB)//对方
     if(racketAOpt.nonEmpty && racketBOpt.nonEmpty){
+      playerMap(uidA) ! UserActor.JoinRoomSuccess(racketAOpt.get,config.getGameConfigImpl(),roomActorRef)
+      playerMap(uidB) ! UserActor.JoinRoomSuccess(racketBOpt.get,config.getGameConfigImpl(),roomActorRef)
       racketAOpt.foreach{racketA =>
         var randDirection = (new Random).nextFloat() * math.Pi.toFloat + math.Pi.toFloat
         while (randDirection == 2*math.Pi || randDirection == math.Pi){
@@ -145,15 +147,16 @@ case class GameContainerServerImpl(
         }
         generateBall(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3 - config.getRacketHeight / 2 - config.getBallRadius).toFloat),racketA.racketId,randDirection)
           .foreach{ball =>
-            val event = BreakoutGameEvent.UserJoinRoom(nameA,racketA.getRacketState(),ball.getBallState(),systemFrame)
-            dispatch(event)
-            addGameEvent(event)
+//            val event = BreakoutGameEvent.UserJoinRoom(nameA,racketA.getRacketState(),ball.getBallState(),systemFrame)
+//            dispatch(event)
+//            addGameEvent(event)
             racketMap.put(racketA.racketId,racketA)
             quadTree.insert(racketA)
             racketHistoryMap.put(racketA.racketId,racketA.name)
             ballMap.put(ball.bId,ball)
             quadTree.insert(ball)
-            playerMap(nameA) ! UserActor.JoinRoomSuccess(racketA,config.getGameConfigImpl(),roomActorRef)
+            log.debug(s"${roomActorRef.path} 发送加入房间成功的消息")
+//            playerMap(nameA) ! UserActor.JoinRoomSuccess(racketA,config.getGameConfigImpl(),roomActorRef)
           }
       }
       racketBOpt.foreach{racketB =>
@@ -161,19 +164,21 @@ case class GameContainerServerImpl(
         while (randDirection == 2*math.Pi || randDirection == math.Pi){
           randDirection = (new Random).nextFloat() * math.Pi.toFloat
         }
-        generateBall(Point(config.boundary.x / 2,(10 + config.getRacketHeight / 2 + config.getBallRadius).toFloat),racketB.racketId,randDirection)
+        generateBall(Point(config.boundary.x / 2,(3 + config.getRacketHeight / 2 + config.getBallRadius).toFloat),racketB.racketId,randDirection)
           .foreach{ball =>
-            val event = BreakoutGameEvent.UserJoinRoom(nameB,racketB.getRacketState(),ball.getBallState(),systemFrame)
-            dispatch(event)
-            addGameEvent(event)
+//            val event = BreakoutGameEvent.UserJoinRoom(nameB,racketB.getRacketState(),ball.getBallState(),systemFrame)
+//            dispatch(event)
+//            addGameEvent(event)
             racketMap.put(racketB.racketId,racketB)
             quadTree.insert(racketB)
             racketHistoryMap.put(racketB.racketId,racketB.name)
             ballMap.put(ball.bId,ball)
             quadTree.insert(ball)
-            playerMap(nameB) ! UserActor.JoinRoomSuccess(racketB,config.getGameConfigImpl(),roomActorRef)
+//            playerMap(nameB) ! UserActor.JoinRoomSuccess(racketB,config.getGameConfigImpl(),roomActorRef)
           }
       }
+      val state = getGameContainerAllState()
+      dispatch(BreakoutGameEvent.SyncGameAllState(state))
     }else{
       log.debug(s"${roomActorRef.path}生成拍子错误")
     }
@@ -185,6 +190,7 @@ case class GameContainerServerImpl(
     val gameOverEvent = BreakoutGameEvent.GameOver(racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
     dispatch(gameOverEvent)
     roomActorRef ! GameBattleRecord(racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
+
   }
 
   override protected def handleObstacleCollision(e:ObstacleCollision) :Unit = {
@@ -200,13 +206,21 @@ case class GameContainerServerImpl(
 
   implicit def obstacleState2Impl(o:ObstacleState):Obstacle = new Brick(config,o)
 
-  def getGameContainerState(frameOnly:Boolean = false): BreakoutGameEvent.GameContainerAllState = {
+  def getGameContainerAllState(frameOnly:Boolean = false): BreakoutGameEvent.GameContainerAllState = {
     BreakoutGameEvent.GameContainerAllState (
       systemFrame,
       racketMap.values.map(_.getRacketState()).toList,
       ballMap.values.map(_.getBallState()).toList,
       obstacleMap.values.map(_.getObstacleState()).toList,
       racketMoveAction.toList.map(t => (t._1,if(t._2.isEmpty) None else Some(t._2.toList)))
+    )
+  }
+
+  def getGameContainerState(frameOnly:Boolean = false): BreakoutGameEvent.GameContainerState = {
+    BreakoutGameEvent.GameContainerState(
+      systemFrame,
+      if(frameOnly) None else Some(racketMap.values.map(_.getRacketState()).toList),
+      if(frameOnly) None else Some(racketMoveAction.toList.map(t => (t._1,if(t._2.isEmpty) None else Some(t._2.toList))))
     )
   }
 

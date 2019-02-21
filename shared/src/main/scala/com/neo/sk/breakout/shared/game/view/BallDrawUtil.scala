@@ -37,6 +37,7 @@ trait BallDrawUtil {this:GameContainerClientImpl =>
   }
 
   protected def drawBall(offset:Point, offsetTime:Long, view:Point) = {
+    println(s"------------${ballMap.values}")
     ballMap.values.foreach{ ball =>
       val p = ball.getPosition4Animation(offsetTime) + offset
       if(p.in(view,Point(ball.getRadius * 4 ,ball.getRadius *4))) {

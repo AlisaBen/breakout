@@ -27,7 +27,8 @@ trait HttpService
   extends ResourceService
     with ServiceUtils
     with AccountService
-    with GameHallService{
+    with GameHallService
+    with AdminService{
 
   import akka.actor.typed.scaladsl.AskPattern._
   import com.neo.sk.utils.CirceSupport._
@@ -86,11 +87,20 @@ trait HttpService
 
   private val webSocketConnection = path("join"){
     parameter(
+      'uid.as[Long],
       'name,
+      'isVisitor.as[Int],
       'roomId.as[Long].?
-    ){(name,roomIdOpt) =>
+    ){(uid,name,isVisitor,roomIdOpt) =>
       log.debug(s"-------")
-      val flowFuture:Future[Flow[Message,Message,Any]] = userManager ? (UserManager.GetWebSocketFlow(name,_,roomIdOpt))
+      val flowFuture:Future[Flow[Message,Message,Any]] = if(isVisitor == 0){
+        //访客
+        userManager ? (UserManager.GetWebSocketFlow(uid,name,_,true,roomIdOpt))
+
+      }else{
+        //登录
+       userManager ? (UserManager.GetWebSocketFlow(uid,name,_,false,roomIdOpt))
+      }
       dealFutureResult(flowFuture.map(t => handleWebSocketMessages(t)))
     }
   }
@@ -100,7 +110,7 @@ trait HttpService
 
 
   lazy val routes: Route = pathPrefix(AppSettings.rootPath){
-    resourceRoutes ~ platEnterRoute ~ account ~ gameHall ~
+    resourceRoutes ~ platEnterRoute ~ account ~ gameHall ~ adminService~
       (pathPrefix("game") & get){
         pathEndOrSingleSlash{
           getFromResource("html/admin.html")

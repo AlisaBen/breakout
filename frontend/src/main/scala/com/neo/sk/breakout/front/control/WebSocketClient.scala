@@ -1,4 +1,4 @@
-package com.neo.sk.breakout.front.pages.control
+package com.neo.sk.breakout.front.control
 
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import org.scalajs.dom.Blob
@@ -41,6 +41,7 @@ case class WebSocketClient(
     if(wsSetup){
       println(s"websocket已经启动")
     }else{
+      println(s"--准备建立websocket：${wsUrl}")
       val websocketStream = new WebSocket(wsUrl)
 
       webSocketStreamOpt = Some(websocketStream)
@@ -55,20 +56,31 @@ case class WebSocketClient(
       }
 
       websocketStream.onmessage = { event: MessageEvent =>
-        //        println(s"recv msg:${event.data.toString}")
+        println(s"recv msg:${event.data.toString}")
         event.data match {
           case blobMsg:Blob =>
             val fr = new FileReader()
             fr.readAsArrayBuffer(blobMsg)
             fr.onloadend = { _: Event =>
-              val buf = fr.result.asInstanceOf[ArrayBuffer]
-              messageHandler(wsByteDecode(buf,blobMsg.size))
+//              if(fr.result.isInstanceOf[ArrayBuffer]){
+                val buf = fr.result.asInstanceOf[ArrayBuffer]
+                messageHandler(wsByteDecode(buf))
+//              }else{
+//                println(s"${fr.result.toString}-----websocket--")
+//              }
+
             }
           case jsonStringMsg:String =>
             import io.circe.generic.auto._
             import io.circe.parser._
-            val data = decode[BreakoutGameEvent.WsMsgServer](jsonStringMsg).right.get
-            messageHandler(data)
+            decode[BreakoutGameEvent.WsMsgServer](jsonStringMsg) match{
+              case Right(data) =>
+//                val data = decode[BreakoutGameEvent.WsMsgServer](jsonStringMsg)
+                messageHandler(data)
+              case Left(error) =>
+                println(s"recv msg:${jsonStringMsg.toString},decode error:${error}")
+
+            }
           case unknow =>  println(s"recv unknow msg:${unknow}")
         }
 
@@ -90,13 +102,13 @@ case class WebSocketClient(
 
   import org.seekloud.byteobject.ByteObject._
 
-  private def wsByteDecode(a:ArrayBuffer,s:Double):BreakoutGameEvent.WsMsgServer={
+  private def wsByteDecode(a:ArrayBuffer):BreakoutGameEvent.WsMsgServer={
     val middleDataInJs = new MiddleBufferInJs(a)
     bytesDecode[BreakoutGameEvent.WsMsgServer](middleDataInJs) match {
       case Right(r) =>
-        try {
-          setDateSize(s"${r.getClass.toString.split("BreakoutGameEvent").last.drop(1)}",s)
-        }catch {case exception: Exception=> println(exception.getCause)}
+//        try {
+//          setDateSize(s"${r.getClass.toString.split("BreakoutGameEvent").last.drop(1)}",s)
+//        }catch {case exception: Exception=> println(exception.getCause)}
         r
       case Left(e) =>
         println(e.message)

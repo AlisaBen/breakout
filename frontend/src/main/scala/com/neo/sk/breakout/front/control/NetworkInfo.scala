@@ -1,4 +1,4 @@
-package com.neo.sk.breakout.front.pages.control
+package com.neo.sk.breakout.front.control
 
 import com.neo.sk.breakout.front.utils.Shortcut
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent

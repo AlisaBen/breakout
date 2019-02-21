@@ -30,7 +30,7 @@ object AdminLoginPage extends Page {
     val data = AccountProtocol.LoginReq(name,pwd).asJson.noSpaces
     Http.postJsonAndParse[SuccessRsp](AccountRoute.adminLoginRoute,data).map{rsp =>
       if(rsp.errCode == 0){
-        LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
+//        LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
         dom.window.location.hash = s"#/main/user"
       }
       else{
@@ -47,7 +47,7 @@ object AdminLoginPage extends Page {
       val data =  AccountProtocol.LoginReq(name,pwd).asJson.noSpaces
       Http.postJsonAndParse[SuccessRsp](AccountRoute.adminLoginRoute,data).map{rsp =>
         if(rsp.errCode == 0){
-          LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
+//          LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
           dom.window.location.hash = s"#/main/user"
         }
         else{

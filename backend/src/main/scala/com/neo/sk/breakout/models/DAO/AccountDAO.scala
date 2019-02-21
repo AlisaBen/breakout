@@ -16,11 +16,29 @@ object AccountDAO {
   }
 
   def confirmUserInfo(userName:String,password:String) = {
-    db.run(tUserInfo.filter(t => t.userName === userName && t.password === password).length.result)
+    db.run(tUserInfo.filter(t => t.userName === userName && t.password === password).map(_.isForbidden).result)
   }
 
   def insertBattleRecord(r:rBattleRecord) = {
     db.run(tBattleRecord.returning(tBattleRecord.map(_.recordId)) += r)
+  }
+
+  def updateUserInfo(name:String,isWin:Boolean) = {
+    for{
+      result <- db.run(tUserInfo.filter(_.userName === name).map(t => (t.playNum,t.winNum)).result)
+    }yield {
+      if(result.length > 0){
+        db.run(tUserInfo.filter(_.userName === name).map(t => (t.playNum,t.winNum))
+          .update((result.head._1 + 1,if(isWin)result.head._2 + 1 else result.head._2)))
+        1
+      }else{
+        -1
+      }
+    }
+  }
+
+  def insertVisitorInfo(r:rVisitorInfo) = {
+    db.run(tVisitorInfo.returning(tVisitorInfo.map(_.id)) += r)
   }
 
 

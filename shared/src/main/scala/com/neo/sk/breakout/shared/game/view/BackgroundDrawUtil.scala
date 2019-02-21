@@ -157,7 +157,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 //      println(s"rank =${historyRankCanvas.getWidth()}, canvasUnit=${canvasUnit}, unit=${unit}")
 
       val leftBegin = 5 * unit
-      context.setFont("Arial","bold",12)
+      context.setFont("Arial","bold",40)
       context.clearRect(0,0,currentRankCanvas.getWidth(), currentRankCanvas.getHeight())
 
       var index = 0

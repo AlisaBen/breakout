@@ -1,8 +1,10 @@
-package com.neo.sk.breakout.front.pages.control
+package com.neo.sk.breakout.front.control
 
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.neo.sk.breakout.front.common.{Constants, Routes}
+import com.neo.sk.breakout.front.components.StartGameModal
+import com.neo.sk.breakout.front.model.PlayerInfo
 import com.neo.sk.breakout.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.breakout.shared.`object`.Racket
 import com.neo.sk.breakout.shared.game.GameContainerClientImpl
@@ -22,10 +24,10 @@ import scala.xml.Elem
   * 游戏监听、消息处理
   * A3
   * */
-class GamePlayHolder(name:String) extends GameHolder(name) {
+class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder(canvasName) {
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
   private val preExecuteFrameOffset = com.neo.sk.breakout.shared.model.Constants.PreExecuteFrameOffset
-//  private val startGameModal = new StartGameModal(gameStateVar, start, name)
+  private val startGameModal = new StartGameModal(gameStateVar, start,playerInfo)
   private var lastTouchMoveFrame = 0L
 
   private val myKeySet = mutable.HashSet[Int]()
@@ -45,18 +47,24 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
 
   def getActionSerialNum: Byte = (actionSerialNumGenerator.getAndIncrement()%127).toByte
 
-//  def getStartGameModal(): Elem = {
-//    startGameModal.render
-//  }
+  def getStartGameModal(): Elem = {
+    startGameModal.render
+  }
 
-  def start(name: String, roomIdOpt: Option[Long]): Unit = {
+  def start(): Unit = {
     canvas.getCanvas.focus()
 //    dom.window.cancelAnimationFrame(nextFrame)
 //    Shortcut.cancelSchedule(timer)
     if (firstCome) {
+      firstCome = false
       addUserActionListenEvent()
       setGameState(GameState.loadingPlay)
-      webSocketClient.setup(Routes.getJoinGameWebSocketUri(name, roomIdOpt))
+      val isVisitor:Int = if(playerInfo.isVisitor) 1 else 0
+      webSocketClient.setup(Routes.getJoinGameWebSocketUri(playerInfo.userId,playerInfo.userName,isVisitor, None))
+//      if(playerInfo.isVisitor){
+//      }else{
+//        webSocketClient.setup(Routes.getJoinGameWebSocketUri(playerInfo.userId,playerInfo.userName,0, None))
+//      }
       //      webSocketClient.sendMsg(TankGameEvent.StartGame(roomIdOpt,None))
 
       gameLoop()
@@ -136,6 +144,7 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
       case e: BreakoutGameEvent.YourInfo =>
         println(s"new game the id is ${e.players}")
         println(s"玩家信息${e}")
+//        setGameState(GameState.loadingPlay)
         timer = Shortcut.schedule(gameLoop, e.config.frameDuration / e.config.playRate)
 
         /**
@@ -146,31 +155,30 @@ class GamePlayHolder(name:String) extends GameHolder(name) {
 
       case e: BreakoutGameEvent.GameOver =>
         //fixme 结算页面
-        e.score
         setGameState(GameState.stop)
 
       case e: BreakoutGameEvent.SyncGameAllState =>
         //fixme
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
-        if(firstCome){
-          firstCome = false
-//          dom.window.cancelAnimationFrame(nextFrame)
-          nextFrame = dom.window.requestAnimationFrame(gameRender())
-          setGameState(GameState.play)
-        }
+        nextFrame = dom.window.requestAnimationFrame(gameRender())
+        setGameState(GameState.play)
+
+      case e:BreakoutGameEvent.SyncGameState =>
+        gameContainerOpt.foreach(_.receiveGameContainerState(e.state))
 
       case e: BreakoutGameEvent.UserActionEvent =>
-        e match {
-          case e:BreakoutGameEvent.UserTouchMove=>
-            //fixme
-            if(gameContainerOpt.nonEmpty){
-              if(gameContainerOpt.get.myRacketId != e.racketId){
-                gameContainerOpt.foreach(_.receiveUserEvent(e))
-              }
-            }
-          case _=>
-            gameContainerOpt.foreach(_.receiveUserEvent(e))
-        }
+//        e match {
+//          case e:BreakoutGameEvent.UserTouchMove=>
+//            //fixme
+//            if(gameContainerOpt.nonEmpty){
+//              if(gameContainerOpt.get.myRacketId != e.racketId){
+//                gameContainerOpt.foreach(_.receiveUserEvent(e))
+//              }
+//            }
+//          case _=>
+//            gameContainerOpt.foreach(_.receiveUserEvent(e))
+//        }
+        gameContainerOpt.foreach(_.receiveUserEvent(e))
 
       case e: BreakoutGameEvent.GameEvent =>
         gameContainerOpt.foreach(_.receiveGameEvent(e))

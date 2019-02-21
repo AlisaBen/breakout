@@ -11,6 +11,7 @@ import akka.util.ByteString
 import org.slf4j.LoggerFactory
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import com.neo.sk.breakout.Boot.roomManager
+import com.neo.sk.breakout.models.GameUserInfo
 
 import scala.collection.mutable
 /**
@@ -29,15 +30,12 @@ object UserManager {
 
   case class ChildDead[U](childName:String,ctx:ActorContext[U]) extends Command
 
-  case class GetAllUserActor(replyTo:ActorRef[List[ActorRef[UserActor.Command]]]) extends Command
+  case class ChooseModel(uid:Long,name:String,isVisitor:Boolean,model:Int) extends Command
+  final case class GetWebSocketFlow(uid:Long,name:String,replyTo:ActorRef[Flow[Message,Message,Any]],isVisitor:Boolean,roomId:Option[Long] = None) extends Command
 
-  case class GetUserActor(name:String,replyTo:ActorRef[ActorRef[UserActor.Command]]) extends Command
+  case class GetUserId(name:String,isVisitor:Boolean,replyTo:ActorRef[Long]) extends Command
 
-  case class ChooseModel(name:String,model:Int) extends Command
-  final case class GetWebSocketFlow(name:String,replyTo:ActorRef[Flow[Message,Message,Any]], roomId:Option[Long] = None) extends Command
-
-
-  private val userMap:mutable.HashMap[String, ActorRef[UserActor.Command]] = mutable.HashMap[String, ActorRef[UserActor.Command]]()
+//  private val userMap:mutable.HashMap[String, ActorRef[UserActor.Command]] = mutable.HashMap[String, ActorRef[UserActor.Command]]()
 
   def create(): Behavior[Command] = {
     log.debug(s"UserManager start...")
@@ -50,40 +48,48 @@ object UserManager {
             val uidGenerator = new AtomicLong(1L)
 //            idle(uidGenerator)
 //            Behaviors.same
-            idle()
+            idle(uidGenerator,mutable.HashMap[String, ActorRef[UserActor.Command]]())
         }
     }
   }
 
-  def idle()(
+  def idle(uidGenerator:AtomicLong,userMap:mutable.HashMap[String, ActorRef[UserActor.Command]])(
     implicit stashBuffer:StashBuffer[Command],
     sendBuffer:MiddleBufferInJvm,
     timer:TimerScheduler[Command]
-  ) = {
+  ):Behavior[Command] = {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {
-        case GetWebSocketFlow(name,replyTo,roomIdOpt) =>
+        case GetWebSocketFlow(uid,name,replyTo,isVisitor,roomIdOpt) =>
+//          val uid = uidGenerator.getAndIncrement()
           println(s"ssssss,$roomIdOpt")
-          getUserActorOpt(ctx,name) match {
-            case Some(userActor) =>
-              userActor ! UserActor.ChangeBehaviorToInit
-            case None =>
-          }
-          val userActor = getUserActor(ctx, name)
+//          getUserActorOpt(ctx,uid,name,isVisitor) match {
+//            case Some(userActor) =>
+//              userActor ! UserActor.ChangeBehaviorToInit
+//            case None =>
+//          }
+          val userActor = getUserActor(ctx, uid,name,isVisitor)
           replyTo ! getWebSocketFlow(userActor)
-          Behaviors.same
+          idle(uidGenerator,userMap)
+//          Behaviors.same
 
-        case GetAllUserActor(replyTo) =>
-          replyTo ! getAllUserActor(ctx)
-          Behaviors.same
+        case GetUserId(name,isVisitor,replyTo) =>
+          //登录之后即创建了userActor,第一次创建userActor
+          val uid = uidGenerator.getAndIncrement()
+//          getUserActorOpt(ctx,uid,name,isVisitor) match{
+//            case Some(userActor) =>
+////              userActor ! UserActor.ChangeBehaviorToInit
+//            case None =>
+////              getUserActor(ctx, uid,name,isVisitor)
+//          }
+          val userActor = getUserActor(ctx, uid,name,isVisitor)
+          userMap.put(name,userActor)
+          replyTo ! uid
+          idle(uidGenerator,userMap)
+//          Behaviors.same
 
-        case GetUserActor(name,replyTo) =>
-          replyTo ! getUserActor(ctx,name)
-          Behaviors.same
-
-        case ChooseModel(name,model) =>
-          userMap.put(name,getUserActor(ctx,name))
-          roomManager ! RoomManager.ChooseModel(name,model,userMap)
+        case ChooseModel(uid,name,isVisitor,model) =>
+          roomManager ! RoomManager.ChooseModel(uid,name,model,userMap(name))
           Behaviors.same
 
         case unknowMsg =>
@@ -93,17 +99,17 @@ object UserManager {
     }
   }
 
-  def getUserActor(ctx:ActorContext[Command],name:String) = {
-    val childName = s"userActor--${name}"
+  def getUserActor(ctx:ActorContext[Command],uid:Long,name:String,isVisitor:Boolean) = {
+    val childName = s"userActor-${uid}"
     ctx.child(childName).getOrElse{
-      val actor = ctx.spawn(UserActor.create(name),childName)
+      val actor = ctx.spawn(UserActor.create(uid,name,isVisitor),childName)
       ctx.watchWith(actor,ChildDead(childName,ctx))
       actor
     }
       .upcast[UserActor.Command]
   }
-  private def getUserActorOpt(ctx: ActorContext[Command],name:String):Option[ActorRef[UserActor.Command]] = {
-    val childName = s"userActor--${name}"
+  private def getUserActorOpt(ctx: ActorContext[Command],uid:Long,name:String,isVisitor:Boolean):Option[ActorRef[UserActor.Command]] = {
+    val childName = s"userActor-${uid}"
     ctx.child(childName).map(_.upcast[UserActor.Command])
   }
 

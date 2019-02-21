@@ -11,7 +11,7 @@ import com.neo.sk.breakout.shared.util.QuadTree
   *
   * */
 
-case class RacketState(racketId:Int,name:String,position:Point,direction:Float,isMove:Boolean,damageStatistic:Int)
+case class RacketState(racketId:Int,uid:Long,name:String,position:Point,direction:Float,isMove:Boolean,damageStatistic:Int)
 case class Racket(
                    racketId:Int,
                    var direction:Float,
@@ -19,10 +19,11 @@ case class Racket(
                    config: GameConfig,
                    var position:Point,
                    var damageStatistics:Int,
+                   uid:Long,
                    name:String
                  ) extends RectangleObjectOfGame with ObstacleBall {
   def this(config:GameConfig,racketState:RacketState) = {
-    this(racketState.racketId,racketState.direction,racketState.isMove,config,racketState.position,racketState.damageStatistic,racketState.name)
+    this(racketState.racketId,racketState.direction,racketState.isMove,config,racketState.position,racketState.damageStatistic,racketState.uid,racketState.name)
   }
 //  var position:Point = Point(config.boundary.x / 2)
   //todo racket height width
@@ -31,7 +32,7 @@ case class Racket(
   override protected val collisionOffset: Float = config.obstacleWO
   var canvasFrame = 0
 
-  def getRacketState():RacketState = RacketState(racketId,name,position,direction,isMove,damageStatistics)
+  def getRacketState():RacketState = RacketState(racketId,uid,name,position,direction,isMove,damageStatistics)
 
   //todo 拍子的移动速度，可考虑移动到config中
   val moveSpeed: model.Point = RacketParameter.speed

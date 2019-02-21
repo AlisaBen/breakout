@@ -1,6 +1,7 @@
-package com.neo.sk.breakout.front.pages.control
+package com.neo.sk.breakout.front.control
 
 import com.neo.sk.breakout.front.common.Constants
+import com.neo.sk.breakout.front.model.PlayerInfo
 import com.neo.sk.breakout.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.breakout.front.utils.canvas.MiddleFrameInJs
 import com.neo.sk.breakout.shared.`object`.Racket
@@ -17,12 +18,12 @@ import org.scalajs.dom.raw.{Event, VisibilityState}
   * A3
   * */
 
-abstract class GameHolder(name:String)  extends NetworkInfo  {
+abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
   val drawFrame = new MiddleFrameInJs
   protected var canvasWidth = dom.window.innerWidth.toFloat
   protected var canvasHeight = dom.window.innerHeight.toFloat
 
-  protected val canvas = drawFrame.createCanvas(name,canvasWidth, canvasHeight)
+  protected val canvas = drawFrame.createCanvas(canvasName,canvasWidth, canvasHeight)
   protected val ctx = canvas.getCtx
 
 
@@ -67,6 +68,7 @@ abstract class GameHolder(name:String)  extends NetworkInfo  {
 //
   protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
 
+  //fixme
   protected val webSocketClient: WebSocketClient = WebSocketClient(wsConnectSuccess, wsConnectError, wsMessageHandler, wsConnectClose, setDateSize )
 
 
@@ -173,7 +175,7 @@ abstract class GameHolder(name:String)  extends NetworkInfo  {
         tickCount += 1
 
       case GameState.stop =>
-        dom.document.getElementById("input_mask_id").asInstanceOf[dom.html.Div].focus()
+//        dom.document.getElementById("input_mask_id").asInstanceOf[dom.html.Div].focus()
 //        if(tickCount % rankCycle == 1){
 //          gameContainerOpt.foreach(_.updateRanks())
 //          gameContainerOpt.foreach(t => t.rankUpdated = true)
@@ -213,7 +215,7 @@ abstract class GameHolder(name:String)  extends NetworkInfo  {
     e
   }
 
-  protected def wsMessageHandler(data: BreakoutGameEvent.WsMsgServer)
+  protected def wsMessageHandler(data: BreakoutGameEvent.WsMsgServer):Unit
 
 
   protected def getCanvasUnit(canvasWidth: Float): Int = (canvasWidth / Constants.WindowView.x).toInt

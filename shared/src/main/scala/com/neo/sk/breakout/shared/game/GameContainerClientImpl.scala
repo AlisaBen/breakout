@@ -6,7 +6,7 @@ import com.neo.sk.breakout.shared.game.view._
 import com.neo.sk.breakout.shared.model.Constants.GameAnimation
 import com.neo.sk.breakout.shared.model.Point
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
-import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.{GameContainerAllState, GameEvent, UserActionEvent}
+import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.{GameContainerAllState, GameContainerState, GameEvent, UserActionEvent}
 import com.neo.sk.breakout.shared.util.canvas.{MiddleContext, MiddleFrame}
 
 import scala.collection.mutable
@@ -17,6 +17,7 @@ import scala.collection.mutable
   * 终端
   * A1
   */
+//fixme
 case class GameContainerClientImpl(
                                     drawFrame: MiddleFrame,
                                     ctx: MiddleContext,
@@ -73,7 +74,7 @@ case class GameContainerClientImpl(
   private val uncheckedActionMap = mutable.HashMap[Byte, Long]() //serinum -> frame
 
   private var gameContainerAllStateOpt: Option[GameContainerAllState] = None
-//  private var gameContainerStateOpt: Option[GameContainerState] = None
+  private var gameContainerStateOpt: Option[GameContainerState] = None
 //
   protected var waitSyncData: Boolean = true
 
@@ -299,117 +300,115 @@ case class GameContainerClientImpl(
     waitSyncData = false
   }
 
-//  protected def handleGameContainerState(gameContainerState: GameContainerState) = {
-//    val curFrame = systemFrame
-//    val startTime = System.currentTimeMillis()
-//    (curFrame until gameContainerState.f).foreach { _ =>
-//      super.update()
-//      if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
-//    }
-//    val endTime = System.currentTimeMillis()
-//    if (curFrame < gameContainerState.f) {
-//      println(s"handleGameContainerState update to now use Time=${endTime - startTime} and systemFrame=${systemFrame} sysFrame=${gameContainerState.f}")
-//    }
-//
-//    if(!judge(gameContainerState)||systemFrame!=gameContainerState.f){
-//      systemFrame = gameContainerState.f
-//      quadTree.clear()
-//      tankMap.clear()
-//      tankMoveAction.clear()
-//      gameContainerState.tanks match{
-//        case Some(tanks) =>
-//          tanks.foreach { t =>
-//            val tank = new TankClientImpl(config, t, fillBulletCallBack, tankShotgunExpireCallBack)
-//            quadTree.insert(tank)
-//            tankMap.put(t.tankId, tank)
-//            tankHistoryMap.put(t.tankId,tank.name)
-//          }
-//        case None =>
-//          println(s"handle game container client--no tanks")
-//      }
-//      gameContainerState.tankMoveAction match {
-//        case Some(as)=>
-//          as.foreach { t =>
-//            val set = tankMoveAction.getOrElse(t._1, mutable.HashSet[Byte]())
-//            t._2.foreach(l=>l.foreach(set.add))
-//            tankMoveAction.put(t._1, set)
-//          }
-//        case None=>
-//      }
-//      obstacleMap.values.foreach(o=>quadTree.insert(o))
+  protected def handleGameContainerState(gameContainerState: GameContainerState) = {
+    val curFrame = systemFrame
+    val startTime = System.currentTimeMillis()
+    (curFrame until gameContainerState.f).foreach { _ =>
+      super.update()
+      if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
+    }
+    val endTime = System.currentTimeMillis()
+    if (curFrame < gameContainerState.f) {
+      println(s"handleGameContainerState update to now use Time=${endTime - startTime} and systemFrame=${systemFrame} sysFrame=${gameContainerState.f}")
+    }
+
+    if(!judge(gameContainerState)||systemFrame!=gameContainerState.f){
+      systemFrame = gameContainerState.f
+      quadTree.clear()
+      racketMap.clear()
+      racketMoveAction.clear()
+      gameContainerState.rackets match{
+        case Some(rackets) =>
+          rackets.foreach { t =>
+            val racket = new Racket(config, t)
+            quadTree.insert(racket)
+            racketMap.put(t.racketId, racket)
+            racketHistoryMap.put(t.racketId,racket.name)
+          }
+        case None =>
+          println(s"handle game container client--no tanks")
+      }
+      gameContainerState.racketMoveAction match {
+        case Some(as)=>
+          as.foreach { t =>
+            val set = racketMoveAction.getOrElse(t._1, mutable.HashSet[Byte]())
+            t._2.foreach(l=>l.foreach(set.add))
+            racketMoveAction.put(t._1, set)
+          }
+        case None=>
+      }
+      obstacleMap.values.foreach(o=>quadTree.insert(o))
 //      propMap.values.foreach(o=>quadTree.insert(o))
-//
+
 //      environmentMap.values.foreach(quadTree.insert)
-//      bulletMap.values.foreach { bullet =>
-//        quadTree.insert(bullet)
-//      }
-//    }
-//  }
-//
-//  private def judge(gameContainerState: GameContainerState) = {
-//    gameContainerState.tanks match{
-//      case Some(tanks) =>
-//        tanks.forall { tankState =>
-//          tankMap.get(tankState.tankId) match {
-//            case Some(t) =>
-//              //fixme 此处排除炮筒方向
-//              if (t.getTankState().copy(gunDirection = 0f) != tankState.copy(gunDirection = 0f)) {
-//                println(s"judge failed,because tank=${tankState.tankId} no same,tankMap=${t.getTankState()},gameContainer=${tankState}")
-//                false
-//              } else true
-//            case None => {
-//              println(s"judge failed,because tank=${tankState.tankId} not exists....")
-//              true
-//            }
-//          }
-//        }
-//      case None =>
-//        println(s"game container client judge function no tanks---")
-//        true
-//    }
-//  }
+      ballMap.values.foreach { bullet =>
+        quadTree.insert(bullet)
+      }
+    }
+  }
+
+  private def judge(gameContainerState: GameContainerState) = {
+    gameContainerState.rackets match{
+      case Some(rackets) =>
+        rackets.forall { racketState =>
+          racketMap.get(racketState.racketId) match {
+            case Some(t) =>
+              if (t.getRacketState() != racketState) {
+                println(s"judge failed,because tank=${racketState.racketId} no same,tankMap=${t.getRacketState()},gameContainer=${racketState}")
+                false
+              } else true
+            case None => {
+              println(s"judge failed,because tank=${racketState.racketId} not exists....")
+              true
+            }
+          }
+        }
+      case None =>
+        println(s"game container client judge function no tanks---")
+        true
+    }
+  }
 
   def receiveGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
     //fixme
     gameContainerAllStateOpt = Some(gameContainerAllState)
-    if(gameContainerAllState.f > systemFrame){
-      gameContainerAllStateOpt = Some(gameContainerAllState)
-    }else if(gameContainerAllState.f == systemFrame){
-      info(s"收到同步数据，立即同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerAllState.f}")
-      gameContainerAllStateOpt = None
-      handleGameContainerAllState(gameContainerAllState)
-    }else{
-      info(s"收到同步数据，但未同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerAllState.f}")
-    }
- }
-//
-//  def receiveGameContainerState(gameContainerState: GameContainerState) = {
-//    if (gameContainerState.f > systemFrame) {
-//      gameContainerState.tanks match {
-//        case Some(tank) =>
-//          gameContainerStateOpt = Some(gameContainerState)
-//        case None =>
-//          gameContainerStateOpt match{
-//            case Some(state) =>
-//              gameContainerStateOpt = Some(TankGameEvent.GameContainerState(gameContainerState.f,state.tanks,state.tankMoveAction))
-//            case None =>
-//          }
-//      }
-//    } else if (gameContainerState.f == systemFrame) {
-//      gameContainerState.tanks match{
-//        case Some(tanks) =>
-//          info(s"收到同步数据，立即同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
-//          gameContainerStateOpt = None
-//          handleGameContainerState(gameContainerState)
-//        case None =>
-//          info(s"收到同步帧号的数据")
-//      }
-//    } else {
-//      info(s"收到同步数据，但未同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
+//    if(gameContainerAllState.f > systemFrame){
+//      gameContainerAllStateOpt = Some(gameContainerAllState)
+//    }else if(gameContainerAllState.f == systemFrame){
+//      info(s"收到同步数据，立即同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerAllState.f}")
+//      gameContainerAllStateOpt = None
+//      handleGameContainerAllState(gameContainerAllState)
+//    }else{
+//      info(s"收到同步数据，但未同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerAllState.f}")
 //    }
-//  }
-//
-//
+ }
+
+  def receiveGameContainerState(gameContainerState: GameContainerState) = {
+    if (gameContainerState.f > systemFrame) {
+      gameContainerState.rackets match {
+        case Some(rackets) =>
+          gameContainerStateOpt = Some(gameContainerState)
+        case None =>
+          gameContainerStateOpt match{
+            case Some(state) =>
+              gameContainerStateOpt = Some(GameContainerState(gameContainerState.f,state.rackets,state.racketMoveAction))
+            case None =>
+          }
+      }
+    } else if (gameContainerState.f == systemFrame) {
+      gameContainerState.rackets match{
+        case Some(tanks) =>
+          info(s"收到同步数据，立即同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
+          gameContainerStateOpt = None
+          handleGameContainerState(gameContainerState)
+        case None =>
+          info(s"收到同步帧号的数据")
+      }
+    } else {
+      info(s"收到同步数据，但未同步，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerState.f}")
+    }
+  }
+
   override def update(): Unit = {
     //    val startTime = System.currentTimeMillis()
     if (gameContainerAllStateOpt.nonEmpty) {
@@ -421,7 +420,19 @@ case class GameContainerClientImpl(
         clearEsRecoverData()
         addGameSnapShot(systemFrame, this.getGameContainerAllState())
       }
+    } else if (gameContainerStateOpt.nonEmpty && (gameContainerStateOpt.get.f - 1 == systemFrame || gameContainerStateOpt.get.f - 2 > systemFrame)) {
+      info(s"同步数据，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerStateOpt.get.f}")
+      handleGameContainerState(gameContainerStateOpt.get)
+      gameContainerStateOpt = None
+      if (esRecoverSupport) {
+        clearEsRecoverData()
+        addGameSnapShot(systemFrame, this.getGameContainerAllState())
+      }
+    } else {
+      super.update()
+      if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
     }
+  }
 //    else if (gameContainerStateOpt.nonEmpty && (gameContainerStateOpt.get.f - 1 == systemFrame || gameContainerStateOpt.get.f - 2 > systemFrame)) {
 //      info(s"同步数据，curSystemFrame=${systemFrame},sync game container state frame=${gameContainerStateOpt.get.f}")
 //      handleGameContainerState(gameContainerStateOpt.get)
@@ -431,11 +442,11 @@ case class GameContainerClientImpl(
 //        addGameSnapShot(systemFrame, this.getGameContainerAllState())
 //      }
 //    }
-    else {
-      super.update()
-      if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
-    }
-  }
+//    else {
+//      super.update()
+//      if (esRecoverSupport) addGameSnapShot(systemFrame, getGameContainerAllState())
+//    }
+
 
   override protected def clearEventWhenUpdate(): Unit = {
     if (esRecoverSupport) {

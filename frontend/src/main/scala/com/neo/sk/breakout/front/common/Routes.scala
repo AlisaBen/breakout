@@ -21,6 +21,15 @@ object Routes {
 
   object GameHall{
     val chooseGameModelRoute = base + "/gameHall/chooseGameModel"
+    val getUId4VisitorRoute = base + "/gameHall/getUId4Visitor"
+  }
+
+  object AdminRoute{
+    val adminService = "/adminService"
+    val getUserInfoListRoute = base + adminService + "/userManagerPage/getUserInfoList"
+    val userForbiddenRoute = base + adminService + "/userManagerPage/userForbidden"
+    val getAllRoomRoute = base + adminService + "/roomManagerPage/getAllRoom"
+    val getGameStatisticRoute = base + adminService + "/statisticPage/getGameStatistic"
   }
 
   def genImgUrl(imgName:String) = base + s"/static/img/${imgName}"
@@ -33,8 +42,8 @@ object Routes {
   val getRecordListByRoomUrl = base + s"/getGameRecByRoom"
   val getRecordListByIdUrl = base + s"/getGameRecById"
 
-  def wsJoinGameUrl(name:String,roomIdOpt:Option[Long]) = {
-    base + s"/game/join?name=${name}"+
+  def wsJoinGameUrl(uid:Long,name:String,isVisitor:Int,roomIdOpt:Option[Long]) = {
+    base + s"/game/join?uid=${uid}&name=${name}"+ s"&isVisitor=${isVisitor}" +
       (roomIdOpt match{
       case Some(roomId) =>s"&roomId=$roomId"
       case None =>""
@@ -60,9 +69,9 @@ object Routes {
 
 
 
-  def getJoinGameWebSocketUri(name:String,roomIdOpt:Option[Long]): String = {
+  def getJoinGameWebSocketUri(uid:Long,name:String,isVisitor:Int,roomIdOpt:Option[Long]): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-    s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(name,roomIdOpt)}"
+    s"$wsProtocol://${dom.document.location.host}${Routes.wsJoinGameUrl(uid,name,isVisitor,roomIdOpt)}"
   }
 
 

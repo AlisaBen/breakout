@@ -11,6 +11,8 @@ package object model {
 
   case class Score(id: Int, n: String, score: Int)
 
+  case class SimpleScore(n:String,score:Int)
+
   case class Point(x: Float, y: Float) {
     def +(other: Point) = Point(x + other.x, y + other.y)
 

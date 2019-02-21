@@ -71,20 +71,26 @@ case class Ball(
     isFlyEnd(boundary) match{
       case 1 =>
         //左右边界，不改变y轴的移动速度，改变x轴
+//        println(s"------碰到左右边界${momentum}")
         momentum = Point(-1 * momentum.x,momentum.y)
+//        println(s"碰到左右边界${momentum}")
         this.position = this.position + momentum
 //        val a  = momentum.*(Point(-1,1))
         false
       case 2 =>
+//        println(s"-------碰到上边界${momentum}")
         //上下边界，改变y轴
         momentum = Point(momentum.x,-1 * momentum.y)
+//        println(s"碰到上边界${momentum}")
         this.position = this.position + momentum
         false
 //        momentum.*(Point(1,-1))
       case 3 =>
+//        println(s"没有碰到边界")
         this.position = this.position + momentum
         false
-      case 4 => true
+      case 4 =>
+        true
         //游戏结束
     }
   }

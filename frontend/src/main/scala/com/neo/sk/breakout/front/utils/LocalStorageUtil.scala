@@ -53,9 +53,9 @@ object LocalStorageUtil {
 //    LocalStorage.update(ROOM_LIST_KEY, rooms.asJson.noSpaces)
 //  }
 //
-//  def loadUserInfo(): Option[UserInfo] = {
-//    loadAndParse[UserInfo](USER_INFO_KEY)
-//  }
+  def loadUserInfo(): Option[NameStorage] = {
+    loadAndParse[NameStorage](USER_INFO_KEY)
+  }
 //
 //  def loadRoomList(): Option[List[RoomInfo]] = {
 //    loadAndParse[List[RoomInfo]](ROOM_LIST_KEY)

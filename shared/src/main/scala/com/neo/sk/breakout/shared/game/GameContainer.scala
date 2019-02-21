@@ -410,7 +410,7 @@ trait GameContainer extends KillInformation{
         if(gameOver){
           racketMap.get(ball.racketId) match{
             case Some(racket) =>
-              gameOverCallBack(racket)
+//              gameOverCallBack(racket)
             case None =>
           }
         }
@@ -420,7 +420,7 @@ trait GameContainer extends KillInformation{
         if(gameOver){
           racketMap.get(ball.racketId) match{
             case Some(racket) =>
-              gameOverCallBack(racket)
+//              gameOverCallBack(racket)
             case None =>
           }
         }

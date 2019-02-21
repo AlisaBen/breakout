@@ -11,6 +11,8 @@ import com.neo.sk.breakout.shared.game.GameContainerClientImpl
   */
 trait InfoDrawUtil {this:GameContainerClientImpl =>
 //  private val combatImg = this.drawFrame.createImage("/img/dead.png")
+//  private val winImg=drawFrame.createImage("/img/冠军.png")
+//  private val failImg=drawFrame.createImage("/img/失败表情.png")
 
   def drawGameLoading():Unit = {
     ctx.setFill("rgb(0,0,0)")

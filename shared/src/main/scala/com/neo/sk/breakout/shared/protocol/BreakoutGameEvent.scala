@@ -18,6 +18,12 @@ object BreakoutGameEvent {
                                         racketMoveAction:List[(Int,Option[List[Byte]])]
                                         )
 
+  final case class GameContainerState(
+                                          f:Long,
+                                          rackets:Option[List[RacketState]],
+                                          racketMoveAction:Option[List[(Int,Option[List[Byte]])]]
+                                        )
+
   /**前端建立WebSocket*/
   sealed trait WsMsgFrontSource
   case object CompleteMsgFrontServer extends WsMsgFrontSource
@@ -57,6 +63,7 @@ object BreakoutGameEvent {
 
   final case class Ranks(scores:List[Score]) extends WsMsgServer
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
+  final case class SyncGameState(state:GameContainerState) extends WsMsgServer
   final case class Wrap(ws:Array[Byte],isKillMsg:Boolean = false) extends WsMsgSource
   final case class PingPackage(sendTime:Long) extends WsMsgServer with WsMsgFront
 
