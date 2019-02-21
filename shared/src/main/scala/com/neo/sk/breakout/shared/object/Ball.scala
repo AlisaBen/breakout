@@ -100,9 +100,9 @@ case class Ball(
 //        }else{
 //          true
 //        }
-        momentum = Point(momentum.x,-1 * momentum.y)
-        this.position = this.position + momentum
-        false
+//        momentum = Point(momentum.x,-1 * momentum.y)
+//        this.position = this.position + momentum
+        true
       //游戏结束
 
       case Constants.BoundaryProperty.middle =>

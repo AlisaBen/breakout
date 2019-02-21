@@ -165,6 +165,7 @@ abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
       case GameState.play =>
 
         /** */
+//        gameContainerOpt.foreach(_.)
         if(tickCount % rankCycle == 1){
 //          gameContainerOpt.foreach(_.updateRanks())
           gameContainerOpt.foreach(t => t.rankUpdated = true)
@@ -175,6 +176,7 @@ abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
         tickCount += 1
 
       case GameState.stop =>
+        
 //        dom.document.getElementById("input_mask_id").asInstanceOf[dom.html.Div].focus()
 //        if(tickCount % rankCycle == 1){
 //          gameContainerOpt.foreach(_.updateRanks())

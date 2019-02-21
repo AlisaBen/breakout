@@ -131,6 +131,8 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
 
   override protected def setKillCallback(racket: Racket) = {
     if (gameContainerOpt.nonEmpty&&racket.racketId ==gameContainerOpt.get.racketId) {
+//      webSocketClient.sendMsg(BreakoutGameEvent.FailGame)
+//      gameContainerOpt.foreach(_)
       setGameState(GameState.stop)
     }
   }
@@ -154,7 +156,8 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
         gameContainerOpt.get.changeRacketId(e.players.racketId)
 
       case e: BreakoutGameEvent.GameOver =>
-        //fixme 结算页面
+//        dom.window.cancelAnimationFrame(nextFrame)
+        gameContainerOpt.foreach(_.updateRank(e.score))
         setGameState(GameState.stop)
 
       case e: BreakoutGameEvent.SyncGameAllState =>

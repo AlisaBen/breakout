@@ -213,7 +213,7 @@ trait GameContainer extends KillInformation{
       }
       obstacle.obstacleType match{
         case ObstacleType.brick =>
-          ballRacketOpt.foreach(_.damageStatistics += obstacle.asInstanceOf[Brick].value)
+          ballRacketOpt.foreach(_.updateScore(obstacle.getObstacleState().value))
         case _ =>
       }
 
@@ -414,12 +414,12 @@ trait GameContainer extends KillInformation{
       objects.filter(t => t.isInstanceOf[ObstacleBall] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
         .foreach(t =>
           if(t.racketId == ball.racketId) ball.checkAttackObject(t,collisionObstacleCallBack(ball)))
-      val gameOver = ball.move(false,Rectangle(Point(0,config.boundary.y / 2),config.boundary),systemFrame)
+      val gameOver = ball.move(false,Rectangle(Point(0,config.getRankHeight),config.boundary),systemFrame)
       if(gameOver){
         println("game over")
         racketMap.get(ball.racketId) match{
           case Some(racket) =>
-          //              gameOverCallBack(racket)
+            gameOverCallBack(racket)
           case None =>
         }
       }
@@ -461,8 +461,8 @@ trait GameContainer extends KillInformation{
   protected def collisionObstacleCallBack(ball: Ball)(o:Obstacle):Unit = {
     //fixme
     ball.changeDirection(o.getObstacleState().p,o.getWidth,o.getHeight)
-//    val event = BreakoutGameEvent.ObstacleCollision(o.oId,ball.bId,o.racketId,o.getObstacleState().p,frame = systemFrame)
-//    addFollowEvent(event)
+    val event = BreakoutGameEvent.ObstacleCollision(o.oId,ball.bId,o.racketId,o.getObstacleState().p,frame = systemFrame)
+    addFollowEvent(event)
   }
 
 //  protected final def removeBullet(bullet: Bullet):Unit = {

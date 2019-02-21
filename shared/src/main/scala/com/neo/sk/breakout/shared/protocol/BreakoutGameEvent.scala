@@ -60,7 +60,7 @@ object BreakoutGameEvent {
                              )
   final case class YourInfo(players:PlayerInfo,config:GameConfigImpl) extends WsMsgServer//玩家信息储存在前端，写的时候考虑是否有必要
   final case class GameOver(score:List[Score]) extends WsMsgServer//游戏结束,该消息需要广播
-
+  
   final case class Ranks(scores:List[Score]) extends WsMsgServer
   final case class SyncGameAllState(gState:GameContainerAllState) extends WsMsgServer
   final case class SyncGameState(state:GameContainerState) extends WsMsgServer
@@ -91,6 +91,9 @@ object BreakoutGameEvent {
                                  override val frame: Long,
                                  override val serialNum: Byte
                                ) extends UserActionEvent with WsMsgFront with WsMsgServer
+  
+  final case object FailGame extends WsMsgFront
+  
   final case class GenerateObstacle(override val frame:Long,obstacleState: ObstacleState) extends EnvironmentEvent with WsMsgServer
 
   final case class ObstacleRemove(obstacleId:Int, override val frame:Long) extends EnvironmentEvent with WsMsgServer

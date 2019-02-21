@@ -4,7 +4,7 @@ import com.neo.sk.breakout.shared.`object`._
 import com.neo.sk.breakout.shared.config.GameConfig
 import com.neo.sk.breakout.shared.game.view._
 import com.neo.sk.breakout.shared.model.Constants.{GameAnimation, ObstacleType}
-import com.neo.sk.breakout.shared.model.{Point, Rectangle}
+import com.neo.sk.breakout.shared.model.{Point, Rectangle, Score}
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.{GameContainerAllState, GameContainerState, GameEvent, UserActionEvent}
 import com.neo.sk.breakout.shared.util.canvas.{MiddleContext, MiddleFrame}
@@ -40,18 +40,14 @@ case class GameContainerClientImpl(
   protected var killNum: Int = 0
   protected var damageNum: Int = 0
   protected var killerName: String = ""
+  protected var ranks: List[Score] = List[Score]()
 
   var racketId: Int = myRacketId
   protected val myRacketMoveAction = mutable.HashMap[Long,List[UserActionEvent]]()
 
   def changeRacketId(id: Int) = racketId = id
 
-//  def updateDamageInfo(myKillNum: Int, name: String, myDamageNum: Int): Unit = {
-//    killerList = killerList :+ name
-//    killerName = name
-//    killNum = myKillNum
-//    damageNum = myDamageNum
-//  }
+  def updateRank(rank: List[Score]): Unit = ranks = rank
 //
 //  def getCurTankId:Int = tankId
 //
@@ -514,25 +510,26 @@ case class GameContainerClientImpl(
       if(ball.racketId == racketId){
         println(s"-------我自己的")
         super.ballMove()
-      }else{
-        val objects = quadTree.retrieveFilter(ball)
-        objects.filter(_.isInstanceOf[Racket]).map(_.asInstanceOf[Racket])
-          .foreach{t =>
-            if(t.racketId == ball.racketId){ ball.checkAttackObject(t,collisionRacketCallBack(ball))}
-          }
-        objects.filter(t => t.isInstanceOf[ObstacleBall] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
-          .foreach(t =>
-            if(t.racketId == ball.racketId) ball.checkAttackObject(t,collisionObstacleCallBack(ball)))
-        val gameOver = ball.move(true,Rectangle(Point(0,0),Point(config.boundary.x,config.boundary.y / 2)),systemFrame)
-        if(gameOver){
-          println("game over")
-          racketMap.get(ball.racketId) match{
-            case Some(racket) =>
-            //                gameOverCallBack(racket)
-            case None =>
-          }
-        }
       }
+//      else{
+//        val objects = quadTree.retrieveFilter(ball)
+//        objects.filter(_.isInstanceOf[Racket]).map(_.asInstanceOf[Racket])
+//          .foreach{t =>
+//            if(t.racketId == ball.racketId){ ball.checkAttackObject(t,collisionRacketCallBack(ball))}
+//          }
+//        objects.filter(t => t.isInstanceOf[ObstacleBall] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
+//          .foreach(t =>
+//            if(t.racketId == ball.racketId) ball.checkAttackObject(t,collisionObstacleCallBack(ball)))
+//        val gameOver = ball.move(true,Rectangle(Point(0,config.getRankHeight),Point(config.boundary.x,config.boundary.y / 2)),systemFrame)
+//        if(gameOver){
+//          println("game over")
+//          racketMap.get(ball.racketId) match{
+//            case Some(racket) =>
+//              gameOverCallBack(racket)
+//            case None =>
+//          }
+//        }
+//      }
     }
   }
 

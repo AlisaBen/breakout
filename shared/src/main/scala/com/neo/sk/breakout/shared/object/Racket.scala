@@ -39,6 +39,7 @@ case class Racket(
     getRacketState()
   }
 
+  def updateScore(score:Int) = damageStatistics += score
   //todo 拍子的移动速度，可考虑移动到config中
   val moveSpeed: model.Point = RacketParameter.speed
 

@@ -16,10 +16,10 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
   private val cacheCanvasMap = mutable.HashMap.empty[String, Any]
   private var canvasBoundary:Point=canvasSize
 
-  private val rankWidth = canvasBoundary.x / 2
-  private val rankHeight = 2 * this.config.getRankHeight / 3
+  private val rankWidth = canvasBoundary.x
+  private val rankHeight = this.config.getRankHeight
 //  private val currentRankNum = 10
-  private val currentRankCanvas=drawFrame.createCanvas(math.max(rankWidth * canvasUnit, 26 * 10),math.max(rankHeight * canvasUnit, 26 * 10))
+  private val currentRankCanvas=drawFrame.createCanvas(rankWidth * canvasUnit,rankHeight * canvasUnit)
 //  private val historyRankCanvas=drawFrame.createCanvas(math.max(rankWidth * canvasUnit, 26 * 10),math.max(rankHeight * canvasUnit, 26 * 10))
   var rankUpdated: Boolean = true
 //  private val goldImg=drawFrame.createImage("/img/金牌.png")
@@ -91,130 +91,39 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
 //
   protected def drawBackground(offset:Point) = {
     clearScreen("#BEBEBE",1, canvasBoundary.x, canvasBoundary.y, ctx)
-//    val boundStart = Point(canvasBoundary.x/2, canvasBoundary.y/2)
-//    val boundEnd = Point(canvasBoundary.x/2 + boundary.x, canvasBoundary.y/2 + boundary.y)
-//    val canvasStart = Point(-offset.x + canvasBoundary.x/2, -offset.y + canvasBoundary.y/2)
-//    val canvasEnd = Point(-offset.x + canvasBoundary.x/2 * 3, -offset.y + canvasBoundary.y/2 * 3)
-//    val start = Point(math.max(boundStart.x, canvasStart.x), math.max(boundStart.y, canvasStart.y))
-//    val end = Point(math.min(boundEnd.x, canvasEnd.x), math.min(boundEnd.y, canvasEnd.y))
-//    val width = end.x - start.x
-//    val height = end.y - start.y
-//    if(canvasStart.x < boundStart.x && canvasStart.y > boundStart.y){
-//      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, 0))
-//    }
-//    else if(canvasStart.x > boundStart.x && canvasStart.y < boundStart.y){
-//      clearScreen("#E8E8E8", 1, width, height, ctx, Point(0, canvasBoundary.y - height))
-//    }
-//    else if(canvasStart.x < boundStart.x && canvasStart.y < boundStart.y){
-//      clearScreen("#E8E8E8", 1, width, height, ctx, Point(canvasBoundary.x - width, canvasBoundary.y - height))
-//    }
-//    else{
-//      clearScreen("#E8E8E8", 1, width, height, ctx)
-//    }
-//    ctx.setLineWidth(3)
-//    ctx.setStrokeStyle("rgba(0,0,0,0.05)")
-    drawLine(Point(0,canvasBoundary.y / 2),Point(canvasBoundary.x, canvasBoundary.y / 2),ctx)
-
-
-//    for(i <- (64 - canvasStart.x % 64) to canvasBoundary.x by 64f){
-//      drawLine(Point(i,0), Point(i, canvasBoundary.y), ctx)
-//    }
-//    for(i <- (64 - canvasStart.y % 64) to canvasBoundary.y by 64f){
-//      drawLine(Point(0, i), Point(canvasBoundary.x, i), ctx)
-//    }
-
+    drawLine(Point(0,config.getRankHeight),Point(canvasBoundary.x, config.getRankHeight),ctx)
   }
 
   protected def drawRank(supportLiveLimit:Boolean):Unit = {
     def drawTextLine(str: String, x: Double, y: Double, context:MiddleContext) = {
       context.fillText(str, x, y)
     }
-
-//    def drawUnitRank(context:MiddleContext,unit:Double,index:Int,y:Double,score:Score,historyRank:Boolean,leftBegin:Double) = {
-//      context.beginPath()
-//      context.moveTo(leftBegin,y)
-//      context.lineTo((rankWidth - 2) * unit,y)
-//      context.stroke()
-//      context.closePath()
-//      context.setTextAlign("left")
-//      if(historyRank) drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=${score.d}", leftBegin, y, context)
-//      else {
-//        val scoreText=if(score.d>=1000){
-//          val a=score.d.toFloat/1000
-//          a.formatted("%.1f")+"k"
-//        }else{
-//          score.d.toString
-//        }
-//        val liveInfo = if(supportLiveLimit) s"lives=${score.l}" else ""
-//        drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} damage=$scoreText ${liveInfo}", leftBegin, y, context)
-//      }
-//    }
-
     def refreshCacheCanvas(context:MiddleContext, header: String,historyRank:Boolean): Unit ={
       //绘制当前排行榜
       val unit = currentRankCanvas.getWidth() / rankWidth
-
-//      println(s"rank =${historyRankCanvas.getWidth()}, canvasUnit=${canvasUnit}, unit=${unit}")
-
       val leftBegin = 5 * unit
       context.setFont("Arial","bold",40)
       context.clearRect(0,0,currentRankCanvas.getWidth(), currentRankCanvas.getHeight())
-
       var index = 0
       context.setFill("black")
       context.setTextAlign("center")
       context.setTextBaseline("middle")
       context.setLineCap("round")
-      drawTextLine(header, currentRankCanvas.getWidth() / 2 , 1 * unit, context)
+      racketMap.values.foreach(t => drawTextLine(s"${t.racketId}:${t.name}:${t.damageStatistics}",1,2,context))
+//      drawTextLine(s"${this.racketMap(racketId).damageStatistics}:${this.racketMap.filterNot(t => t._1 == racketId).head._2.damageStatistics}", currentRankCanvas.getWidth() / 2 , 1 * unit, context)
       context.setStrokeStyle("#262626")
       context.setLineWidth(3 * unit)
-      drawTextLine(
-        s"${this.racketMap(racketId).damageStatistics}:${this.racketMap.filterNot(t => t._1 == racketId).head._2.damageStatistics}",
-        currentRankCanvas.getWidth(),
-        currentRankCanvas.getHeight(),
-        context)
-
-//      rank.take(currentRankNum).foreach{ score =>
-//        index += 1
-//        val drawColor = index match {
-//          case 1 => "rgb(255,215,0)"
-//          case 2 => "rgb(209,209,209)"
-//          case 3 => "rgb(139,90,0)"
-//          case _ => "rgb(202,225,255)"
-//        }
-//        val imgOpt = index match {
-//          case 1 => Some(goldImg)
-//          case 2 => Some(silverImg)
-//          case 3 => Some(bronzeImg)
-//          case _ => None
-//        }
-//        imgOpt.foreach{ img =>
-//          context.drawImage(img, leftBegin - 5 * unit, (2 * index) * unit, Some(2 * unit,2 * unit))
-//        }
-//        context.setStrokeStyle(drawColor)
-//        context.setLineWidth(1.8 * unit)
-//        drawUnitRank(context,unit,index,(2 * index + 1) * unit,score,historyRank,leftBegin)
-//      }
-//      rank.zipWithIndex.find(_._1.id == curTankId) match{
-//        case Some((score,indices)) =>
-//          if(indices + 1 > 10){
-//            context.setStrokeStyle("RGB(137,188,255)")
-//            context.setLineWidth(1.8 * unit)
-//            drawUnitRank(context,unit,indices + 1,(2 * index + 4) * unit,score,historyRank,leftBegin)
-//          }
-//        case None =>
-//      }
-//      drawTextLine(s"当前房间人数 ${index}", 28*canvasUnit, (2 * index + 1) * canvasUnit, context)
-
+//      drawTextLine(
+//        s"${this.racketMap(racketId).damageStatistics}:${this.racketMap.filterNot(t => t._1 == racketId).head._2.damageStatistics}",
+//        currentRankCanvas.getWidth() / 2,
+//        2 * unit,
+//        context)
     }
 
 
 
     def refresh():Unit = {
       refreshCacheCanvas(currentRankCanvas.getCtx, " --- Current Rank --- ",false)
-//      if(Constants.drawHistory){
-//        refreshCacheCanvas(historyRankCanvas.getCtx, " --- History Rank --- ", historyRank,true)
-//      }
     }
 
 
@@ -224,9 +133,6 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
     }
     ctx.setGlobalAlpha(0.8)
     ctx.drawImage(currentRankCanvas.change2Image(),(canvasBoundary.x / 2 - rankWidth / 2) * canvasUnit,(canvasBoundary.y / 2 - rankHeight / 2) * canvasUnit)
-//    if(Constants.drawHistory){
-//      ctx.drawImage(historyRankCanvas.change2Image(), canvasBoundary.x * canvasUnit - rankWidth*10,canvasBoundary.y * canvasUnit - rankHeight * 10)
-//    }
     ctx.setGlobalAlpha(1)
   }
 

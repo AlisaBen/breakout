@@ -90,54 +90,6 @@ case class GameContainerServerImpl(
 //    }
   }
 
-//  def init(): Unit = {
-//    clearEventWhenUpdate()
-//    /**
-//      * 生成砖块、拍子、球
-//      * */
-//    val width = (config.boundary.x - config.brickHorizontalNum * 2 * config.brickSpace - 2 * config.brickSpace) / config.brickHorizontalNum
-//    val fakeWidth = width + 2 * config.brickSpace
-//    val fakeHeight = config.brickHeight + 2 * config.brickSpace
-//    (1 to config.brickVerticalNum).foreach{verticalIndex =>
-//      (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
-//        //        val fakeWidth = width + 2 * config.brickSpace
-//        val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
-//        //        val fakeHeight = config.brickHeight + 2 * config.brickSpace
-//        val y = (verticalIndex - 1) * fakeHeight +  fakeHeight / 2 + config.boundary.y / 2 + config.getRankHeight / 2
-//        val brickOpt= generateBrick(Point(x,y.toFloat))
-//        brickOpt match{
-//          case Some(brick) =>
-//            val event = BreakoutGameEvent.GenerateObstacle(systemFrame,brick.getObstacleState())
-//            addGameEvent(event)
-//            obstacleMap.put(brick.oId,brick)
-//            quadTree.insert(brick)
-//          case None =>
-//            log.debug(s"${roomActorRef.path} 生成砖块错误")
-//        }
-//      }
-//    }
-//    (1 to config.brickVerticalNum).foreach{verticalIndex =>
-//      (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
-//        val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
-//        config.getRankHeight
-//        val y = config.boundary.y / 2 - config.getRankHeight / 2 - ((verticalIndex - 1) * fakeHeight +  fakeHeight / 2)
-//        val brickOpt= generateBrick(Point(x,y.toFloat))
-//        brickOpt match{
-//          case Some(brick) =>
-//            val event = BreakoutGameEvent.GenerateObstacle(systemFrame,brick.getObstacleState())
-//            addGameEvent(event)
-//            obstacleMap.put(brick.oId,brick)
-//            quadTree.insert(brick)
-//          case None =>
-//            log.debug(s"${roomActorRef.path} 生成砖块错误")
-//        }
-//      }
-//    }
-//    //    println(s"---${obstacleMap.values.map(_.position.y).max}")
-//    //    println(s"---${obstacleMap.values.map(_.position.y).min}")
-//  }
-
-
   def generateRacketAndBall(nameA:String,nameB:String,uidA:Long,uidB:Long,playerMap:mutable.HashMap[Long,ActorRef[UserActor.Command]]): Unit = {
     clearEventWhenUpdate()
     def generateBricks4Racket(racketId:Int) = {
@@ -149,7 +101,7 @@ case class GameContainerServerImpl(
           //        val fakeWidth = width + 2 * config.brickSpace
           val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
           //        val fakeHeight = config.brickHeight + 2 * config.brickSpace
-          val y = (verticalIndex - 1) * fakeHeight +  fakeHeight / 2 + config.boundary.y / 2 + config.getRankHeight / 2
+          val y = (verticalIndex - 1) * fakeHeight +  fakeHeight / 2 + config.getRankHeight
           val brickOpt= generateBrick(Point(x,y.toFloat),racketId)
           brickOpt match{
             case Some(brick) =>
@@ -217,7 +169,6 @@ case class GameContainerServerImpl(
   }
 
   override protected def gameOverCallBack(racket: Racket): Unit = {
-    //fixme
     val gameOverEvent = BreakoutGameEvent.GameOver(racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
     dispatch(gameOverEvent)
     roomActorRef ! GameBattleRecord(racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
