@@ -51,9 +51,9 @@ case class GameContainerServerImpl(
   private val racketIdGenerator = new AtomicInteger(100)
   private val obstacleIdGenerator = new AtomicInteger(100)
 
-  def generateBrick(position:Point) = {
+  def generateBrick(position:Point,racketId:Int) = {
     val oId = obstacleIdGenerator.getAndIncrement()
-    val brick = new Brick(config,ObstacleState(oId,ObstacleType.brick,position,0))
+    val brick = new Brick(config,ObstacleState(racketId,oId,ObstacleType.brick,position,0))
 //    val objects = quadTree.retrieveFilter(brick).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
 //    if (brick.isIntersectsObject(objects)){
 //      log.debug(s"砖块位置错误")
@@ -90,55 +90,125 @@ case class GameContainerServerImpl(
 //    }
   }
 
-  init()
-  private def init(): Unit = {
-    clearEventWhenUpdate()
-    /**
-      * 生成砖块、拍子、球
-      * */
-    val width = (config.boundary.x - config.brickHorizontalNum * 2 * config.brickSpace - 2 * config.brickSpace) / config.brickHorizontalNum
-    val fakeWidth = width + 2 * config.brickSpace
-    val fakeHeight = config.brickHeight + 2 * config.brickSpace
-    (1 to config.brickVerticalNum).foreach{verticalIndex =>
-      (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
-//        val fakeWidth = width + 2 * config.brickSpace
-        val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
-//        val fakeHeight = config.brickHeight + 2 * config.brickSpace
-        val y = (verticalIndex - 1) * fakeHeight +  fakeHeight / 2 + config.boundary.y / 2 + config.getRankHeight / 2
-        val brickOpt= generateBrick(Point(x,y.toFloat))
-        brickOpt match{
-          case Some(brick) =>
-            val event = BreakoutGameEvent.GenerateObstacle(systemFrame,brick.getObstacleState())
-            addGameEvent(event)
-            obstacleMap.put(brick.oId,brick)
-            quadTree.insert(brick)
-          case None =>
-            log.debug(s"${roomActorRef.path} 生成砖块错误")
-        }
-      }
-    }
-    (1 to config.brickVerticalNum).foreach{verticalIndex =>
-      (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
-        val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
-        config.getRankHeight
-        val y = config.boundary.y / 2 - config.getRankHeight / 2 - ((verticalIndex - 1) * fakeHeight +  fakeHeight / 2)
-        val brickOpt= generateBrick(Point(x,y.toFloat))
-        brickOpt match{
-          case Some(brick) =>
-            val event = BreakoutGameEvent.GenerateObstacle(systemFrame,brick.getObstacleState())
-            addGameEvent(event)
-            obstacleMap.put(brick.oId,brick)
-            quadTree.insert(brick)
-          case None =>
-            log.debug(s"${roomActorRef.path} 生成砖块错误")
-        }
-      }
-    }
-//    println(s"---${obstacleMap.values.map(_.position.y).max}")
-//    println(s"---${obstacleMap.values.map(_.position.y).min}")
-  }
+//  def init(): Unit = {
+//    clearEventWhenUpdate()
+//    /**
+//      * 生成砖块、拍子、球
+//      * */
+//    val width = (config.boundary.x - config.brickHorizontalNum * 2 * config.brickSpace - 2 * config.brickSpace) / config.brickHorizontalNum
+//    val fakeWidth = width + 2 * config.brickSpace
+//    val fakeHeight = config.brickHeight + 2 * config.brickSpace
+//    (1 to config.brickVerticalNum).foreach{verticalIndex =>
+//      (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
+//        //        val fakeWidth = width + 2 * config.brickSpace
+//        val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
+//        //        val fakeHeight = config.brickHeight + 2 * config.brickSpace
+//        val y = (verticalIndex - 1) * fakeHeight +  fakeHeight / 2 + config.boundary.y / 2 + config.getRankHeight / 2
+//        val brickOpt= generateBrick(Point(x,y.toFloat))
+//        brickOpt match{
+//          case Some(brick) =>
+//            val event = BreakoutGameEvent.GenerateObstacle(systemFrame,brick.getObstacleState())
+//            addGameEvent(event)
+//            obstacleMap.put(brick.oId,brick)
+//            quadTree.insert(brick)
+//          case None =>
+//            log.debug(s"${roomActorRef.path} 生成砖块错误")
+//        }
+//      }
+//    }
+//    (1 to config.brickVerticalNum).foreach{verticalIndex =>
+//      (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
+//        val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
+//        config.getRankHeight
+//        val y = config.boundary.y / 2 - config.getRankHeight / 2 - ((verticalIndex - 1) * fakeHeight +  fakeHeight / 2)
+//        val brickOpt= generateBrick(Point(x,y.toFloat))
+//        brickOpt match{
+//          case Some(brick) =>
+//            val event = BreakoutGameEvent.GenerateObstacle(systemFrame,brick.getObstacleState())
+//            addGameEvent(event)
+//            obstacleMap.put(brick.oId,brick)
+//            quadTree.insert(brick)
+//          case None =>
+//            log.debug(s"${roomActorRef.path} 生成砖块错误")
+//        }
+//      }
+//    }
+//    //    println(s"---${obstacleMap.values.map(_.position.y).max}")
+//    //    println(s"---${obstacleMap.values.map(_.position.y).min}")
+//  }
+
 
   def generateRacketAndBall(nameA:String,nameB:String,uidA:Long,uidB:Long,playerMap:mutable.HashMap[Long,ActorRef[UserActor.Command]]): Unit = {
+    clearEventWhenUpdate()
+    def generateBricks4Racket(racketId:Int) = {
+      val width = (config.boundary.x - config.brickHorizontalNum * 2 * config.brickSpace - 2 * config.brickSpace) / config.brickHorizontalNum
+      val fakeWidth = width + 2 * config.brickSpace
+      val fakeHeight = config.brickHeight + 2 * config.brickSpace
+      (1 to config.brickVerticalNum).foreach{verticalIndex =>
+        (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
+          //        val fakeWidth = width + 2 * config.brickSpace
+          val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
+          //        val fakeHeight = config.brickHeight + 2 * config.brickSpace
+          val y = (verticalIndex - 1) * fakeHeight +  fakeHeight / 2 + config.boundary.y / 2 + config.getRankHeight / 2
+          val brickOpt= generateBrick(Point(x,y.toFloat),racketId)
+          brickOpt match{
+            case Some(brick) =>
+              val event = BreakoutGameEvent.GenerateObstacle(systemFrame,brick.getObstacleState())
+              addGameEvent(event)
+              obstacleMap.put(brick.oId,brick)
+              quadTree.insert(brick)
+            case None =>
+              log.debug(s"${roomActorRef.path} 生成砖块错误")
+          }
+        }
+      }
+    }
+//    def init(): Unit = {
+//
+//      /**
+//        * 生成砖块、拍子、球
+//        * */
+//      val width = (config.boundary.x - config.brickHorizontalNum * 2 * config.brickSpace - 2 * config.brickSpace) / config.brickHorizontalNum
+//      val fakeWidth = width + 2 * config.brickSpace
+//      val fakeHeight = config.brickHeight + 2 * config.brickSpace
+//      (1 to config.brickVerticalNum).foreach{verticalIndex =>
+//        (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
+//          //        val fakeWidth = width + 2 * config.brickSpace
+//          val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
+//          //        val fakeHeight = config.brickHeight + 2 * config.brickSpace
+//          val y = (verticalIndex - 1) * fakeHeight +  fakeHeight / 2 + config.boundary.y / 2 + config.getRankHeight / 2
+//          val brickOpt= generateBrick(Point(x,y.toFloat))
+//          brickOpt match{
+//            case Some(brick) =>
+//              val event = BreakoutGameEvent.GenerateObstacle(systemFrame,brick.getObstacleState())
+//              addGameEvent(event)
+//              obstacleMap.put(brick.oId,brick)
+//              quadTree.insert(brick)
+//            case None =>
+//              log.debug(s"${roomActorRef.path} 生成砖块错误")
+//          }
+//        }
+//      }
+//      (1 to config.brickVerticalNum).foreach{verticalIndex =>
+//        (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
+//          val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
+//          config.getRankHeight
+//          val y = config.boundary.y / 2 - config.getRankHeight / 2 - ((verticalIndex - 1) * fakeHeight +  fakeHeight / 2)
+//          val brickOpt= generateBrick(Point(x,y.toFloat))
+//          brickOpt match{
+//            case Some(brick) =>
+//              val event = BreakoutGameEvent.GenerateObstacle(systemFrame,brick.getObstacleState())
+//              addGameEvent(event)
+//              obstacleMap.put(brick.oId,brick)
+//              quadTree.insert(brick)
+//            case None =>
+//              log.debug(s"${roomActorRef.path} 生成砖块错误")
+//          }
+//        }
+//      }
+//      //    println(s"---${obstacleMap.values.map(_.position.y).max}")
+//      //    println(s"---${obstacleMap.values.map(_.position.y).min}")
+//    }
     val racketAOpt = generateRacket(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3).toFloat),uidA,nameA)//自己
     val racketBOpt = generateRacket(Point(config.boundary.x / 2 ,(config.getRacketHeight / 2 + 3).toFloat),uidB,nameB)//对方
     if(racketAOpt.nonEmpty && racketBOpt.nonEmpty){
@@ -162,6 +232,7 @@ case class GameContainerServerImpl(
             log.debug(s"${roomActorRef.path} 发送加入房间成功的消息")
 //            playerMap(nameA) ! UserActor.JoinRoomSuccess(racketA,config.getGameConfigImpl(),roomActorRef)
           }
+        generateBricks4Racket(racketA.racketId)
       }
       racketBOpt.foreach{racketB =>
         var randDirection = (new Random).nextFloat() * math.Pi.toFloat
@@ -180,6 +251,8 @@ case class GameContainerServerImpl(
             quadTree.insert(ball)
 //            playerMap(nameB) ! UserActor.JoinRoomSuccess(racketB,config.getGameConfigImpl(),roomActorRef)
           }
+        generateBricks4Racket(racketB.racketId)
+
       }
       val state = getGameContainerAllState()
       dispatch(BreakoutGameEvent.SyncGameAllState(state))
@@ -199,7 +272,7 @@ case class GameContainerServerImpl(
 
   override protected def handleObstacleCollision(e:ObstacleCollision) :Unit = {
     super.handleObstacleCollision(e)
-    val obstacleState = ObstacleState(obstacleIdGenerator.getAndIncrement(),ObstacleType.brick,
+    val obstacleState = ObstacleState(e.enemyRacketId,obstacleIdGenerator.getAndIncrement(),ObstacleType.brick,
       Point(e.obstaclePosition.x,e.obstaclePosition.y - 2 * (e.obstaclePosition.y - config.boundary.y / 2)),0)
     val event = BreakoutGameEvent.GenerateObstacle(systemFrame,obstacleState)
     dispatch(event)

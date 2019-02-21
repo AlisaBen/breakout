@@ -2,7 +2,7 @@ package com.neo.sk.breakout.shared.`object`
 
 import com.neo.sk.breakout.shared.config.GameConfig
 import com.neo.sk.breakout.shared.model
-import com.neo.sk.breakout.shared.model.{Point, Rectangle}
+import com.neo.sk.breakout.shared.model.{Constants, Point, Rectangle}
 import javafx.scene.effect.Light
 
 /**
@@ -54,44 +54,54 @@ case class Ball(
 
   // 生命周期是否截至或者打到地图边界
   def isFlyEnd(boundary: Rectangle):Int = {
-    if(position.x - radius <= boundary.topLeft.x || position.x + radius >= boundary.downRight.x){
-      //左右边界
-      1
+    if(position.x - radius <= boundary.topLeft.x){
+      Constants.BoundaryProperty.left
+    }else if(position.x + radius >= boundary.downRight.x){
+      Constants.BoundaryProperty.right
     }else if(position.y - radius <= 0){
-      //上边界
-      2
+      Constants.BoundaryProperty.up
     }else if(position.y + radius >= boundary.downRight.y){
-      4
-    }else
-      3
+      Constants.BoundaryProperty.down
+    }else Constants.BoundaryProperty.middle
   }
 
   // 先检测是否生命周期结束，如果没结束继续移动
-  def move(boundary: Rectangle,frame:Long) = {
+  def move(isEnemy:Boolean,boundary: Rectangle,frame:Long) = {
     isFlyEnd(boundary) match{
-      case 1 =>
+      case Constants.BoundaryProperty.left =>
         //左右边界，不改变y轴的移动速度，改变x轴
-//        println(s"------碰到左右边界${momentum}")
         momentum = Point(-1 * momentum.x,momentum.y)
-//        println(s"碰到左右边界${momentum}")
-        this.position = this.position + momentum
-//        val a  = momentum.*(Point(-1,1))
-        false
-      case 2 =>
-//        println(s"-------碰到上边界${momentum}")
-        //上下边界，改变y轴
-        momentum = Point(momentum.x,-1 * momentum.y)
-//        println(s"碰到上边界${momentum}")
         this.position = this.position + momentum
         false
-//        momentum.*(Point(1,-1))
-      case 3 =>
-//        println(s"没有碰到边界")
+
+      case  Constants.BoundaryProperty.right =>
+        //左右边界，不改变y轴的移动速度，改变x轴
+        momentum = Point(-1 * momentum.x,momentum.y)
         this.position = this.position + momentum
         false
-      case 4 =>
-        true
-        //游戏结束
+
+      case Constants.BoundaryProperty.up =>
+        if(isEnemy){
+          true
+        }else{
+          momentum = Point(momentum.x,-1 * momentum.y)
+          this.position = this.position + momentum
+          false
+        }
+
+      case Constants.BoundaryProperty.down =>
+        if(isEnemy){
+          momentum = Point(momentum.x,-1 * momentum.y)
+          this.position = this.position + momentum
+          false
+        }else{
+          true
+        }
+      //游戏结束
+
+      case Constants.BoundaryProperty.middle =>
+        this.position = this.position + momentum
+        false
     }
   }
 

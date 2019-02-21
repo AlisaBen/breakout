@@ -21,6 +21,14 @@ object Constants {
 
   val drawHistory = false
 
+  object BoundaryProperty{
+    val up = 1
+    val down = 2
+    val right = 3
+    val left = 4
+    val middle = 5
+  }
+
   object RacketParameter{
     val speed = Point(2,0)
   }

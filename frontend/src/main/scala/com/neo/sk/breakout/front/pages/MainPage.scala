@@ -31,7 +31,7 @@ object MainPage extends PageSwitcher {
     case "admin" :: "login" ::  Nil => AdminLoginPage.render
     case "login" :: Nil => LoginPage.render
     case "register" :: Nil => RegisterPage.render
-//    case "visitor" ::Nil =>VisitorHall.render
+    case "visitor" ::Nil =>VisitorHall.render
     case _ => <div>Error Page</div>
   }
 

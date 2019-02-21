@@ -398,32 +398,39 @@ trait GameContainer extends KillInformation{
   protected def gameOverCallBack(racket: Racket):Unit = {}
 
   protected def ballMove():Unit = {
+    /**
+      * 后端拍子砖块和球的位置都是在屏幕的下半方，进行碰撞检测的时候和正常的流程是一样的
+      * 前端进行碰撞检测的时候，每个客户端绘制的不一样，如果和前端的racket相同，和后端的碰撞检测相同，如果不一样就反过来判断
+      * */
     ballMap.toList.sortBy(_._1).map(_._2).foreach{ ball =>
       val objects = quadTree.retrieveFilter(ball)
       objects.filter(_.isInstanceOf[Racket]).map(_.asInstanceOf[Racket])
         .foreach{t =>
-          ball.checkAttackObject(t,collisionRacketCallBack(ball))}
+          if(t.racketId == ball.racketId){ ball.checkAttackObject(t,collisionRacketCallBack(ball))}
+         }
       objects.filter(t => t.isInstanceOf[ObstacleBall] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
-        .foreach(t => ball.checkAttackObject(t,collisionObstacleCallBack(ball)))
-      if(ball.getPosition.y <= config.boundary.y / 2){
-        val gameOver = ball.move(Rectangle(Point(0,0),Point(config.boundary.x,config.boundary.y / 2)),systemFrame)
+        .foreach(t =>
+          if(t.racketId == ball.racketId) ball.checkAttackObject(t,collisionObstacleCallBack(ball)))
+      if(ball.getPosition.y >= config.boundary.y / 2){
+        val gameOver = ball.move(false,Rectangle(Point(0,0),Point(config.boundary.x,config.boundary.y / 2)),systemFrame)
         if(gameOver){
           racketMap.get(ball.racketId) match{
             case Some(racket) =>
-//              gameOverCallBack(racket)
+              gameOverCallBack(racket)
             case None =>
           }
         }
 
       }else{
-        val gameOver = ball.move(Rectangle(Point(0,config.boundary.y / 2),boundary),systemFrame)
-        if(gameOver){
-          racketMap.get(ball.racketId) match{
-            case Some(racket) =>
-//              gameOverCallBack(racket)
-            case None =>
-          }
-        }
+        println(s"----小球飞到上边界")
+//        val gameOver = ball.move(Rectangle(Point(0,config.boundary.y / 2),boundary),systemFrame)
+//        if(gameOver){
+//          racketMap.get(ball.racketId) match{
+//            case Some(racket) =>
+////              gameOverCallBack(racket)
+//            case None =>
+//          }
+//        }
       }
     }
   }
@@ -450,7 +457,7 @@ trait GameContainer extends KillInformation{
   protected def collisionObstacleCallBack(ball: Ball)(o:Obstacle):Unit = {
     //fixme
     ball.changeDirection(o.getObstacleState().p,o.getWidth,o.getHeight)
-    val event = BreakoutGameEvent.ObstacleCollision(o.oId,ball.bId,o.getObstacleState().p,frame = systemFrame)
+    val event = BreakoutGameEvent.ObstacleCollision(o.oId,ball.bId,o.racketId,o.getObstacleState().p,frame = systemFrame)
     addFollowEvent(event)
   }
 

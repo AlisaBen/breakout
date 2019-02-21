@@ -1,10 +1,10 @@
 package com.neo.sk.breakout.shared.game
 
-import com.neo.sk.breakout.shared.`object`.{Ball, Brick, Obstacle, Racket}
+import com.neo.sk.breakout.shared.`object`._
 import com.neo.sk.breakout.shared.config.GameConfig
 import com.neo.sk.breakout.shared.game.view._
 import com.neo.sk.breakout.shared.model.Constants.GameAnimation
-import com.neo.sk.breakout.shared.model.Point
+import com.neo.sk.breakout.shared.model.{Point, Rectangle}
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.{GameContainerAllState, GameContainerState, GameEvent, UserActionEvent}
 import com.neo.sk.breakout.shared.util.canvas.{MiddleContext, MiddleFrame}
@@ -465,6 +465,60 @@ case class GameContainerClientImpl(
 
   override protected def gameOverCallBack(racket: Racket): Unit = {
     setKillCallback(racket)
+  }
+
+  override protected def collisionRacketCallBack(ball: Ball)(racket: Racket): Unit = {
+    if(ball.racketId == racketId){
+      if(ball.getBallState().position.y <= racket.getRacketState().position.y){
+        super.collisionRacketCallBack(ball)(racket)
+      }else{
+        println(s"-------${racketId}--你输了球飞到拍子下面，游戏结束")
+      }
+    }else{
+      if(ball.getBallState().getBallState().position.y >= racket.getRacketState().position.y){
+        super.collisionRacketCallBack(ball)(racket)
+      }else{
+        println(s"-------${ball.racketId}--你赢了球飞到拍子下面，游戏结束")
+      }
+    }
+  }
+
+  override protected def ballMove(): Unit = {
+    ballMap.toList.sortBy(_._1).map(_._2).foreach{ball =>
+      if(ball.racketId == racketId){
+        super.ballMove()
+      }else{
+        val objects = quadTree.retrieveFilter(ball)
+        objects.filter(_.isInstanceOf[Racket]).map(_.asInstanceOf[Racket])
+          .foreach{t =>
+            if(t.racketId == ball.racketId){ ball.checkAttackObject(t,collisionRacketCallBack(ball))}
+          }
+        objects.filter(t => t.isInstanceOf[ObstacleBall] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
+          .foreach(t =>
+            if(t.racketId == ball.racketId) ball.checkAttackObject(t,collisionObstacleCallBack(ball)))
+        if(ball.getPosition.y <= config.boundary.y / 2){
+          val gameOver = ball.move(true,Rectangle(Point(0,0),Point(config.boundary.x,config.boundary.y / 2)),systemFrame)
+          if(gameOver){
+            racketMap.get(ball.racketId) match{
+              case Some(racket) =>
+                gameOverCallBack(racket)
+              case None =>
+            }
+          }
+
+        }else{
+          println(s"----小球飞到上边界")
+          //        val gameOver = ball.move(Rectangle(Point(0,config.boundary.y / 2),boundary),systemFrame)
+          //        if(gameOver){
+          //          racketMap.get(ball.racketId) match{
+          //            case Some(racket) =>
+          ////              gameOverCallBack(racket)
+          //            case None =>
+          //          }
+          //        }
+        }
+      }
+    }
   }
 
   def drawGame(time: Long, networkLatency: Long, dataSizeList: List[String], supportLiveLimit: Boolean = false): Unit = {

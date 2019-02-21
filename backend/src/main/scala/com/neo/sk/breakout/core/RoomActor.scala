@@ -32,7 +32,7 @@ import scala.collection.mutable
 object RoomActor {
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  private final val classify= 100 // 10s同步一次状态
+  private final val classify= 50 // 5s同步一次状态
 
   trait Command
 
