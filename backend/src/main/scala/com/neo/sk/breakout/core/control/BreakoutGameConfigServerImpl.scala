@@ -70,11 +70,13 @@ case class BreakoutGameConfigServerImpl(
     .requiring(_ >= 0,"minimum supported obstacle width is 1")
   private[this] val brickHeightData = config.getDouble("breakoutGame.obstacle.brick.brickHeight")
     .requiring(_ >= 0,"minimum supported obstacle width is 1").toFloat
-  private[this] val brickvalueData = config.getInt("breakoutGame.obstacle.brick.brickValue")
+  private[this] val brickValueData = config.getInt("breakoutGame.obstacle.brick.brickValue")
     .requiring(_ >= 0,"minimum supported obstacle width is 1")
+  private[this] val brickSpaceData = config.getInt("breakoutGame.obstacle.brick.brickSpace")
+    .requiring(_ >= 0,"minimum supported obstacle width is 1").toFloat
 
   private val obstacleParameters = ObstacleParameters(obstacleWidthData,collisionWOffset,
-    brickParameters = BrickParameters(brickHorizontalNumData,brickVerticalNumData,brickHeightData,brickvalueData),
+    brickParameters = BrickParameters(brickHorizontalNumData,brickVerticalNumData,brickHeightData,brickValueData,brickSpaceData),
   )
 
   val rankHeight = config.getDouble("breakoutGame.rankHeight")
@@ -109,6 +111,8 @@ case class BreakoutGameConfigServerImpl(
   def brickHorizontalNum:Int = breakoutGameConfig.obstacleParameters.brickParameters.horizontalNum
   def brickHeight:Float = breakoutGameConfig.obstacleParameters.brickParameters.brickHeight
   override def brickValue: Int = breakoutGameConfig.obstacleParameters.brickParameters.brickValue
+
+  override def brickSpace: Float = breakoutGameConfig.obstacleParameters.brickParameters.brickSpace
 
   def getRacketSpeedByType:Point = breakoutGameConfig.racketParameters.speed
 

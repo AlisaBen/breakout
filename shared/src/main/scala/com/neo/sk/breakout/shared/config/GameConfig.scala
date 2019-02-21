@@ -80,7 +80,8 @@ final case class BrickParameters(
                                   horizontalNum:Int,
                                   verticalNum:Int,
                                   brickHeight:Float,
-                                  brickValue:Int
+                                  brickValue:Int,
+                                  brickSpace:Float
                                 )
 
 final case class RacketParameters(
@@ -157,6 +158,7 @@ trait GameConfig{
   def brickHorizontalNum:Int
   def brickHeight:Float
   def brickValue:Int
+  def brickSpace:Float
 
   //  def riverPosType:List[List[(Int, Int)]]
   //  def steelPosType:List[List[(Int, Int)]]
@@ -245,6 +247,8 @@ case class GameConfigImpl(
   def brickHeight:Float = obstacleParameters.brickParameters.brickHeight
 
   override def brickValue: Int = obstacleParameters.brickParameters.brickValue
+
+  override def brickSpace: Float = obstacleParameters.brickParameters.brickSpace
   //  def riverPosType = obstacleParameters.riverParameters.typePos
   //  def steelPosType = obstacleParameters.steelParameters.typePos
 

@@ -96,11 +96,15 @@ case class GameContainerServerImpl(
     /**
       * 生成砖块、拍子、球
       * */
-    val width = config.boundary.x / config.brickHorizontalNum
+    val width = (config.boundary.x - config.brickHorizontalNum * 2 * config.brickSpace - 2 * config.brickSpace) / config.brickHorizontalNum
+    val fakeWidth = width + 2 * config.brickSpace
+    val fakeHeight = config.brickHeight + 2 * config.brickSpace
     (1 to config.brickVerticalNum).foreach{verticalIndex =>
       (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
-        val x = (horizontalIndex - 1) * width + width / 2
-        val y = (verticalIndex - 1) * config.brickHeight +  config.brickHeight / 2 + config.boundary.y / 2 + config.getRankHeight / 2
+//        val fakeWidth = width + 2 * config.brickSpace
+        val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
+//        val fakeHeight = config.brickHeight + 2 * config.brickSpace
+        val y = (verticalIndex - 1) * fakeHeight +  fakeHeight / 2 + config.boundary.y / 2 + config.getRankHeight / 2
         val brickOpt= generateBrick(Point(x,y.toFloat))
         brickOpt match{
           case Some(brick) =>
@@ -115,9 +119,9 @@ case class GameContainerServerImpl(
     }
     (1 to config.brickVerticalNum).foreach{verticalIndex =>
       (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
-        val x = (horizontalIndex - 1) * width + width / 2
+        val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
         config.getRankHeight
-        val y = config.boundary.y / 2 - config.getRankHeight / 2 - ((verticalIndex - 1) * config.brickHeight +  config.brickHeight / 2)
+        val y = config.boundary.y / 2 - config.getRankHeight / 2 - ((verticalIndex - 1) * fakeHeight +  fakeHeight / 2)
         val brickOpt= generateBrick(Point(x,y.toFloat))
         brickOpt match{
           case Some(brick) =>

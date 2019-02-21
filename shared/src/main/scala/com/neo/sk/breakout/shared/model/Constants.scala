@@ -16,6 +16,9 @@ object Constants {
   "庞统","干将莫邪","鬼谷子","女娲")
   val needSpecialName = false
 
+  val colorList = List("#525252","#515151","#404040","#3D3D3D","#5E5E5E","#666666","#6B6B6B","#7A7A7A",
+  "#36648B","#4169E1","#458B74","#4A708B","#4682B4","#388E8E","#2E8B57","#548B54")
+
   val drawHistory = false
 
   object RacketParameter{

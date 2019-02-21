@@ -2,10 +2,11 @@ package com.neo.sk.breakout.shared.game.view
 
 import com.neo.sk.breakout.shared.game.GameContainerClientImpl
 import com.neo.sk.breakout.shared.model.Constants.ObstacleType
-import com.neo.sk.breakout.shared.model.Point
+import com.neo.sk.breakout.shared.model.{Constants, Point}
 import com.neo.sk.breakout.shared.util.canvas.MiddleContext
 
 import scala.collection.mutable
+import scala.util.Random
 
 /**
   * Created by benyafang on 2019/2/8 21:13
@@ -36,8 +37,8 @@ trait BrickDrawUtil{ this:GameContainerClientImpl =>
 
   private def drawObstacle(centerPosition:Point, width:Float, height:Float, bloodPercent:Float, color:String, context:MiddleContext = ctx):Unit = {
     context.setFill(color)
-    context.setStrokeStyle("#4D4D4D")
-    context.setLineWidth(2)
+    context.setStrokeStyle("#000000")
+    context.setLineWidth(6)
 
     context.beginPath()
     context.fillRec((centerPosition.x - width / 2) * canvasUnit, (centerPosition.y + height / 2 - bloodPercent * height) * canvasUnit,
@@ -65,9 +66,7 @@ trait BrickDrawUtil{ this:GameContainerClientImpl =>
 //            "rgba(99, 255, 255, 0.5)"
 //          case (ObstacleType.airDropBox, false) => "rgba(0, 255, 255, 1)"
           case (ObstacleType.brick, true) =>
-            if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
-            else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
-            "rgba(139, 105, 105, 0.5)"
+            Constants.colorList((new Random).nextInt(Constants.colorList.length))
           case (ObstacleType.brick, false) => "rgba(139, 105, 105, 1)"
           case _ =>
             println(s"the obstacle=${obstacle} has not color")
