@@ -62,12 +62,12 @@ trait BrickDrawUtil{ this:GameContainerClientImpl =>
         val color = Constants.colorList((new Random).nextInt(Constants.colorList.length))
         val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
         val cache = obstacleCanvasCacheMap.getOrElseUpdate(obstacle.oId.toByte, generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
-        if(this.racketId == obstacle.racketId){
+//        if(this.racketId == obstacle.racketId){
           ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
-        } else{
-          ctx.drawImage(cache, p.x * canvasUnit, (view.y - p.y) * canvasUnit)
-
-        }
+//        } else{
+//          ctx.drawImage(cache, p.x * canvasUnit, (view.y - p.y) * canvasUnit)
+//
+//        }
       }
     }
   }

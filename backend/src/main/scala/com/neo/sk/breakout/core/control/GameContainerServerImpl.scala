@@ -169,9 +169,9 @@ case class GameContainerServerImpl(
       playerMap(uidA) ! UserActor.JoinRoomSuccess(racketAOpt.get,config.getGameConfigImpl(),roomActorRef)
       playerMap(uidB) ! UserActor.JoinRoomSuccess(racketBOpt.get,config.getGameConfigImpl(),roomActorRef)
       racketAOpt.foreach{racketA =>
-        var randDirection = (new Random).nextFloat() * math.Pi.toFloat + math.Pi.toFloat
+        var randDirection = (new Random).nextFloat() * math.Pi.toFloat / 2 + math.Pi.toFloat * 5 / 4
         while (randDirection == 2*math.Pi || randDirection == math.Pi|| randDirection == 0){
-          randDirection = (new Random).nextFloat() * math.Pi.toFloat + math.Pi.toFloat
+          randDirection = (new Random).nextFloat() * math.Pi.toFloat / 2 + math.Pi.toFloat * 5 / 4
         }
         generateBall(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3 - config.getRacketHeight / 2 - config.getBallRadius).toFloat),racketA.racketId,randDirection)
           .foreach{ball =>
@@ -189,9 +189,9 @@ case class GameContainerServerImpl(
         generateBricks4Racket(racketA.racketId)
       }
       racketBOpt.foreach{racketB =>
-        var randDirection = (new Random).nextFloat() * math.Pi.toFloat + math.Pi.toFloat
+        var randDirection = (new Random).nextFloat() * math.Pi.toFloat / 2 + math.Pi.toFloat * 5 / 4
         while (randDirection == 2*math.Pi || randDirection == math.Pi || randDirection == 0){
-          randDirection = (new Random).nextFloat() * math.Pi.toFloat + math.Pi.toFloat
+          randDirection = (new Random).nextFloat() * math.Pi.toFloat / 2 + math.Pi.toFloat * 5 / 4
         }
         generateBall(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3 - config.getRacketHeight / 2 - config.getBallRadius - 5).toFloat),racketB.racketId,randDirection)
           .foreach{ball =>

@@ -403,6 +403,7 @@ trait GameContainer extends KillInformation{
     /**
       * 后端拍子砖块和球的位置都是在屏幕的下半方，进行碰撞检测的时候和正常的流程是一样的
       * 前端进行碰撞检测的时候，每个客户端绘制的不一样，如果和前端的racket相同，和后端的碰撞检测相同，如果不一样就反过来判断
+      * 还有游戏结束的逻辑
       * */
     ballMap.toList.sortBy(_._1).map(_._2).foreach{ ball =>
       val objects = quadTree.retrieveFilter(ball)
@@ -460,8 +461,8 @@ trait GameContainer extends KillInformation{
   protected def collisionObstacleCallBack(ball: Ball)(o:Obstacle):Unit = {
     //fixme
     ball.changeDirection(o.getObstacleState().p,o.getWidth,o.getHeight)
-    val event = BreakoutGameEvent.ObstacleCollision(o.oId,ball.bId,o.racketId,o.getObstacleState().p,frame = systemFrame)
-    addFollowEvent(event)
+//    val event = BreakoutGameEvent.ObstacleCollision(o.oId,ball.bId,o.racketId,o.getObstacleState().p,frame = systemFrame)
+//    addFollowEvent(event)
   }
 
 //  protected final def removeBullet(bullet: Bullet):Unit = {

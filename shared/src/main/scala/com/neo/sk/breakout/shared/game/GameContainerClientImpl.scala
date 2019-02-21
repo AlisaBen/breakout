@@ -3,7 +3,7 @@ package com.neo.sk.breakout.shared.game
 import com.neo.sk.breakout.shared.`object`._
 import com.neo.sk.breakout.shared.config.GameConfig
 import com.neo.sk.breakout.shared.game.view._
-import com.neo.sk.breakout.shared.model.Constants.GameAnimation
+import com.neo.sk.breakout.shared.model.Constants.{GameAnimation, ObstacleType}
 import com.neo.sk.breakout.shared.model.{Point, Rectangle}
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.{GameContainerAllState, GameContainerState, GameEvent, UserActionEvent}
@@ -100,7 +100,6 @@ case class GameContainerClientImpl(
 //  override protected def handleGenerateBullet(e:GenerateBullet) = {
 //    tankMap.get(e.bullet.tankId) match{
 //      case Some(tank) =>
-//        //todo
 //        if(e.s){
 //          tank.setTankGunDirection(math.atan2(e.bullet.momentum.y, e.bullet.momentum.x).toFloat)
 //          tankExecuteLaunchBulletAction(tank.tankId,tank)
@@ -267,13 +266,22 @@ case class GameContainerClientImpl(
 //    environmentMap.clear()
 
     gameContainerAllState.rackets.foreach { t =>
-      val racket = new Racket(config, t)
+      val racket = if(t.racketId == racketId){
+        new Racket(config, t)
+      }else{
+        new Racket(config, t.getRacketState().editRacketState(canvasSize))
+      }
       quadTree.insert(racket)
       racketMap.put(t.racketId, racket)
       racketHistoryMap.put(t.racketId,racket.name)
     }
     gameContainerAllState.obstacles.foreach { o =>
-      val obstacle = new Brick(config, o)
+      val obstacle = if(o.racketId == racketId){
+        new Brick(config, o)
+      }else{
+        new Brick(config,o.getObstacleState().editObstacleState(canvasSize))
+      }
+
       quadTree.insert(obstacle)
       obstacleMap.put(o.oId, obstacle)
     }
@@ -291,8 +299,8 @@ case class GameContainerClientImpl(
       val bullet = if(t.racketId == racketId){
         new Ball(config, t)
       }else{
-        new Ball(config, t)
-//        new Ball(config,t.getBallState().editDirection())
+//        new Ball(config, t)
+        new Ball(config,t.getBallState().editDirection(canvasSize))
       }
       quadTree.insert(bullet)
       ballMap.put(t.bId, bullet)
@@ -303,6 +311,11 @@ case class GameContainerClientImpl(
 //      environmentMap.put(obstacle.oId, obstacle)
 //    }
     waitSyncData = false
+  }
+
+  implicit def obstacleState2Impl(obstacleState:ObstacleState):Obstacle = obstacleState.t match{
+    case ObstacleType.brick =>new Brick(config,obstacleState)
+    case _ => new Brick(config,obstacleState)
   }
 
   protected def handleGameContainerState(gameContainerState: GameContainerState) = {
@@ -325,7 +338,12 @@ case class GameContainerClientImpl(
       gameContainerState.rackets match{
         case Some(rackets) =>
           rackets.foreach { t =>
-            val racket = new Racket(config, t)
+            val racket = if(t.racketId == racketId){
+              new Racket(config, t)
+            }else{
+              new Racket(config,t.getRacketState().editRacketState(canvasSize))
+            }
+
             quadTree.insert(racket)
             racketMap.put(t.racketId, racket)
             racketHistoryMap.put(t.racketId,racket.name)
@@ -475,13 +493,15 @@ case class GameContainerClientImpl(
 
   override protected def collisionRacketCallBack(ball: Ball)(racket: Racket): Unit = {
     if(ball.racketId == racketId){
+      println(s"sssssssssssssssss")
       if(ball.getBallState().position.y <= racket.getRacketState().position.y){
         super.collisionRacketCallBack(ball)(racket)
       }else{
         println(s"-------${racketId}--你输了球飞到拍子下面，游戏结束")
       }
     }else{
-      if(ball.getBallState().getBallState().position.y >= racket.getRacketState().position.y){
+      println(s"ppppppppppppppppppppppp")
+      if(ball.getBallState().position.y >= racket.getRacketState().position.y){
         super.collisionRacketCallBack(ball)(racket)
       }else{
         println(s"-------${ball.racketId}--你赢了球飞到拍子下面，游戏结束")
@@ -512,11 +532,6 @@ case class GameContainerClientImpl(
             case None =>
           }
         }
-//        if(ball.getPosition.y <= config.boundary.y / 2){
-//
-//        }else{
-//          println(s"----别人的小球飞过界")
-//        }
       }
     }
   }

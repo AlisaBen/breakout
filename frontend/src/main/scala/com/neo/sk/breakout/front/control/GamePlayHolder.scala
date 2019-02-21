@@ -83,14 +83,14 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
   var touchMoveEndX :Double= 0
 
   private def handleTouchStart(e:TouchEvent) = {
-    println(s"------------------")
+    println(s"------------------touchstart")
     touchStartX = e.touches.item(0).clientX
     //fixme 需要确定这个是不是需要
     e.preventDefault()
   }
 
   private def handleTouchMove(e:TouchEvent) = {
-    println(s"=============")
+    println(s"=============touchmove")
     touchMoveEndX = e.changedTouches.item(0).clientX
     if(gameState == GameState.play && gameContainerOpt.nonEmpty && lastTouchMoveFrame != gameContainerOpt.get.systemFrame){
       if(touchMoveEndX - touchStartX > 0){
@@ -158,7 +158,6 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
         setGameState(GameState.stop)
 
       case e: BreakoutGameEvent.SyncGameAllState =>
-        //fixme
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))
         nextFrame = dom.window.requestAnimationFrame(gameRender())
         setGameState(GameState.play)

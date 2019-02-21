@@ -41,7 +41,7 @@ case class WebSocketClient(
     if(wsSetup){
       println(s"websocket已经启动")
     }else{
-      println(s"--准备建立websocket：${wsUrl}")
+//      println(s"--准备建立websocket：${wsUrl}")
       val websocketStream = new WebSocket(wsUrl)
 
       webSocketStreamOpt = Some(websocketStream)
@@ -56,7 +56,7 @@ case class WebSocketClient(
       }
 
       websocketStream.onmessage = { event: MessageEvent =>
-        println(s"recv msg:${event.data.toString}")
+//        println(s"recv msg:${event.data.toString}")
         event.data match {
           case blobMsg:Blob =>
             val fr = new FileReader()

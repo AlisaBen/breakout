@@ -34,6 +34,11 @@ case class Racket(
 
   def getRacketState():RacketState = RacketState(racketId,uid,name,position,direction,isMove,damageStatistics)
 
+  def editRacketState(boundary:Point):RacketState = {
+    position = boundary - position
+    getRacketState()
+  }
+
   //todo 拍子的移动速度，可考虑移动到config中
   val moveSpeed: model.Point = RacketParameter.speed
 

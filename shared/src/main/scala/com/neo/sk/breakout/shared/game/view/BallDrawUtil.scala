@@ -43,11 +43,11 @@ trait BallDrawUtil {this:GameContainerClientImpl =>
       if(p.in(view,Point(ball.getRadius * 4 ,ball.getRadius *4))) {
         val cacheCanvas = canvasCacheMap.getOrElseUpdate(1, generateCanvas(ball))
         val radius = ball.getRadius
-        if(ball.racketId == this.racketId){
+//        if(ball.racketId == this.racketId){
           ctx.drawImage(cacheCanvas, (p.x - ball.getRadius) * canvasUnit - radius * canvasUnit / 2.5, (p.y - ball.getRadius) * canvasUnit - radius * canvasUnit / 2.5)
-        }else{
-          ctx.drawImage(cacheCanvas, (p.x - ball.getRadius) * canvasUnit - radius * canvasUnit / 2.5, (view.y - p.y - ball.getRadius) * canvasUnit - radius * canvasUnit / 2.5)
-        }
+//        }else{
+//          ctx.drawImage(cacheCanvas, (p.x - ball.getRadius) * canvasUnit - radius * canvasUnit / 2.5, (view.y - p.y - ball.getRadius) * canvasUnit - radius * canvasUnit / 2.5)
+//        }
 
       }
     }

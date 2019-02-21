@@ -81,22 +81,28 @@ case class Ball(
         false
 
       case Constants.BoundaryProperty.up =>
-        if(isEnemy){
-          true
-        }else{
-          momentum = Point(momentum.x,-1 * momentum.y)
-          this.position = this.position + momentum
-          false
-        }
+//        if(isEnemy){
+//          true
+//        }else{
+//          momentum = Point(momentum.x,-1 * momentum.y)
+//          this.position = this.position + momentum
+//          false
+//        }
+        momentum = Point(momentum.x,-1 * momentum.y)
+        this.position = this.position + momentum
+        false
 
       case Constants.BoundaryProperty.down =>
-        if(isEnemy){
-          momentum = Point(momentum.x,-1 * momentum.y)
-          this.position = this.position + momentum
-          false
-        }else{
-          true
-        }
+//        if(isEnemy){
+//          momentum = Point(momentum.x,-1 * momentum.y)
+//          this.position = this.position + momentum
+//          false
+//        }else{
+//          true
+//        }
+        momentum = Point(momentum.x,-1 * momentum.y)
+        this.position = this.position + momentum
+        false
       //游戏结束
 
       case Constants.BoundaryProperty.middle =>
@@ -105,8 +111,9 @@ case class Ball(
     }
   }
 
-  def editDirection() = {
-    momentum = Point(momentum.x,-1 * momentum.y)
+  def editDirection(boundary:Point) = {
+    position = boundary - position
+    momentum = Point(-1 * momentum.x,-1 * momentum.y)
     getBallState()
   }
 

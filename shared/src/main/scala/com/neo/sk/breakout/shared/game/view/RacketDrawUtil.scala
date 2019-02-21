@@ -46,10 +46,10 @@ trait RacketDrawUtil {this:GameContainerClientImpl =>
       if (r.getPosition.in(view, Point(r.getWidth * 2, r.getHeight * 2))){
         val position = r.getPosition + offset - Point(r.getWidth / 2, r.getHeight / 2)
         val cache = racketCanvasCacheMap.getOrElseUpdate(r.racketId.toByte, generateRacketCacheCanvas(r.getWidth, r.getHeight, "rgba(0, 255, 255, 1)"))
-        if(r.racketId == this.racketId)
+//        if(r.racketId == this.racketId)
           ctx.drawImage(cache, position.x * canvasUnit, position.y * canvasUnit)
-        else
-          ctx.drawImage(cache, position.x * canvasUnit, (view.y - position.y) * canvasUnit)
+//        else
+//          ctx.drawImage(cache, position.x * canvasUnit, (view.y - position.y) * canvasUnit)
       }
     }
   }

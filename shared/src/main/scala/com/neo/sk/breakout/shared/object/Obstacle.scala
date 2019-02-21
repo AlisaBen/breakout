@@ -32,6 +32,11 @@ trait Obstacle extends RectangleObjectOfGame{
     o.exists(t => t.isIntersects(this))
   }
 
+  def editObstacleState(boundary:Point) = {
+    position = boundary - position
+    getObstacleState()
+  }
+
 }
 
 object Obstacle{
