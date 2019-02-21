@@ -164,7 +164,7 @@ trait GameContainer extends KillInformation{
       * */
     racketMap.get(e.racketId) match{
       case Some(racket) =>
-        ballMap.get(e.ballId).foreach(_.changeDirection(racket.getPosition,racket.getWidth,racket.getHeight))
+//        ballMap.get(e.ballId).foreach(_.changeDirection(racket.getPosition,racket.getWidth,racket.getHeight))
       case None =>
     }
 //    val bulletTankOpt = tankMap.get(e.bulletTankId)
@@ -200,9 +200,9 @@ trait GameContainer extends KillInformation{
       * 这里需要增加对方对应位置增加砖块,后端执行不同
       * */
     obstacleMap.get(e.brickId).foreach{ obstacle =>
-      ballMap.get(e.ballId).foreach(_.changeDirection(obstacle.getPosition,obstacle.getWidth,obstacle.getHeight))
-      quadTree.remove(obstacle)
+//      ballMap.get(e.ballId).foreach(_.changeDirection(obstacle.getPosition,obstacle.getWidth,obstacle.getHeight))
       obstacleMap.remove(e.brickId)
+      quadTree.remove(obstacle)
       val ballRacketOpt = racketMap.get(e.ballId) match{
         case Some(ball) =>
           racketMap.get(ball.racketId) match {
@@ -211,8 +211,10 @@ trait GameContainer extends KillInformation{
           }
         case None =>None
       }
-      if(obstacle.isInstanceOf[Brick]){
-        ballRacketOpt.foreach(_.damageStatistics += obstacle.asInstanceOf[Brick].value)
+      obstacle.obstacleType match{
+        case ObstacleType.brick =>
+          ballRacketOpt.foreach(_.damageStatistics += obstacle.asInstanceOf[Brick].value)
+        case _ =>
       }
 
     }
