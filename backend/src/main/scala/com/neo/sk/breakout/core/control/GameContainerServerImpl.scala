@@ -163,60 +163,14 @@ case class GameContainerServerImpl(
         }
       }
     }
-//    def init(): Unit = {
-//
-//      /**
-//        * 生成砖块、拍子、球
-//        * */
-//      val width = (config.boundary.x - config.brickHorizontalNum * 2 * config.brickSpace - 2 * config.brickSpace) / config.brickHorizontalNum
-//      val fakeWidth = width + 2 * config.brickSpace
-//      val fakeHeight = config.brickHeight + 2 * config.brickSpace
-//      (1 to config.brickVerticalNum).foreach{verticalIndex =>
-//        (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
-//          //        val fakeWidth = width + 2 * config.brickSpace
-//          val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
-//          //        val fakeHeight = config.brickHeight + 2 * config.brickSpace
-//          val y = (verticalIndex - 1) * fakeHeight +  fakeHeight / 2 + config.boundary.y / 2 + config.getRankHeight / 2
-//          val brickOpt= generateBrick(Point(x,y.toFloat))
-//          brickOpt match{
-//            case Some(brick) =>
-//              val event = BreakoutGameEvent.GenerateObstacle(systemFrame,brick.getObstacleState())
-//              addGameEvent(event)
-//              obstacleMap.put(brick.oId,brick)
-//              quadTree.insert(brick)
-//            case None =>
-//              log.debug(s"${roomActorRef.path} 生成砖块错误")
-//          }
-//        }
-//      }
-//      (1 to config.brickVerticalNum).foreach{verticalIndex =>
-//        (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
-//          val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
-//          config.getRankHeight
-//          val y = config.boundary.y / 2 - config.getRankHeight / 2 - ((verticalIndex - 1) * fakeHeight +  fakeHeight / 2)
-//          val brickOpt= generateBrick(Point(x,y.toFloat))
-//          brickOpt match{
-//            case Some(brick) =>
-//              val event = BreakoutGameEvent.GenerateObstacle(systemFrame,brick.getObstacleState())
-//              addGameEvent(event)
-//              obstacleMap.put(brick.oId,brick)
-//              quadTree.insert(brick)
-//            case None =>
-//              log.debug(s"${roomActorRef.path} 生成砖块错误")
-//          }
-//        }
-//      }
-//      //    println(s"---${obstacleMap.values.map(_.position.y).max}")
-//      //    println(s"---${obstacleMap.values.map(_.position.y).min}")
-//    }
     val racketAOpt = generateRacket(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3).toFloat),uidA,nameA)//自己
-    val racketBOpt = generateRacket(Point(config.boundary.x / 2 ,(config.getRacketHeight / 2 + 3).toFloat),uidB,nameB)//对方
+    val racketBOpt = generateRacket(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3).toFloat),uidB,nameB)//对方
     if(racketAOpt.nonEmpty && racketBOpt.nonEmpty){
       playerMap(uidA) ! UserActor.JoinRoomSuccess(racketAOpt.get,config.getGameConfigImpl(),roomActorRef)
       playerMap(uidB) ! UserActor.JoinRoomSuccess(racketBOpt.get,config.getGameConfigImpl(),roomActorRef)
       racketAOpt.foreach{racketA =>
         var randDirection = (new Random).nextFloat() * math.Pi.toFloat + math.Pi.toFloat
-        while (randDirection == 2*math.Pi || randDirection == math.Pi){
+        while (randDirection == 2*math.Pi || randDirection == math.Pi|| randDirection == 0){
           randDirection = (new Random).nextFloat() * math.Pi.toFloat + math.Pi.toFloat
         }
         generateBall(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3 - config.getRacketHeight / 2 - config.getBallRadius).toFloat),racketA.racketId,randDirection)
@@ -235,11 +189,11 @@ case class GameContainerServerImpl(
         generateBricks4Racket(racketA.racketId)
       }
       racketBOpt.foreach{racketB =>
-        var randDirection = (new Random).nextFloat() * math.Pi.toFloat
-        while (randDirection == 2*math.Pi || randDirection == math.Pi){
-          randDirection = (new Random).nextFloat() * math.Pi.toFloat
+        var randDirection = (new Random).nextFloat() * math.Pi.toFloat + math.Pi.toFloat
+        while (randDirection == 2*math.Pi || randDirection == math.Pi || randDirection == 0){
+          randDirection = (new Random).nextFloat() * math.Pi.toFloat + math.Pi.toFloat
         }
-        generateBall(Point(config.boundary.x / 2,(3 + config.getRacketHeight / 2 + config.getBallRadius).toFloat),racketB.racketId,randDirection)
+        generateBall(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3 - config.getRacketHeight / 2 - config.getBallRadius - 5).toFloat),racketB.racketId,randDirection)
           .foreach{ball =>
 //            val event = BreakoutGameEvent.UserJoinRoom(nameB,racketB.getRacketState(),ball.getBallState(),systemFrame)
 //            dispatch(event)

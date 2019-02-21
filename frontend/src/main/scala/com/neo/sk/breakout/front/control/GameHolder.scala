@@ -157,7 +157,7 @@ abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
   }
 
   protected def gameLoop(): Unit = {
-    checkScreenSize
+//    checkScreenSize
     gameState match {
       case GameState.loadingPlay =>
         println(s"等待同步数据")

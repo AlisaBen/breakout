@@ -58,7 +58,7 @@ case class Ball(
       Constants.BoundaryProperty.left
     }else if(position.x + radius >= boundary.downRight.x){
       Constants.BoundaryProperty.right
-    }else if(position.y - radius <= 0){
+    }else if(position.y - radius <=  boundary.topLeft.y){
       Constants.BoundaryProperty.up
     }else if(position.y + radius >= boundary.downRight.y){
       Constants.BoundaryProperty.down
@@ -103,6 +103,11 @@ case class Ball(
         this.position = this.position + momentum
         false
     }
+  }
+
+  def editDirection() = {
+    momentum = Point(momentum.x,-1 * momentum.y)
+    getBallState()
   }
 
   def changeDirection(obstaclePosition:Point,obstacleWidth:Float,obstacleHeight:Float) = {

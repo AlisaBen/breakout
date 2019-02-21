@@ -113,7 +113,7 @@ final case class ObstacleParameters(
 
 final case class BallParameters(
                                  //                                   ballLevelParameters:List[(Float,Int)], //size,damage length 3
-                                 ballSpeed:Int,
+                                 ballSpeed:Float,
                                  ballRadius:Float
                                ){
   //  require(ballLevelParameters.size >= 3,println(s"bullet level parameter failed"))

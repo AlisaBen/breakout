@@ -59,41 +59,15 @@ trait BrickDrawUtil{ this:GameContainerClientImpl =>
     obstacleMap.values.foreach{ obstacle =>
       if((obstacle.getPosition + offset).in(view,Point(obstacle.getWidth,obstacle.getHeight))) {
         val isAttacked: Boolean = obstacleAttackedAnimationMap.get(obstacle.oId).nonEmpty
-        val color = (obstacle.obstacleType, obstacleAttackedAnimationMap.get(obstacle.oId).nonEmpty) match {
-//          case (ObstacleType.airDropBox, true) =>
-//            if (obstacleAttackedAnimationMap(obstacle.oId) <= 0) obstacleAttackedAnimationMap.remove(obstacle.oId)
-//            else obstacleAttackedAnimationMap.put(obstacle.oId, obstacleAttackedAnimationMap(obstacle.oId) - 1)
-//            "rgba(99, 255, 255, 0.5)"
-//          case (ObstacleType.airDropBox, false) => "rgba(0, 255, 255, 1)"
-          case (ObstacleType.brick, true) =>
-            Constants.colorList((new Random).nextInt(Constants.colorList.length))
-          case (ObstacleType.brick, false) => "rgba(139, 105, 105, 1)"
-          case _ =>
-            println(s"the obstacle=${obstacle} has not color")
-            "rgba(139, 105, 105, 1)"
+        val color = Constants.colorList((new Random).nextInt(Constants.colorList.length))
+        val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
+        val cache = obstacleCanvasCacheMap.getOrElseUpdate(obstacle.oId.toByte, generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
+        if(this.racketId == obstacle.racketId){
+          ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
+        } else{
+          ctx.drawImage(cache, p.x * canvasUnit, (view.y - p.y) * canvasUnit)
+
         }
-//        if(obstacle.obstacleType == ObstacleType.airDropBox){
-//          val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
-//          if (isAttacked){
-//            ctx.setGlobalAlpha(0.5)
-//            ctx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
-//              Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
-//            ctx.setGlobalAlpha(1)
-//          } else {
-//            ctx.drawImage(airBoxImg, p.x * canvasUnit, p.y * canvasUnit,
-//              Some(obstacle.getWidth * canvasUnit, obstacle.getHeight * canvasUnit))
-//          }
-//        }else{
-//          if (obstacle.bloodPercent() > 0.9999999) {
-            val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
-            val cache = obstacleCanvasCacheMap.getOrElseUpdate(obstacle.oId.toByte, generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
-            ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
-//          } else {
-//            drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, obstacle.bloodPercent(), color)
-//          }
-//        }
-
-
       }
     }
   }

@@ -288,7 +288,12 @@ case class GameContainerClientImpl(
       racketMoveAction.put(t._1, set)
     }
     gameContainerAllState.balls.foreach { t =>
-      val bullet = new Ball(config, t)
+      val bullet = if(t.racketId == racketId){
+        new Ball(config, t)
+      }else{
+        new Ball(config, t)
+//        new Ball(config,t.getBallState().editDirection())
+      }
       quadTree.insert(bullet)
       ballMap.put(t.bId, bullet)
     }
@@ -371,6 +376,7 @@ case class GameContainerClientImpl(
 
   def receiveGameContainerAllState(gameContainerAllState: GameContainerAllState) = {
     //fixme
+//    gameContainerAllState.balls.filter(_.racketId == racketId).foreach(t => t.asInstanceOf[Ball].editDirection())
     gameContainerAllStateOpt = Some(gameContainerAllState)
 //    if(gameContainerAllState.f > systemFrame){
 //      gameContainerAllStateOpt = Some(gameContainerAllState)
@@ -486,6 +492,7 @@ case class GameContainerClientImpl(
   override protected def ballMove(): Unit = {
     ballMap.toList.sortBy(_._1).map(_._2).foreach{ball =>
       if(ball.racketId == racketId){
+        println(s"-------我自己的")
         super.ballMove()
       }else{
         val objects = quadTree.retrieveFilter(ball)
@@ -496,27 +503,20 @@ case class GameContainerClientImpl(
         objects.filter(t => t.isInstanceOf[ObstacleBall] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
           .foreach(t =>
             if(t.racketId == ball.racketId) ball.checkAttackObject(t,collisionObstacleCallBack(ball)))
-        if(ball.getPosition.y <= config.boundary.y / 2){
-          val gameOver = ball.move(true,Rectangle(Point(0,0),Point(config.boundary.x,config.boundary.y / 2)),systemFrame)
-          if(gameOver){
-            racketMap.get(ball.racketId) match{
-              case Some(racket) =>
-                gameOverCallBack(racket)
-              case None =>
-            }
+        val gameOver = ball.move(true,Rectangle(Point(0,0),Point(config.boundary.x,config.boundary.y / 2)),systemFrame)
+        if(gameOver){
+          println("game over")
+          racketMap.get(ball.racketId) match{
+            case Some(racket) =>
+            //                gameOverCallBack(racket)
+            case None =>
           }
-
-        }else{
-          println(s"----小球飞到上边界")
-          //        val gameOver = ball.move(Rectangle(Point(0,config.boundary.y / 2),boundary),systemFrame)
-          //        if(gameOver){
-          //          racketMap.get(ball.racketId) match{
-          //            case Some(racket) =>
-          ////              gameOverCallBack(racket)
-          //            case None =>
-          //          }
-          //        }
         }
+//        if(ball.getPosition.y <= config.boundary.y / 2){
+//
+//        }else{
+//          println(s"----别人的小球飞过界")
+//        }
       }
     }
   }

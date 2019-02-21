@@ -411,27 +411,28 @@ trait GameContainer extends KillInformation{
       objects.filter(t => t.isInstanceOf[ObstacleBall] && t.isInstanceOf[Obstacle]).map(_.asInstanceOf[Obstacle])
         .foreach(t =>
           if(t.racketId == ball.racketId) ball.checkAttackObject(t,collisionObstacleCallBack(ball)))
-      if(ball.getPosition.y >= config.boundary.y / 2){
-        val gameOver = ball.move(false,Rectangle(Point(0,0),Point(config.boundary.x,config.boundary.y / 2)),systemFrame)
-        if(gameOver){
-          racketMap.get(ball.racketId) match{
-            case Some(racket) =>
-              gameOverCallBack(racket)
-            case None =>
-          }
+      val gameOver = ball.move(false,Rectangle(Point(0,config.boundary.y / 2),config.boundary),systemFrame)
+      if(gameOver){
+        println("game over")
+        racketMap.get(ball.racketId) match{
+          case Some(racket) =>
+          //              gameOverCallBack(racket)
+          case None =>
         }
-
-      }else{
-        println(s"----小球飞到上边界")
-//        val gameOver = ball.move(Rectangle(Point(0,config.boundary.y / 2),boundary),systemFrame)
-//        if(gameOver){
-//          racketMap.get(ball.racketId) match{
-//            case Some(racket) =>
-////              gameOverCallBack(racket)
-//            case None =>
-//          }
-//        }
       }
+//      if(ball.getPosition.y >= config.boundary.y / 2){
+//
+//      }else{
+//        println(s"----小球飞到上边界")
+////        val gameOver = ball.move(Rectangle(Point(0,config.boundary.y / 2),boundary),systemFrame)
+////        if(gameOver){
+////          racketMap.get(ball.racketId) match{
+////            case Some(racket) =>
+//////              gameOverCallBack(racket)
+////            case None =>
+////          }
+////        }
+//      }
     }
   }
 

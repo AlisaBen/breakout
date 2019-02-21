@@ -41,10 +41,14 @@ trait BallDrawUtil {this:GameContainerClientImpl =>
     ballMap.values.foreach{ ball =>
       val p = ball.getPosition4Animation(offsetTime) + offset
       if(p.in(view,Point(ball.getRadius * 4 ,ball.getRadius *4))) {
-        //fixme
         val cacheCanvas = canvasCacheMap.getOrElseUpdate(1, generateCanvas(ball))
         val radius = ball.getRadius
-        ctx.drawImage(cacheCanvas, (p.x - ball.getRadius) * canvasUnit - radius * canvasUnit / 2.5, (p.y - ball.getRadius) * canvasUnit - radius * canvasUnit / 2.5)
+        if(ball.racketId == this.racketId){
+          ctx.drawImage(cacheCanvas, (p.x - ball.getRadius) * canvasUnit - radius * canvasUnit / 2.5, (p.y - ball.getRadius) * canvasUnit - radius * canvasUnit / 2.5)
+        }else{
+          ctx.drawImage(cacheCanvas, (p.x - ball.getRadius) * canvasUnit - radius * canvasUnit / 2.5, (view.y - p.y - ball.getRadius) * canvasUnit - radius * canvasUnit / 2.5)
+        }
+
       }
     }
   }

@@ -52,8 +52,8 @@ case class BreakoutGameConfigServerImpl(
 
   //  private[this] val maxFlyFrameData = config.getInt("breakoutGame.ball.maxFlyFrame")
   //    .requiring(_ > 0,"minimum ball max fly frame is 1")
-  private[this] val ballSpeedData = config.getInt("breakoutGame.ball.ballSpeed")
-    .requiring(_ > 0,"minimum ball speed is 1")
+  private[this] val ballSpeedData = config.getDouble("breakoutGame.ball.ballSpeed")
+    .requiring(_ > 0,"minimum ball speed is 1").toFloat
   private val ballParameters = BallParameters(ballSpeedData,ballRadius)
 
   private[this] val obstacleWidthData = config.getDouble("breakoutGame.obstacle.width")
