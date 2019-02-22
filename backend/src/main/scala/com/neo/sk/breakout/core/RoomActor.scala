@@ -1,7 +1,7 @@
 package com.neo.sk.breakout.core
 
 import akka.actor.typed.{ActorRef, Behavior}
-import akka.actor.typed.scaladsl.{Behaviors, StashBuffer, TimerScheduler}
+import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import com.neo.sk.breakout.common.AppSettings
 import com.neo.sk.breakout.core.control.GameContainerServerImpl
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
@@ -11,10 +11,12 @@ import com.neo.sk.breakout.models.DAO.AccountDAO
 import com.neo.sk.breakout.models.SlickTables
 import com.neo.sk.breakout.shared.model.{Point, Score}
 import com.neo.sk.breakout.Boot.roomManager
+
 import scala.language.implicitConversions
 import org.seekloud.byteobject.ByteObject._
 import org.slf4j.LoggerFactory
 import com.neo.sk.breakout.Boot.{executor, scheduler, timeout, userManager}
+import com.neo.sk.breakout.shared.model
 
 import concurrent.duration._
 import scala.collection.mutable
@@ -49,6 +51,30 @@ object RoomActor {
 
   case object ActorStop extends Command
 
+  private case object BehaviorChangeKey extends Command
+
+  case class TimeOut(str: String) extends Command
+
+  private case class UpdateUserInfo(r:model.Score,ls:List[model.Score],isStop:Boolean) extends Command
+
+
+  final case class SwitchBehavior(
+                                   name: String,
+                                   behavior: Behavior[Command],
+                                   durationOpt: Option[FiniteDuration] = None,
+                                   timeOut: TimeOut = TimeOut("busy time error")
+                                 ) extends Command
+
+  private[this] def switchBehavior(ctx: ActorContext[Command],
+                                   behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None,timeOut: TimeOut  = TimeOut("busy time error"))
+                                  (implicit stashBuffer: StashBuffer[Command],
+                                   timer:TimerScheduler[Command]) = {
+    log.debug(s"${ctx.self.path} becomes $behaviorName behavior.")
+    timer.cancel(BehaviorChangeKey)
+    durationOpt.foreach(timer.startSingleTimer(BehaviorChangeKey,timeOut,_))
+    stashBuffer.unstashAll(ctx,behavior)
+  }
+
 
   def create(roomId:Int,nameA:(String,Long),nameB:(String,Long),playerMap:mutable.HashMap[Long,ActorRef[UserActor.Command]]) = {
     Behaviors.setup[Command]{
@@ -59,6 +85,7 @@ object RoomActor {
           val gameContainer = GameContainerServerImpl(
             AppSettings.breakoutGameConfig,
             log,
+            timer,
             ctx.self,
             dispatch(playerMap),
             dispatchTo(playerMap)
@@ -107,37 +134,77 @@ object RoomActor {
         case GameBattleRecord(ls) =>
 //          log.debug(s"${ctx.self.path} 插入战绩")
           roomManager !RoomManager.GameOver(roomId)
-          ls.map{r =>
-            AccountDAO.updateUserInfo(r.n,r.score > ls.map(_.score).max).map{t =>
-//              log.debug(s"${ctx.self.path}更新用户信息")
-            }.recover{
-              case e:Exception =>
-                log.debug(s"${ctx.self.path} 更新用户信息失败：${e}")
-            }
-          }
+
           AccountDAO.insertBattleRecord(
             SlickTables.rBattleRecord(-1l,System.currentTimeMillis(),ls(0).n,ls(1).n,ls(0).score,ls(1).score))
             .map{r =>
               log.debug(s"${ctx.self.path} 插入战绩")
-
+              ctx.self ! SwitchBehavior("idle",idle(roomId,nameA,nameB,subscribesMap,gameContainer,tickCount))
+              ls.sortBy(_.id).foreach{r =>ctx.self ! UpdateUserInfo(r,ls,r.id == ls.map(_.id).max)}
             }.recover{
             case e:Exception =>
               log.debug(s"${ctx.self.path}插入战绩失败：${e}")
+              ctx.self ! SwitchBehavior("idle",idle(roomId,nameA,nameB,subscribesMap,gameContainer,tickCount))
+              ctx.self ! ActorStop
           }
-          timer.startSingleTimer("ActorStop",ActorStop,3.minute)
-          Behaviors.same
+          switchBehavior(ctx,"busy",busy(roomId,nameA,nameB,subscribesMap,gameContainer:GameContainerServerImpl,tickCount))
+
+        case UpdateUserInfo(r,ls,isStop) =>
+          AccountDAO.updateUserInfo(r.n,r.score > ls.map(_.score).max).map{t =>
+            log.debug(s"${ctx.self.path}更新用户信息")
+            ctx.self ! SwitchBehavior("idle",idle(roomId,nameA,nameB,subscribesMap,gameContainer,tickCount))
+            if(isStop){
+              ctx.self ! ActorStop
+            }
+          }.recover{
+            case e:Exception =>
+              log.debug(s"${ctx.self.path} 更新用户信息失败：${e}")
+              ctx.self ! SwitchBehavior("idle",idle(roomId,nameA,nameB,subscribesMap,gameContainer,tickCount))
+              if(isStop){
+                ctx.self ! ActorStop
+              }
+          }
+          switchBehavior(ctx,"busy",busy(roomId,nameA,nameB,subscribesMap,gameContainer:GameContainerServerImpl,tickCount))
 
         case ChildDead(name,childRef) =>
           ctx.unwatch(childRef)
           Behaviors.same
 
         case ActorStop =>
-
+          log.debug(s"0000")
           Behaviors.stopped
 
         case unknownMsg =>
           log.debug(s"${ctx.self.path} recv an unknow msg=${msg}")
           Behaviors.same
+      }
+    }
+  }
+
+  private def busy(roomId:Int,
+                   nameA:(String,Long),
+                   nameB:(String,Long),
+                   subscribesMap:mutable.HashMap[Long,ActorRef[UserActor.Command]],
+                   gameContainer:GameContainerServerImpl,
+                   tickCount:Long)
+                  (
+                    implicit stashBuffer:StashBuffer[Command],
+                    sendBuffer:MiddleBufferInJvm,
+                    timer:TimerScheduler[Command]
+                  ): Behavior[Command] = {
+    Behaviors.receive[Command] { (ctx, msg) =>
+      msg match {
+        case SwitchBehavior(name, behavior, durationOpt, timeOut) =>
+          log.debug(s"${ctx.self.path} recv a SwitchBehavior Msg=${name}")
+          switchBehavior(ctx, name, behavior, durationOpt, timeOut)
+
+        case TimeOut(m) =>
+          log.debug(s"${ctx.self.path} is time out when busy,msg=${m}")
+          switchBehavior(ctx, "idle", idle(roomId,nameA,nameB,subscribesMap,gameContainer:GameContainerServerImpl,tickCount))
+
+        case unknownMsg =>
+          stashBuffer.stash(unknownMsg)
+          Behavior.same
       }
     }
   }

@@ -40,14 +40,14 @@ object UserActor {
   case class JoinRoomSuccess(racket:Racket,config:GameConfigImpl,roomActor:ActorRef[RoomActor.Command]) extends Command
   case class UserLeft[U](actorRef:ActorRef[U]) extends Command
   case object ChangeBehaviorToInit extends Command
-  final case class SwitchBehavior(
+  private final case class SwitchBehavior(
                                    name: String,
                                    behavior: Behavior[Command],
                                    durationOpt: Option[FiniteDuration] = None,
                                    timeOut: TimeOut = TimeOut("busy time error")
                                  ) extends Command
 
-  case class TimeOut(msg:String) extends Command
+  private case class TimeOut(msg:String) extends Command
 
   private[this] def switchBehavior(ctx: ActorContext[Command],
                                    behaviorName: String, behavior: Behavior[Command], durationOpt: Option[FiniteDuration] = None,timeOut: TimeOut  = TimeOut("busy time error"))
@@ -119,7 +119,7 @@ object UserActor {
 
         case unknowMsg =>
           stashBuffer.stash(unknowMsg)
-          log.warn(s"got unknown msg: $unknowMsg")
+          log.warn(s"${ctx.self.path} got unknown msg: $unknowMsg")
           Behavior.same
       }
     }
@@ -159,7 +159,7 @@ object UserActor {
 
         case unknowMsg =>
           stashBuffer.stash(unknowMsg)
-          log.debug(s"${ctx.self.path} recv an unknown msg${unknowMsg.getClass}")
+          log.debug(s"${ctx.self.path}idle recv an unknown msg${unknowMsg.getClass}")
           Behaviors.same
 
       }
@@ -193,7 +193,7 @@ object UserActor {
         case DispatchMsg(m) =>
           if(m.asInstanceOf[BreakoutGameEvent.Wrap].isKillMsg) {
             frontActor ! m
-            switchBehavior(ctx,"idle",idle(uid,name,isVisitor,frontActor))
+            switchBehavior(ctx,"init",init(uid,name,isVisitor))
           }else{
             frontActor ! m
             Behaviors.same
@@ -207,7 +207,7 @@ object UserActor {
 
         case unknownMsg =>
           stashBuffer.stash(unknownMsg)
-          log.debug(s"${ctx.self.path} recv an unknown msg:${unknownMsg.getClass}")
+          log.debug(s"${ctx.self.path}play recv an unknown msg:${unknownMsg.getClass}")
           Behaviors.same
       }
     }

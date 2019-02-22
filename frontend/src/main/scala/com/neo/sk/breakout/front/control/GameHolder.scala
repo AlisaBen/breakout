@@ -217,6 +217,12 @@ abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
     e
   }
 
+  protected def comeback2FirstPage(s:Int) = {
+//    ctx.clearRect(0,0,canvasWidth,canvasHeight)
+//    firstCome = true
+    setGameState(s)
+  }
+
   protected def wsMessageHandler(data: BreakoutGameEvent.WsMsgServer):Unit
 
 

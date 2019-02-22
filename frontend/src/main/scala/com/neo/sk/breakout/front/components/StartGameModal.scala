@@ -14,7 +14,7 @@ import scala.xml.Elem
 /**
   * created by benyafang on 2019/2/20 14:20
   * */
-class StartGameModal(gameState:Var[Int],startGame:() => Unit, playerInfo:PlayerInfo) extends Component{
+class StartGameModal(gameState:Var[Int],startGame:() => Unit, setGameState:Int => Unit,playerInfo:PlayerInfo) extends Component{
 
   import io.circe.generic.auto._
   import io.circe.syntax._
@@ -48,9 +48,17 @@ class StartGameModal(gameState:Var[Int],startGame:() => Unit, playerInfo:PlayerI
   val matchingDisplay = gameState.map{
     case GameState.firstCome => "display:none"
 //    case GameState.matching => "display:block"
-    case GameState.loadingPlay => "display:none"
+    case GameState.loadingPlay => ""
     case GameState.play => "display:none"
     case GameState.stop => "display:none"//游戏结束之后添加返回首页按钮，点击返回按钮之后，设置gameState状态为firstCome
+  }
+
+  val comebackDisplay = gameState.map{
+    case GameState.firstCome => "display:none"
+    //    case GameState.matching => "display:block"
+    case GameState.loadingPlay => "display:none"
+    case GameState.play => "display:none"
+    case GameState.stop => ""//游戏结束之后添加返回首页按钮，点击返回按钮之后，设置gameState状态为firstCome
   }
 
   override def render: Elem = {
@@ -63,6 +71,10 @@ class StartGameModal(gameState:Var[Int],startGame:() => Unit, playerInfo:PlayerI
       </div>
       <div style={matchingDisplay}>
         <div style="text-align:center;font-size:40px">匹配中。。。</div>
+      </div>
+      <div style={comebackDisplay}>
+        <button id="come_back" style="position:absolute;left:30px;top:30px;" onclick={() => setGameState(GameState.firstCome)}>返回首页</button>
+
       </div>
     </div>
   }

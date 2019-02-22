@@ -27,7 +27,7 @@ import scala.xml.Elem
 class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder(canvasName) {
   private[this] val actionSerialNumGenerator = new AtomicInteger(0)
   private val preExecuteFrameOffset = com.neo.sk.breakout.shared.model.Constants.PreExecuteFrameOffset
-  private val startGameModal = new StartGameModal(gameStateVar, start,playerInfo)
+  private val startGameModal = new StartGameModal(gameStateVar, start,comeback2FirstPage,playerInfo)
   private var lastTouchMoveFrame = 0L
 
   private val myKeySet = mutable.HashSet[Int]()
@@ -158,6 +158,10 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
       case e: BreakoutGameEvent.GameOver =>
 //        dom.window.cancelAnimationFrame(nextFrame)
         gameContainerOpt.foreach(_.updateRank(e.score))
+        ctx.clearRect(0,0,canvasWidth,canvasHeight)
+        firstCome = true
+//        gameContainerOpt.foreach(_.)
+        closeHolder
         setGameState(GameState.stop)
 
       case e: BreakoutGameEvent.SyncGameAllState =>

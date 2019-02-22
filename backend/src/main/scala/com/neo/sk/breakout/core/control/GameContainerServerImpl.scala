@@ -2,6 +2,9 @@ package com.neo.sk.breakout.core.control
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import akka.actor.typed.scaladsl.TimerScheduler
+
+//import akka.actor.TimerScheduler
 import akka.actor.typed.ActorRef
 import com.neo.sk.breakout.core.RoomActor.GameBattleRecord
 import com.neo.sk.breakout.core.{RoomActor, UserActor}
@@ -34,6 +37,7 @@ import scala.util.Random
 case class GameContainerServerImpl(
                                     config: GameConfig,
                                     log:Logger,
+                                    timer: TimerScheduler[RoomActor.Command],
                                     roomActorRef:ActorRef[RoomActor.Command],
                                     dispatch: BreakoutGameEvent.WsMsgServer => Unit,
                                     dispatchTo: (Long, BreakoutGameEvent.WsMsgServer) => Unit
@@ -170,6 +174,7 @@ case class GameContainerServerImpl(
 
   override protected def gameOverCallBack(racket: Racket): Unit = {
     val gameOverEvent = BreakoutGameEvent.GameOver(racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
+    timer.cancel(RoomActor.GameLoopKey)
     dispatch(gameOverEvent)
     roomActorRef ! GameBattleRecord(racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
 
