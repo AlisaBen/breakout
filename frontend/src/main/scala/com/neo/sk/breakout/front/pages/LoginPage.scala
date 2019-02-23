@@ -39,8 +39,8 @@ object LoginPage extends Page{
     val data = AccountProtocol.LoginReq(name,pwd).asJson.noSpaces
     Http.postJsonAndParse[LoginRsp](AccountRoute.loginRoute,data).map{rsp =>
       if(rsp.errCode == 0){
-        LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uid,name,true))
-        val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uid,name,true,None))
+        LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uidOpt.get,name,true))
+        val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,name,true,None))
         modal := gamePlayHolder.getStartGameModal()
         dom.document.getElementById("loginBg").asInstanceOf[Div].setAttribute("class","invisible")
       }
@@ -59,8 +59,8 @@ object LoginPage extends Page{
       val data =  AccountProtocol.LoginReq(name,pwd).asJson.noSpaces
       Http.postJsonAndParse[LoginRsp](AccountRoute.loginRoute,data).map{rsp =>
         if(rsp.errCode == 0){
-          LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uid,name,true))
-          val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uid,name,true,None))
+          LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uidOpt.get,name,true))
+          val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,name,true,None))
           modal := gamePlayHolder.getStartGameModal()
           dom.document.getElementById("loginBg").asInstanceOf[Div].setAttribute("class","invisible")
 //          GameHall.playerName = name

@@ -79,7 +79,7 @@ object UserActor {
   }
 
   def create(uid:Long,name:String,isVisitor:Boolean): Behavior[Command] = {
-    log.debug(s"UserManager start...")
+    log.debug(s"UserActor-${uid} start...")
     Behaviors.setup[Command] {
       ctx =>
         Behaviors.withTimers[Command] {
@@ -116,6 +116,14 @@ object UserActor {
 
 //        case ChangeBehaviorToInit =>
 //          Behaviors.same
+//        case JoinRoomSuccess(racket,config,roomActor) =>
+//          log.debug(s"${ctx.self.path}recv an msg:${msg.getClass}")
+//          frontActor ! BreakoutGameEvent.Wrap(
+//            BreakoutGameEvent.YourInfo(BreakoutGameEvent.PlayerInfo(racket.racketId,racket.name),config)
+//              .asInstanceOf[BreakoutGameEvent.WsMsgServer].fillMiddleBuffer(sendBuffer).result()
+//          )
+//          switchBehavior(ctx,"play",play(uid,racket.name,isVisitor,racket,frontActor,roomActor))
+
 
         case unknowMsg =>
           stashBuffer.stash(unknowMsg)
@@ -193,7 +201,7 @@ object UserActor {
         case DispatchMsg(m) =>
           if(m.asInstanceOf[BreakoutGameEvent.Wrap].isKillMsg) {
             frontActor ! m
-            switchBehavior(ctx,"init",init(uid,name,isVisitor))
+            switchBehavior(ctx,"idle",idle(uid,name,isVisitor,frontActor))
           }else{
             frontActor ! m
             Behaviors.same

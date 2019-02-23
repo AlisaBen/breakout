@@ -59,8 +59,9 @@ trait AccountService extends ServiceUtils{
                 log.debug(s"已经被禁用用户请求登录${req.userName}--${TimeUtil.format_yyyyMMddHH(System.currentTimeMillis())}")
                 complete(loginErrorRsp(10022,s"该账户已经被禁用"))
               }else{
+                log.debug(s"传userId")
                 val uid:Future[Long] = userManager ? (GetUserId(req.userName,true,_))
-                dealFutureResult(uid.map(t =>complete(LoginRsp(t))))
+                dealFutureResult(uid.map(t =>complete(LoginRsp(Some(t)))))
               }
             }else{
               complete(loginErrorRsp(100012,"用户名或者密码错误，请重新输入"))

@@ -88,8 +88,8 @@ trait SlickTables {
     /** Database column WIN_NUM SqlType(INTEGER), Default(0) */
     val winNum: Rep[Int] = column[Int]("WIN_NUM", O.Default(0))
 
-    /** Uniqueness Index over (userName) (database name CONSTRAINT_BC_INDEX_5) */
-    val index1 = index("CONSTRAINT_BC_INDEX_5", userName, unique=true)
+    /** Uniqueness Index over (userName) (database name CONSTRAINT_INDEX_B) */
+    val index1 = index("CONSTRAINT_INDEX_B", userName, unique=true)
   }
   /** Collection-like TableQuery object for table tUserInfo */
   lazy val tUserInfo = new TableQuery(tag => new tUserInfo(tag))

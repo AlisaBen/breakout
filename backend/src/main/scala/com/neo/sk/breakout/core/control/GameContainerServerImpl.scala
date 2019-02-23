@@ -3,10 +3,14 @@ package com.neo.sk.breakout.core.control
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.actor.typed.scaladsl.TimerScheduler
+import com.neo.sk.breakout.Boot.roomManager
+import com.neo.sk.breakout.core.RoomActor.ActorStop
+import com.neo.sk.breakout.core.RoomManager
+import com.neo.sk.breakout.core.RoomManager.GameBattleRecord
 
 //import akka.actor.TimerScheduler
 import akka.actor.typed.ActorRef
-import com.neo.sk.breakout.core.RoomActor.GameBattleRecord
+//import com.neo.sk.breakout.core.RoomActor.GameBattleRecord
 import com.neo.sk.breakout.core.{RoomActor, UserActor}
 import com.neo.sk.breakout.shared.`object`._
 import com.neo.sk.breakout.shared.config.GameConfig
@@ -38,6 +42,7 @@ case class GameContainerServerImpl(
                                     config: GameConfig,
                                     log:Logger,
                                     timer: TimerScheduler[RoomActor.Command],
+                                    roomId:Int,
                                     roomActorRef:ActorRef[RoomActor.Command],
                                     dispatch: BreakoutGameEvent.WsMsgServer => Unit,
                                     dispatchTo: (Long, BreakoutGameEvent.WsMsgServer) => Unit
@@ -54,6 +59,8 @@ case class GameContainerServerImpl(
   private val ballIdGenerator = new AtomicInteger(100)
   private val racketIdGenerator = new AtomicInteger(100)
   private val obstacleIdGenerator = new AtomicInteger(100)
+
+  private val racketId2UserActorMap = mutable.HashMap[Int,Long]()
 
   def generateBrick(position:Point,racketId:Int) = {
     val oId = obstacleIdGenerator.getAndIncrement()
@@ -122,6 +129,8 @@ case class GameContainerServerImpl(
     val racketAOpt = generateRacket(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3).toFloat),uidA,nameA)//自己
     val racketBOpt = generateRacket(Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3).toFloat),uidB,nameB)//对方
     if(racketAOpt.nonEmpty && racketBOpt.nonEmpty){
+      racketId2UserActorMap.put(racketAOpt.get.racketId,uidA)
+      racketId2UserActorMap.put(racketBOpt.get.racketId,uidB)
       playerMap(uidA) ! UserActor.JoinRoomSuccess(racketAOpt.get,config.getGameConfigImpl(),roomActorRef)
       playerMap(uidB) ! UserActor.JoinRoomSuccess(racketBOpt.get,config.getGameConfigImpl(),roomActorRef)
       racketAOpt.foreach{racketA =>
@@ -176,8 +185,9 @@ case class GameContainerServerImpl(
     val gameOverEvent = BreakoutGameEvent.GameOver(racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
     timer.cancel(RoomActor.GameLoopKey)
     dispatch(gameOverEvent)
-    roomActorRef ! GameBattleRecord(racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
-
+    roomActorRef ! ActorStop
+    roomManager !RoomManager.GameOver(roomId)
+    roomManager ! GameBattleRecord(racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
   }
 
   override protected def handleObstacleCollision(e:ObstacleCollision) :Unit = {
@@ -185,8 +195,10 @@ case class GameContainerServerImpl(
     val obstacleState = ObstacleState(e.enemyRacketId,obstacleIdGenerator.getAndIncrement(),ObstacleType.brick,
       Point(e.obstaclePosition.x,e.obstaclePosition.y - 2 * (e.obstaclePosition.y - config.boundary.y / 2)),0)
     val event = BreakoutGameEvent.GenerateObstacle(systemFrame,obstacleState)
-    dispatch(event)
-    addGameEvent(event)
+    racketId2UserActorMap.get(obstacleState.racketId).foreach(a => dispatchTo(a,event))
+    //fixme
+    //该事件应该对应发，而不是群发
+//    addGameEvent(event)
     obstacleMap.put(obstacleState.oId,obstacleState)
     quadTree.insert(obstacleState)
   }

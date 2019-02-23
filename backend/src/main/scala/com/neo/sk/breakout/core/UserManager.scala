@@ -83,6 +83,7 @@ object UserManager {
 ////              getUserActor(ctx, uid,name,isVisitor)
 //          }
           val userActor = getUserActor(ctx, uid,name,isVisitor)
+          log.debug(s"${ctx.self.path} recv msg:${msg.getClass}")
           userMap.put(name,userActor)
           replyTo ! uid
           idle(uidGenerator,userMap)

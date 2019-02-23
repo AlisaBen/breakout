@@ -43,7 +43,7 @@ object RoomActor {
   case object GameLoop extends Command
   case class WebSocketMsg(uid: String, tankId: Int, req: BreakoutGameEvent.UserActionEvent) extends Command with RoomManager.Command
 
-  case class GameBattleRecord(scores:List[Score]) extends Command
+//  case class GameBattleRecord(scores:List[Score]) extends Command with RoomManager.Command
 
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
 
@@ -55,7 +55,7 @@ object RoomActor {
 
   case class TimeOut(str: String) extends Command
 
-  private case class UpdateUserInfo(r:model.Score,ls:List[model.Score],isStop:Boolean) extends Command
+//  private case class UpdateUserInfo(r:model.Score,ls:List[model.Score],isStop:Boolean) extends Command with RoomManager.Command
 
 
   final case class SwitchBehavior(
@@ -79,6 +79,7 @@ object RoomActor {
   def create(roomId:Int,nameA:(String,Long),nameB:(String,Long),playerMap:mutable.HashMap[Long,ActorRef[UserActor.Command]]) = {
     Behaviors.setup[Command]{
       ctx =>
+        log.debug(s"RoomActor-${roomId} start...")
         implicit val stashBuffer = StashBuffer[Command](Int.MaxValue)
         Behaviors.withTimers[Command]{implicit timer =>
           implicit val sendBuffer = new MiddleBufferInJvm(81920)
@@ -86,6 +87,7 @@ object RoomActor {
             AppSettings.breakoutGameConfig,
             log,
             timer,
+            roomId,
             ctx.self,
             dispatch(playerMap),
             dispatchTo(playerMap)
@@ -131,47 +133,12 @@ object RoomActor {
           gameContainer.receiveUserAction(req)
           Behaviors.same
 
-        case GameBattleRecord(ls) =>
-//          log.debug(s"${ctx.self.path} 插入战绩")
-          roomManager !RoomManager.GameOver(roomId)
-
-          AccountDAO.insertBattleRecord(
-            SlickTables.rBattleRecord(-1l,System.currentTimeMillis(),ls(0).n,ls(1).n,ls(0).score,ls(1).score))
-            .map{r =>
-              log.debug(s"${ctx.self.path} 插入战绩")
-              ctx.self ! SwitchBehavior("idle",idle(roomId,nameA,nameB,subscribesMap,gameContainer,tickCount))
-              ls.sortBy(_.id).foreach{r =>ctx.self ! UpdateUserInfo(r,ls,r.id == ls.map(_.id).max)}
-            }.recover{
-            case e:Exception =>
-              log.debug(s"${ctx.self.path}插入战绩失败：${e}")
-              ctx.self ! SwitchBehavior("idle",idle(roomId,nameA,nameB,subscribesMap,gameContainer,tickCount))
-              ctx.self ! ActorStop
-          }
-          switchBehavior(ctx,"busy",busy(roomId,nameA,nameB,subscribesMap,gameContainer:GameContainerServerImpl,tickCount))
-
-        case UpdateUserInfo(r,ls,isStop) =>
-          AccountDAO.updateUserInfo(r.n,r.score > ls.map(_.score).max).map{t =>
-            log.debug(s"${ctx.self.path}更新用户信息")
-            ctx.self ! SwitchBehavior("idle",idle(roomId,nameA,nameB,subscribesMap,gameContainer,tickCount))
-            if(isStop){
-              ctx.self ! ActorStop
-            }
-          }.recover{
-            case e:Exception =>
-              log.debug(s"${ctx.self.path} 更新用户信息失败：${e}")
-              ctx.self ! SwitchBehavior("idle",idle(roomId,nameA,nameB,subscribesMap,gameContainer,tickCount))
-              if(isStop){
-                ctx.self ! ActorStop
-              }
-          }
-          switchBehavior(ctx,"busy",busy(roomId,nameA,nameB,subscribesMap,gameContainer:GameContainerServerImpl,tickCount))
-
         case ChildDead(name,childRef) =>
           ctx.unwatch(childRef)
           Behaviors.same
 
         case ActorStop =>
-          log.debug(s"0000")
+          log.debug(s"${ctx.self.path} is over")
           Behaviors.stopped
 
         case unknownMsg =>

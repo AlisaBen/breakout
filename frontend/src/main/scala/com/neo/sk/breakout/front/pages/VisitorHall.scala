@@ -42,7 +42,7 @@ object VisitorHall extends Page{
     val json = GameHallProtocol.GetUId4Visitor(nickname,true).asJson.toString()
     Http.postJsonAndParse[LoginRsp](url,json).map{rsp =>
       if(rsp.errCode == 0){
-        val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uid,nickname,true,None))
+        val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,nickname,true,None))
         modal := gamePlayHolder.getStartGameModal()
         dom.document.getElementById("loginBg").asInstanceOf[Div].setAttribute("class","invisible")
       }else{
@@ -58,7 +58,7 @@ object VisitorHall extends Page{
       val json = GameHallProtocol.GetUId4Visitor(nickname,true).asJson.toString()
       Http.postJsonAndParse[LoginRsp](url,json).map{rsp =>
         if(rsp.errCode == 0){
-          val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uid,nickname,true,None))
+          val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,nickname,true,None))
           modal := gamePlayHolder.getStartGameModal()
           dom.document.getElementById("loginBg").asInstanceOf[Div].setAttribute("class","invisible")
         }else{

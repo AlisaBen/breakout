@@ -11,6 +11,7 @@ import com.neo.sk.breakout.shared.game.GameContainerClientImpl
 import com.neo.sk.breakout.shared.model.Constants.GameState
 import com.neo.sk.breakout.shared.model.Point
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
+import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.GenerateObstacle
 import com.sun.glass.events.MouseEvent
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
@@ -71,6 +72,7 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
 
     } else if (webSocketClient.getWsState) {
       setGameState(GameState.loadingPlay)
+      init()
       gameLoop()
 
     } else {
@@ -143,6 +145,9 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
       case e: BreakoutGameEvent.WsSuccess =>
         webSocketClient.sendMsg(BreakoutGameEvent.StartGame(e.roomId))
 
+      case e:BreakoutGameEvent.GenerateObstacle =>
+        gameContainerOpt.foreach(_.receiveGameEvent(e))
+
       case e: BreakoutGameEvent.YourInfo =>
         println(s"new game the id is ${e.players}")
         println(s"玩家信息${e}")
@@ -159,9 +164,10 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
 //        dom.window.cancelAnimationFrame(nextFrame)
         gameContainerOpt.foreach(_.updateRank(e.score))
         ctx.clearRect(0,0,canvasWidth,canvasHeight)
-        firstCome = true
+//        firstCome = true
 //        gameContainerOpt.foreach(_.)
-        closeHolder
+//        closeHolder
+        Shortcut.cancelSchedule(timer)
         setGameState(GameState.stop)
 
       case e: BreakoutGameEvent.SyncGameAllState =>

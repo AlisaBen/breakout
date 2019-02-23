@@ -41,6 +41,10 @@ object AccountDAO {
     db.run(tVisitorInfo.returning(tVisitorInfo.map(_.id)) += r)
   }
 
+  def getIsForbidden(name:String) = {
+    db.run(tUserInfo.filter(_.userName === name).map(_.isForbidden).result.headOption)
+  }
+
 
 
 }

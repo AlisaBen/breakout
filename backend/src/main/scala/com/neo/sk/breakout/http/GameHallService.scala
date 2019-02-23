@@ -31,8 +31,20 @@ trait GameHallService extends ServiceUtils{
   private val chooseGameModel = (path("chooseGameModel") & post){
     entity(as[Either[Error,GameHallProtocol.GameModelReq]]){
       case Right(req) =>
-        userManager ! UserManager.ChooseModel(req.uid,req.name,req.isVisitor,req.model)
-        complete(SuccessRsp())
+        dealFutureResult{
+          AccountDAO.getIsForbidden(req.name).map{
+            case Some(isForbidden) =>
+              if(isForbidden){
+                complete(chooseGameModelErrorRsp(s"该用户已经被禁用"))
+              }else{
+                userManager ! UserManager.ChooseModel(req.uid,req.name,req.isVisitor,req.model)
+                complete(SuccessRsp())
+              }
+
+            case None =>complete(chooseGameModelErrorRsp(s"未查询到该用户"))
+
+          }
+        }
       case Left(error) =>
         log.debug(s"选择游戏模式请求失败：${error}")
         complete(chooseGameModelErrorRsp(s"选择游戏模式请求失败：${error}"))
@@ -47,11 +59,11 @@ trait GameHallService extends ServiceUtils{
         dealFutureResult(uidFuture.map(t =>
          dealFutureResult{
            AccountDAO.insertVisitorInfo(SlickTables.rVisitorInfo(-1l,req.name,System.currentTimeMillis())).map{r =>
-             complete(LoginRsp(t))
+             complete(LoginRsp(Some(t)))
            }.recover{
              case e:Exception =>
                log.debug(s"插入游客信息失败")
-               complete(LoginRsp(t))
+               complete(LoginRsp(Some(t)))
            }
          }))
       case Left(error) =>

@@ -19,11 +19,11 @@ import org.scalajs.dom.raw.{Event, VisibilityState}
   * */
 
 abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
-  val drawFrame = new MiddleFrameInJs
+  var drawFrame = new MiddleFrameInJs
   protected var canvasWidth = dom.window.innerWidth.toFloat
   protected var canvasHeight = dom.window.innerHeight.toFloat
 
-  protected val canvas = drawFrame.createCanvas(canvasName,canvasWidth, canvasHeight)
+  protected var canvas = drawFrame.createCanvas(canvasName,canvasWidth, canvasHeight)
   protected val ctx = canvas.getCtx
 
 
@@ -96,6 +96,15 @@ abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
 //    renderTime = 0
 //    renderTimes = 0
 //  }, 5000L)*/
+
+  protected def init() = {
+    drawFrame = new MiddleFrameInJs
+    canvas = drawFrame.createCanvas(canvasName,canvasWidth, canvasHeight)
+    tickCount = 1
+    timer = 0
+    nextFrame = 0
+    logicFrameTime = System.currentTimeMillis()
+  }
 
   private def onVisibilityChanged = { e: Event =>
     if (dom.document.visibilityState == VisibilityState.visible) {
@@ -176,23 +185,7 @@ abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
         tickCount += 1
 
       case GameState.stop =>
-        
-//        dom.document.getElementById("input_mask_id").asInstanceOf[dom.html.Div].focus()
-//        if(tickCount % rankCycle == 1){
-//          gameContainerOpt.foreach(_.updateRanks())
-//          gameContainerOpt.foreach(t => t.rankUpdated = true)
-//        }
-        gameContainerOpt.foreach{r =>
-          r.update()
-//          if(!r.isKillerAlive(r.getCurTankId)){
-//            val newWatchId = r.change2OtherTank
-//            r.changeTankId(newWatchId)
-//          }
-        }
-        logicFrameTime = System.currentTimeMillis()
-        ping()
-//        tickCount += 1
-
+        gameContainerOpt.foreach(_.drawGameStop())
 
       case _ => println(s"state=$gameState failed")
     }

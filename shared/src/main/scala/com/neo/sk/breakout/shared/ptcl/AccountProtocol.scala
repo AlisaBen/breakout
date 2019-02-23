@@ -17,7 +17,7 @@ object AccountProtocol {
                      )
 
   case class LoginRsp(
-                     uid:Long,
+                     uidOpt:Option[Long],
                      errCode:Int = 0,
                      msg:String = "ok"
                      )

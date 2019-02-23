@@ -76,6 +76,7 @@ object MySlickCodeGenerator {
   def main(args: Array[String]) {
     //    genDefaultTables()
     val dbDriver = com.neo.sk.utils.MyPostgresDriver
+//    val dbDriver = H2Profile
 
     genCustomTables(dbDriver)
 

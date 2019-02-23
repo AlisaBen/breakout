@@ -182,6 +182,14 @@ case class GameContainerClientImpl(
     }
   }
 
+  def receiveGameEvent(e:BreakoutGameEvent.GenerateObstacle) = {
+    if(e.obstacleState.racketId == racketId && e.obstacleState.t == ObstacleType.brick){
+      val obstacle = new Brick(config,e.obstacleState.getObstacleState())
+      obstacleMap.put(obstacle.oId,obstacle)
+      quadTree.insert(obstacle)
+    }
+  }
+
   def preExecuteUserEvent(action: UserActionEvent) = {
     addUserAction(action)
     uncheckedActionMap.put(action.serialNum, action.frame)
