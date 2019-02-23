@@ -100,8 +100,8 @@ abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
 //  }, 5000L)*/
 
   protected def init() = {
-    drawFrame = new MiddleFrameInJs
-    canvas = drawFrame.createCanvas(canvasName,canvasWidth, canvasHeight)
+//    drawFrame = new MiddleFrameInJs
+//    canvas = drawFrame.createCanvas(canvasName,canvasWidth, canvasHeight)
     tickCount = 1
     timer = 0
     nextFrame = 0

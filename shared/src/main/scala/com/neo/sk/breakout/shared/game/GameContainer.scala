@@ -419,7 +419,7 @@ trait GameContainer extends KillInformation{
         println("game over")
         racketMap.get(ball.racketId) match{
           case Some(racket) =>
-            gameOverCallBack(racket)
+//            gameOverCallBack(racket)
           case None =>
         }
       }

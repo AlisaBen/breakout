@@ -31,20 +31,26 @@ trait GameHallService extends ServiceUtils{
   private val chooseGameModel = (path("chooseGameModel") & post){
     entity(as[Either[Error,GameHallProtocol.GameModelReq]]){
       case Right(req) =>
-        dealFutureResult{
-          AccountDAO.getIsForbidden(req.name).map{
-            case Some(isForbidden) =>
-              if(isForbidden){
-                complete(chooseGameModelErrorRsp(s"该用户已经被禁用"))
-              }else{
-                userManager ! UserManager.ChooseModel(req.uid,req.name,req.isVisitor,req.model)
-                complete(SuccessRsp())
-              }
+        if(req.isVisitor){
+          userManager ! UserManager.ChooseModel(req.uid,req.name,req.isVisitor,req.model)
+          complete(SuccessRsp())
+        }else{
+          dealFutureResult{
+            AccountDAO.getIsForbidden(req.name).map{
+              case Some(isForbidden) =>
+                if(isForbidden){
+                  complete(chooseGameModelErrorRsp(s"该用户已经被禁用"))
+                }else{
+                  userManager ! UserManager.ChooseModel(req.uid,req.name,req.isVisitor,req.model)
+                  complete(SuccessRsp())
+                }
 
-            case None =>complete(chooseGameModelErrorRsp(s"未查询到该用户"))
+              case None =>complete(chooseGameModelErrorRsp(s"未查询到该用户"))
 
+            }
           }
         }
+
       case Left(error) =>
         log.debug(s"选择游戏模式请求失败：${error}")
         complete(chooseGameModelErrorRsp(s"选择游戏模式请求失败：${error}"))

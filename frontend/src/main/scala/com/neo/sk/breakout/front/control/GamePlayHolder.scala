@@ -12,9 +12,12 @@ import com.neo.sk.breakout.shared.model.Constants.GameState
 import com.neo.sk.breakout.shared.model.Point
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.GenerateObstacle
-import com.sun.glass.events.MouseEvent
+import org.scalajs.dom.raw.MouseEvent
+//import com.sun.glass.events.MouseEvent
+import com.neo.sk.breakout.front.pages.MainPage.gotoPage
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
+import org.scalajs.dom.html.Button
 import org.scalajs.dom.raw.TouchEvent
 
 import scala.collection.mutable
@@ -52,6 +55,10 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
     startGameModal.render
   }
 
+  def setCanvasName(canvasName:String) = {
+
+  }
+
 //  def gameOverCallback() = {
 //    val buttonComeback = new Button()
 //  }
@@ -62,10 +69,10 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
 //    Shortcut.cancelSchedule(timer)
     if (firstCome) {
       firstCome = false
-      addUserActionListenEvent()
       setGameState(GameState.loadingPlay)
       val isVisitor:Int = if(playerInfo.isVisitor) 1 else 0
       webSocketClient.setup(Routes.getJoinGameWebSocketUri(playerInfo.userId,playerInfo.userName,isVisitor, None))
+      addUserActionListenEvent()
 //      if(playerInfo.isVisitor){
 //      }else{
 //        webSocketClient.setup(Routes.getJoinGameWebSocketUri(playerInfo.userId,playerInfo.userName,0, None))
@@ -78,6 +85,7 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
       setGameState(GameState.loadingPlay)
       init()
       gameLoop()
+//      addUserActionListenEvent()
 
     } else {
       JsFunc.alert("网络连接失败，请重新刷新")
@@ -119,6 +127,7 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
   }
 
   private def handleTouchEnd(e:TouchEvent) = {
+    println(s"touchend")
     touchStartX = 0
     touchMoveEndX = 0
     val preExecuteAction = BreakoutGameEvent.UserTouchEnd(gameContainerOpt.get.racketId,
@@ -130,14 +139,14 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
 
   private def addUserActionListenEvent(): Unit = {
     canvas.getCanvas.focus()
-    canvas.getCanvas.ondragstart  = {e: dom.MouseEvent =>
+    canvas.getCanvas.onmousedown  = {e: dom.MouseEvent =>
       println(s"------------------touchstart")
       touchStartX = e.clientX
       //fixme 需要确定这个是不是需要
       e.preventDefault()
 
     }
-    canvas.getCanvas.ondrag  = {e:dom.MouseEvent =>
+    canvas.getCanvas.onmousemove  = {e:dom.MouseEvent =>
       println(s"=============touchmove")
       touchMoveEndX = e.clientX
       if(gameState == GameState.play && gameContainerOpt.nonEmpty && lastTouchMoveFrame != gameContainerOpt.get.systemFrame){
@@ -158,7 +167,7 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
       touchStartX = touchMoveEndX
       e.preventDefault()
     }
-    canvas.getCanvas.ondragend  = {e:dom.MouseEvent =>
+    canvas.getCanvas.onmouseup  = {e:dom.MouseEvent =>
       println(s"----dragend")
       touchStartX = 0
       touchMoveEndX = 0
@@ -168,15 +177,27 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
       sendMsg2Server(preExecuteAction)
       e.preventDefault()
     }
-//    canvas.getCanvas.addEventListener("touchstart",handleTouchStart,false)
-//    canvas.getCanvas.addEventListener("touchmove",handleTouchMove,false)
-//    canvas.getCanvas.addEventListener("touchend",handleTouchEnd,false)
+    canvas.getCanvas.addEventListener("touchstart",handleTouchStart,false)
+    canvas.getCanvas.addEventListener("touchmove",handleTouchMove,false)
+    canvas.getCanvas.addEventListener("touchend",handleTouchEnd,false)
   }
 
   override protected def setKillCallback(racket: Racket) = {
     if (gameContainerOpt.nonEmpty&&racket.racketId ==gameContainerOpt.get.racketId) {
 //      webSocketClient.sendMsg(BreakoutGameEvent.FailGame)
 //      gameContainerOpt.foreach(_)
+      val button1 = dom.document.getElementsByName("game_over_btn1").asInstanceOf[Button]
+      button1.setAttribute("class","visible")
+      button1.onclick = {e:MouseEvent =>
+        setGameState(GameState.firstCome)
+        e.preventDefault()
+      }
+      val button2 = dom.document.getElementsByName("game_over_btn2").asInstanceOf[Button]
+      button1.setAttribute("class","visible")
+      button1.onclick = {e:MouseEvent =>
+        gotoPage("#/login")
+        e.preventDefault()
+      }
       setGameState(GameState.stop)
     }
   }
@@ -201,6 +222,7 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
           **/
         gameContainerOpt = Some(GameContainerClientImpl(drawFrame, ctx, e.config, e.players.racketId, e.players.name, canvasBoundary, canvasUnit, setKillCallback))
         gameContainerOpt.get.changeRacketId(e.players.racketId)
+        addUserActionListenEvent()
 
       case e: BreakoutGameEvent.GameOver =>
 //        dom.window.cancelAnimationFrame(nextFrame)

@@ -29,9 +29,10 @@ object LoginPage extends Page{
   import io.circe.syntax._
 
   val showWarning = Var(false)
-  val canvasShow = Var(false)
+  val canvasShow = Var(true)
+  val loginFormShow = Var(true)
   private val modal = Var(emptyHTML)
-  private val canvas = <canvas id="GameView" style="z-index:1000" tabindex="1"></canvas>
+  private val canvas = <canvas id="GameView" style="z-index:1000;display: inline;position: absolute;" tabindex="1"></canvas>
 
   def enter:Unit = {
     canvasShow := true
@@ -40,6 +41,7 @@ object LoginPage extends Page{
     val data = AccountProtocol.LoginReq(name,pwd).asJson.noSpaces
     Http.postJsonAndParse[LoginRsp](AccountRoute.loginRoute,data).map{rsp =>
       if(rsp.errCode == 0){
+        loginFormShow := false
         LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uidOpt.get,name,true))
         val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,name,true,None))
         modal := gamePlayHolder.getStartGameModal()
@@ -86,24 +88,36 @@ object LoginPage extends Page{
       "display:none"
   }
 
-  val canvasDiv = canvasShow.map{b =>
-    if(b){
-      <div class="bgp">
-        {modal}
-        <div style=" margin: auto;width: 500px;margin-top:11%;">{canvas}</div>
-      </div>
-    }else{
-      <div class="bgp">
-      </div>
-    }
+//  val canvasDiv = canvasShow.map{b =>
+//    if(b){
+//      <div class="bgp">
+//        {modal}
+//        <div style="margin: auto;width: 500px;">{canvas}</div>
+//      </div>
+//    }else{
+//      <div class="bgp">
+//      </div>
+//    }
+//  }
+
+  private val loginFormDisplay = loginFormShow.map{
+    case true =>"display:block"
+    case false =>"display:none"
   }
 
   override def render: Elem ={
     {showWarning := false}
     <div>
-      {canvasDiv}
-      <div id="loginBg" class="visible" onkeydown = {e:KeyboardEvent => keyDownEnter(e)}>
-        <div class="loginForm">
+      <div class="bgp">
+        {modal}
+        <div style="margin: auto;width: 500px;">
+          <button name="game_over_btn1" class="invisible" style="margin-left:10%">返回首页</button>
+          <button name="game_over_btn2" class="invisible" style="margin-left:15%">退出</button>
+          {canvas}
+        </div>
+      </div>
+      <div id="loginBg" class="visible" style="position: relative;z-index: 100000" onkeydown = {e:KeyboardEvent => keyDownEnter(e)}>
+        <div class="loginForm" style={loginFormDisplay}>
           <div id="loginTip">请登录</div>
           <p id="loginWar" style={displayOfP}>您输入的账户名或密码有误<button onclick={() => showWarning:=false}></button></p>
           <input type="text" id="account" placeholder="账号"></input>

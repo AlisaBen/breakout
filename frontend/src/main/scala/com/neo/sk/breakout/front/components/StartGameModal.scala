@@ -72,7 +72,7 @@ class StartGameModal(gameState:Var[Int],startGame:() => Unit, setGameState:Int =
     gotoPage("#/login")
   }
   override def render: Elem = {
-    <div>
+    <div style="position:relative;z-index:2000">
       <div style={displayDiv}>
         <div id="title">BREAKOUT</div>
         <div style="width:65%;margin:auto">
@@ -84,10 +84,6 @@ class StartGameModal(gameState:Var[Int],startGame:() => Unit, setGameState:Int =
       <div id="match" style={matchingDisplay}>
         <img style="margin:auto;width:200px;display: block;" src="/breakout/static/img/loading.gif"></img>
         <div style="margin-top:3%;text-align:center;font-size:40px;width:500px">正在匹配玩家，请耐心等待</div>
-      </div>
-      <div style={comebackDisplay}>
-        <button id="come_back" style="margin-top: 5px" onclick={() => comeback()}>返回首页</button>
-        <button id="come_back" style="margin-top: 5px" onclick={() => quit()}>退出</button>
       </div>
     </div>
   }

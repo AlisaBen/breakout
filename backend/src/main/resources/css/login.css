@@ -5,6 +5,7 @@
     font-family: Georgia, serif;
     margin-top:5%;
     font-size: 24px;
+    z-index: 1400;
 }
 
 #account, #password, #confirm_password{
@@ -66,4 +67,19 @@
 #gameHall{
     text-align: center;
     font-size: 80px;
+}
+
+button[name="game_over_btn1"]{
+    position: absolute;
+    z-index: 1300;
+    width: 150px;
+    margin-left: 10%;
+    margin-top: 15%;
+}
+button[name="game_over_btn2"]{
+    position: absolute;
+    z-index: 1300;
+    width: 150px;
+    margin-left: 10%;
+    margin-top: 15%;
 }
