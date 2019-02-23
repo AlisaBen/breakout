@@ -20,14 +20,16 @@ import org.scalajs.dom.raw.{Event, VisibilityState}
 
 abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
   var drawFrame = new MiddleFrameInJs
-  protected var canvasWidth = dom.window.innerWidth.toFloat
-  protected var canvasHeight = dom.window.innerHeight.toFloat
+//  protected var canvasWidth = dom.window.innerWidth.toFloat
+//  protected var canvasHeight = dom.window.innerHeight.toFloat
+  protected var canvasWidth = 500.toFloat
+  protected var canvasHeight = 720.toFloat
 
   protected var canvas = drawFrame.createCanvas(canvasName,canvasWidth, canvasHeight)
   protected val ctx = canvas.getCtx
 
 
-  protected var canvasUnit = getCanvasUnit(canvasWidth)
+  protected var canvasUnit = 10
   protected var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
 
   protected var tickCount = 1//更新排行榜信息计时器
@@ -147,26 +149,26 @@ abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
       webSocketClient.sendMsg(msg)
   }
 
-  protected def checkScreenSize = {
-    val newWidth = dom.window.innerWidth.toFloat
-    val newHeight = dom.window.innerHeight.toFloat
-    if (newWidth != canvasWidth || newHeight != canvasHeight) {
-      println("the screen size is change")
-      canvasWidth = newWidth
-      canvasHeight = newHeight
-      canvasUnit = getCanvasUnit(canvasWidth)
-      canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
-      println(s"update screen=${canvasUnit},=${(canvasWidth, canvasHeight)}")
-      canvas.setWidth(canvasWidth.toInt)
-      canvas.setHeight(canvasHeight.toInt)
-      gameContainerOpt.foreach { r =>
-        r.updateClientSize(canvasBoundary, canvasUnit)
-      }
-    }
-  }
+//  protected def checkScreenSize = {
+//    val newWidth = dom.window.innerWidth.toFloat
+//    val newHeight = dom.window.innerHeight.toFloat
+//    if (newWidth != canvasWidth || newHeight != canvasHeight) {
+//      println("the screen size is change")
+//      canvasWidth = newWidth
+//      canvasHeight = newHeight
+//      canvasUnit = getCanvasUnit(canvasWidth)
+//      canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
+//      println(s"update screen=${canvasUnit},=${(canvasWidth, canvasHeight)}")
+//      canvas.setWidth(canvasWidth.toInt)
+//      canvas.setHeight(canvasHeight.toInt)
+//      gameContainerOpt.foreach { r =>
+//        r.updateClientSize(canvasBoundary, canvasUnit)
+//      }
+//    }
+//  }
 
   protected def gameLoop(): Unit = {
-    checkScreenSize
+//    checkScreenSize
     gameState match {
       case GameState.loadingPlay =>
         println(s"等待同步数据")

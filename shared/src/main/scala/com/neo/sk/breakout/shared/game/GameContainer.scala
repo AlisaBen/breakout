@@ -541,7 +541,7 @@ trait GameContainer extends KillInformation{
 //    handlePropLifecycleNow()
 
 //    handleObstacleRemoveNow() //此处需要结合坦克攻击，在移动之后
-    handleGenerateObstacleNow()
+//    handleGenerateObstacleNow()
 //    handleGeneratePropNow()
 
 //    handleGenerateBulletNow()

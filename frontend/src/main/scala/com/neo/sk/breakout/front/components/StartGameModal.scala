@@ -2,6 +2,7 @@ package com.neo.sk.breakout.front.components
 
 import com.neo.sk.breakout.front.common.{Component, Routes}
 import com.neo.sk.breakout.front.model.PlayerInfo
+import com.neo.sk.breakout.front.pages.LoginPage
 import com.neo.sk.breakout.front.utils.{Http, JsFunc}
 import com.neo.sk.breakout.shared.model.Constants.GameState
 import com.neo.sk.breakout.shared.ptcl.GameHallProtocol.GameModelReq
@@ -10,7 +11,7 @@ import mhtml.Var
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.Elem
-
+import com.neo.sk.breakout.front.pages.MainPage.gotoPage
 /**
   * created by benyafang on 2019/2/20 14:20
   * */
@@ -28,6 +29,7 @@ class StartGameModal(gameState:Var[Int],startGame:() => Unit, setGameState:Int =
       Http.postJsonAndParse[SuccessRsp](url,json).map{rsp =>
         if(rsp.errCode == 0){
 //          JsFunc.alert(s"模式选择成功")
+//          LoginPage.canvasShow := true
           startGame()
         }else{
           JsFunc.alert(s"模式选择失败")
@@ -48,7 +50,7 @@ class StartGameModal(gameState:Var[Int],startGame:() => Unit, setGameState:Int =
   val matchingDisplay = gameState.map{
     case GameState.firstCome => "display:none"
 //    case GameState.matching => "display:block"
-    case GameState.loadingPlay => ""
+    case GameState.loadingPlay => "display:block"
     case GameState.play => "display:none"
     case GameState.stop => "display:none"//游戏结束之后添加返回首页按钮，点击返回按钮之后，设置gameState状态为firstCome
   }
@@ -58,23 +60,34 @@ class StartGameModal(gameState:Var[Int],startGame:() => Unit, setGameState:Int =
     //    case GameState.matching => "display:block"
     case GameState.loadingPlay => "display:none"
     case GameState.play => "display:none"
-    case GameState.stop => ""//游戏结束之后添加返回首页按钮，点击返回按钮之后，设置gameState状态为firstCome
+    case GameState.stop => "display: block;"//游戏结束之后添加返回首页按钮，点击返回按钮之后，设置gameState状态为firstCome
   }
 
+  private def comeback():Unit = {
+    setGameState(GameState.firstCome)
+//    LoginPage.canvasShow := false
+  }
+
+  private def quit():Unit = {
+    gotoPage("#/login")
+  }
   override def render: Elem = {
     <div>
       <div style={displayDiv}>
-        <div style="margin-bottom:300px">BREAKOUT</div>
-        <button id="modal" onclick={() => chooseModal(1)}>单机模式</button>
-        <br></br>
-        <button id="modal" onclick={() => chooseModal(2)}>双人模式</button>
+        <div id="title">BREAKOUT</div>
+        <div style="width:65%;margin:auto">
+          <button id="modal" class="singal" onclick={() => chooseModal(1)}>单机模式</button>
+          <button id="modal" class="double" onclick={() => chooseModal(2)}>双人模式</button>
+        </div>
+
       </div>
-      <div style={matchingDisplay}>
-        <div style="text-align:center;font-size:40px">匹配中。。。</div>
+      <div id="match" style={matchingDisplay}>
+        <img style="margin:auto;width:200px;display: block;" src="/breakout/static/img/loading.gif"></img>
+        <div style="margin-top:3%;text-align:center;font-size:40px;width:500px">正在匹配玩家，请耐心等待</div>
       </div>
       <div style={comebackDisplay}>
-        <button id="come_back" style="position:absolute;left:30px;top:30px;" onclick={() => setGameState(GameState.firstCome)}>返回首页</button>
-
+        <button id="come_back" style="margin-top: 5px" onclick={() => comeback()}>返回首页</button>
+        <button id="come_back" style="margin-top: 5px" onclick={() => quit()}>退出</button>
       </div>
     </div>
   }

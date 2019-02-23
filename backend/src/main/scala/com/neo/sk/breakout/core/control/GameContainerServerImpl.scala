@@ -196,9 +196,6 @@ case class GameContainerServerImpl(
       Point(e.obstaclePosition.x,e.obstaclePosition.y - 2 * (e.obstaclePosition.y - config.boundary.y / 2)),0)
     val event = BreakoutGameEvent.GenerateObstacle(systemFrame,obstacleState)
     racketId2UserActorMap.get(obstacleState.racketId).foreach(a => dispatchTo(a,event))
-    //fixme
-    //该事件应该对应发，而不是群发
-//    addGameEvent(event)
     obstacleMap.put(obstacleState.oId,obstacleState)
     quadTree.insert(obstacleState)
   }

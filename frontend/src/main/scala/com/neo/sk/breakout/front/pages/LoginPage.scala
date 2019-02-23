@@ -29,11 +29,12 @@ object LoginPage extends Page{
   import io.circe.syntax._
 
   val showWarning = Var(false)
-
+  val canvasShow = Var(false)
   private val modal = Var(emptyHTML)
-  private val canvas = <canvas id="GameView" tabindex="1"></canvas>
+  private val canvas = <canvas id="GameView" style="z-index:1000" tabindex="1"></canvas>
 
   def enter:Unit = {
+    canvasShow := true
     val name = dom.window.document.getElementById("account").asInstanceOf[html.Input].value
     val pwd = dom.window.document.getElementById("password").asInstanceOf[html.Input].value
     val data = AccountProtocol.LoginReq(name,pwd).asJson.noSpaces
@@ -54,12 +55,14 @@ object LoginPage extends Page{
 
   private def keyDownEnter(e:KeyboardEvent):Unit = {
     if(e.keyCode == KeyCode.Enter) {
+      canvasShow := true
       val name = dom.window.document.getElementById("account").asInstanceOf[html.Input].value
       val pwd = dom.window.document.getElementById("password").asInstanceOf[html.Input].value
       val data =  AccountProtocol.LoginReq(name,pwd).asJson.noSpaces
       Http.postJsonAndParse[LoginRsp](AccountRoute.loginRoute,data).map{rsp =>
         if(rsp.errCode == 0){
           LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uidOpt.get,name,true))
+          println(s"收到uid=${rsp.uidOpt.get}")
           val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,name,true,None))
           modal := gamePlayHolder.getStartGameModal()
           dom.document.getElementById("loginBg").asInstanceOf[Div].setAttribute("class","invisible")
@@ -83,20 +86,29 @@ object LoginPage extends Page{
       "display:none"
   }
 
+  val canvasDiv = canvasShow.map{b =>
+    if(b){
+      <div class="bgp">
+        {modal}
+        <div style=" margin: auto;width: 500px;margin-top:11%;">{canvas}</div>
+      </div>
+    }else{
+      <div class="bgp">
+      </div>
+    }
+  }
+
   override def render: Elem ={
     {showWarning := false}
     <div>
-      <div class="bgp">
-        {modal}
-        <div>{canvas}</div>
-      </div>
+      {canvasDiv}
       <div id="loginBg" class="visible" onkeydown = {e:KeyboardEvent => keyDownEnter(e)}>
         <div class="loginForm">
-          <p id="loginTip">请登录</p>
+          <div id="loginTip">请登录</div>
           <p id="loginWar" style={displayOfP}>您输入的账户名或密码有误<button onclick={() => showWarning:=false}></button></p>
-          <p><input type="text" id="account" placeholder="账号"></input></p>
-          <p><input type="password" id="password" placeholder="密码"></input></p>
-          <p>
+          <input type="text" id="account" placeholder="账号"></input>
+          <input type="password" id="password" placeholder="密码"></input>
+          <p style="width: 300px;display: block;">
             <button id="loginBtn" onclick={() => enter}>登录</button>
             <button id="registerBtn" onclick={() => gotoPage(s"#/register")}>注册</button>
             <button id="visitorBtn" onclick={() => gotoPage(s"#/visitor")}>游客</button>

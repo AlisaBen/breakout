@@ -52,6 +52,10 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
     startGameModal.render
   }
 
+//  def gameOverCallback() = {
+//    val buttonComeback = new Button()
+//  }
+
   def start(): Unit = {
     canvas.getCanvas.focus()
 //    dom.window.cancelAnimationFrame(nextFrame)
@@ -126,9 +130,47 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
 
   private def addUserActionListenEvent(): Unit = {
     canvas.getCanvas.focus()
-    canvas.getCanvas.addEventListener("touchstart",handleTouchStart,false)
-    canvas.getCanvas.addEventListener("touchmove",handleTouchMove,false)
-    canvas.getCanvas.addEventListener("touchend",handleTouchEnd,false)
+    canvas.getCanvas.ondragstart  = {e: dom.MouseEvent =>
+      println(s"------------------touchstart")
+      touchStartX = e.clientX
+      //fixme 需要确定这个是不是需要
+      e.preventDefault()
+
+    }
+    canvas.getCanvas.ondrag  = {e:dom.MouseEvent =>
+      println(s"=============touchmove")
+      touchMoveEndX = e.clientX
+      if(gameState == GameState.play && gameContainerOpt.nonEmpty && lastTouchMoveFrame != gameContainerOpt.get.systemFrame){
+        if(touchMoveEndX - touchStartX > 0){
+          val preExecuteAction = BreakoutGameEvent.UserTouchMove(gameContainerOpt.get.racketId,
+            gameContainerOpt.get.systemFrame + preExecuteFrameOffset,MoveSpace.RIGHT.toByte,getActionSerialNum)
+          lastTouchMoveFrame = gameContainerOpt.get.systemFrame
+          gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+          sendMsg2Server(preExecuteAction)
+        }else if(touchMoveEndX - touchStartX < 0){
+          val preExecuteAction = BreakoutGameEvent.UserTouchMove(gameContainerOpt.get.racketId,
+            gameContainerOpt.get.systemFrame + preExecuteFrameOffset,MoveSpace.LEFT.toByte,getActionSerialNum)
+          lastTouchMoveFrame = gameContainerOpt.get.systemFrame
+          gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+          sendMsg2Server(preExecuteAction)
+        }
+      }
+      touchStartX = touchMoveEndX
+      e.preventDefault()
+    }
+    canvas.getCanvas.ondragend  = {e:dom.MouseEvent =>
+      println(s"----dragend")
+      touchStartX = 0
+      touchMoveEndX = 0
+      val preExecuteAction = BreakoutGameEvent.UserTouchEnd(gameContainerOpt.get.racketId,
+        gameContainerOpt.get.systemFrame + preExecuteFrameOffset,getActionSerialNum)
+      gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+      sendMsg2Server(preExecuteAction)
+      e.preventDefault()
+    }
+//    canvas.getCanvas.addEventListener("touchstart",handleTouchStart,false)
+//    canvas.getCanvas.addEventListener("touchmove",handleTouchMove,false)
+//    canvas.getCanvas.addEventListener("touchend",handleTouchEnd,false)
   }
 
   override protected def setKillCallback(racket: Racket) = {

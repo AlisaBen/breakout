@@ -3,7 +3,7 @@ package com.neo.sk.breakout.front.pages
 import com.neo.sk.breakout.front.common.{Page, Routes}
 import com.neo.sk.breakout.front.model.PlayerInfo
 import com.neo.sk.breakout.front.control.GamePlayHolder
-import com.neo.sk.breakout.front.utils.Http
+import com.neo.sk.breakout.front.utils.{Http, Shortcut}
 import com.neo.sk.breakout.shared.model
 import com.neo.sk.breakout.shared.model.Constants
 import org.scalajs.dom.KeyboardEvent
@@ -15,7 +15,7 @@ import com.neo.sk.breakout.shared.ptcl.GameHallProtocol
 import mhtml.{Var, emptyHTML}
 import org.scalajs.dom
 import org.scalajs.dom.html.Input
-
+import com.neo.sk.breakout.front.pages.MainPage.gotoPage
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Random
 import scala.xml.Elem
@@ -70,16 +70,20 @@ object VisitorHall extends Page{
   }
 
   override def render: Elem = {
+    {Shortcut.scheduleOnce(() => chooseRandomNickname(),0)}
     <div>
       <div class="bgp">
         {modal}
         <div>{canvas}</div>
       </div>
       <div id="loginBg" class="visible">
-        <div class="loginForm">
+        <div class="loginForm" style="width:700px">
           <input type="text" id="randomInput" readonly={if(Constants.needSpecialName)""else "readonly"}></input>
-          <button id="randomName" onclick={() =>chooseRandomNickname()}>随机昵称</button>
-          <button id="confirmName" onclick={() =>confirmNickname()}>确定昵称</button>
+          <div style="width:800px">
+            <button id="randomName" style="width:150px" onclick={() =>chooseRandomNickname()}>随机昵称</button>
+            <button id="confirmName" style="width:150px" onclick={() =>confirmNickname()}>确定昵称</button>
+            <button id="confirmName" style="width:150px" onclick={() =>gotoPage("#/login")}>返回登录</button>
+          </div>
         </div>
       </div>
 
