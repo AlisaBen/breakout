@@ -14,7 +14,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.Elem
 import com.neo.sk.breakout.front.pages.MainPage._
 import com.neo.sk.breakout.front.control.GamePlayHolder
-import org.scalajs.dom.html.Div
+import com.neo.sk.breakout.shared.model.Constants.GameState
+import org.scalajs.dom.html.{Button, Div}
+import org.scalajs.dom.raw.MouseEvent
 //import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.PlayerInfo
 import com.neo.sk.breakout.shared.ptcl.AccountProtocol.LoginRsp
 /**
@@ -31,6 +33,9 @@ object LoginPage extends Page{
   val showWarning = Var(false)
   val canvasShow = Var(true)
   val loginFormShow = Var(true)
+  var gamePlayHolder:GamePlayHolder = _
+  private val comebackButtonShow = Var(false)
+  def setComebackButtonShow(boolean: Boolean) = comebackButtonShow := boolean
   private val modal = Var(emptyHTML)
   private val canvas = <canvas id="GameView" style="z-index:1000;display: inline;position: absolute;" tabindex="1"></canvas>
 
@@ -43,7 +48,7 @@ object LoginPage extends Page{
       if(rsp.errCode == 0){
         loginFormShow := false
         LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uidOpt.get,name,true))
-        val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,name,true,None))
+        gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,name,true,None))
         modal := gamePlayHolder.getStartGameModal()
         dom.document.getElementById("loginBg").asInstanceOf[Div].setAttribute("class","invisible")
       }
@@ -65,7 +70,7 @@ object LoginPage extends Page{
         if(rsp.errCode == 0){
           LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uidOpt.get,name,true))
           println(s"收到uid=${rsp.uidOpt.get}")
-          val gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,name,true,None))
+          gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,name,true,None))
           modal := gamePlayHolder.getStartGameModal()
           dom.document.getElementById("loginBg").asInstanceOf[Div].setAttribute("class","invisible")
 //          GameHall.playerName = name
@@ -105,14 +110,33 @@ object LoginPage extends Page{
     case false =>"display:none"
   }
 
+  private val comebackDisplay = comebackButtonShow.map{
+    case true =>"display:block;margin-left:10%"
+    case false =>"display:none"
+  }
+
+  private def comeback2FirstPage(e:MouseEvent):Unit = {
+    gamePlayHolder.setGameState(GameState.firstCome)
+    gamePlayHolder.gameContainerOpt = None
+    e.preventDefault()
+  }
+
+  private def quit(e:MouseEvent):Unit = {
+    gamePlayHolder.setGameState(GameState.firstCome)
+    gamePlayHolder.gameContainerOpt = None
+    gamePlayHolder.closeHolder
+    e.preventDefault()
+  }
+
   override def render: Elem ={
     {showWarning := false}
     <div>
       <div class="bgp">
         {modal}
         <div style="margin: auto;width: 500px;">
-          <button name="game_over_btn1" class="invisible" style="margin-left:10%">返回首页</button>
-          <button name="game_over_btn2" class="invisible" style="margin-left:15%">退出</button>
+          <button class="quitBtn" name="game_over_btn1" style={comebackDisplay} onclick={e:MouseEvent =>comeback2FirstPage(e)}>返回首页</button>
+          <br></br>
+          <button  class="quitBtn" name="game_over_btn2" style={comebackDisplay} onclick={e:MouseEvent => quit(e)}>退出</button>
           {canvas}
         </div>
       </div>

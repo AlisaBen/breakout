@@ -18,7 +18,7 @@
 
 }
 
-#loginBtn, #registerBtn,#visitorBtn,#randomName,#confirmName,#come_back{
+#loginBtn, #registerBtn,#visitorBtn,#randomName,#confirmName,#come_back,.quitBtn{
     /*display: block;*/
     width: 80px;
     margin: auto;

@@ -68,7 +68,7 @@ abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
 //  //  protected var killerName:String = ""
 //
 //
-  protected var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
+  var gameContainerOpt: Option[GameContainerClientImpl] = None // 这里存储tank信息，包括tankId
 
   //fixme
   protected val webSocketClient: WebSocketClient = WebSocketClient(wsConnectSuccess, wsConnectError, wsMessageHandler, wsConnectClose, setDateSize )
@@ -139,7 +139,7 @@ abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
   }
 
 
-  protected def setGameState(s: Int): Unit = {
+  def setGameState(s: Int): Unit = {
     gameStateVar := s
     gameState = s
   }

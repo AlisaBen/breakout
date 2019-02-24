@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import com.neo.sk.breakout.Boot.roomManager
 import com.neo.sk.breakout.models.GameUserInfo
+import com.neo.sk.breakout.shared.ptcl.GameHallProtocol.GameModelReq
 
 import scala.collection.mutable
 /**
@@ -30,7 +31,7 @@ object UserManager {
 
   case class ChildDead[U](childName:String,ctx:ActorContext[U]) extends Command
 
-  case class ChooseModel(uid:Long,name:String,isVisitor:Boolean,model:Int) extends Command
+  case class ChooseModel(req:GameModelReq) extends Command
   final case class GetWebSocketFlow(uid:Long,name:String,replyTo:ActorRef[Flow[Message,Message,Any]],isVisitor:Boolean,roomId:Option[Long] = None) extends Command
 
   case class GetUserId(name:String,isVisitor:Boolean,replyTo:ActorRef[Long]) extends Command
@@ -89,8 +90,8 @@ object UserManager {
           idle(uidGenerator,userMap)
 //          Behaviors.same
 
-        case ChooseModel(uid,name,isVisitor,model) =>
-          roomManager ! RoomManager.ChooseModel(uid,name,model,userMap(name))
+        case ChooseModel(req) =>
+          roomManager ! RoomManager.ChooseModel(req,userMap(req.name))
           Behaviors.same
 
         case unknowMsg =>

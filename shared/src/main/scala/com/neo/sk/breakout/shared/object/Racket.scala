@@ -54,8 +54,8 @@ case class Racket(
         val originPosition = this.position
         this.position = this.position + moveDistance
         val movedRec = Rectangle(this.position - Point(width / 2, height / 2), this.position + Point(width / 2, height / 2))
-        val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleBall])
-        if (!otherObjects.exists(t => t.isIntersects(this)) && movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
+//        val otherObjects = quadTree.retrieveFilter(this).filter(_.isInstanceOf[ObstacleBall])
+        if (movedRec.topLeft > model.Point(0, 0) && movedRec.downRight < boundary) {
           quadTree.updateObject(this)
         } else {
           this.position = originPosition
@@ -104,23 +104,44 @@ case class Racket(
     } else position
   }
 
-  def setRacketDirection(action:Option[Byte]) = {
-    val targetDirectionOpt = action match{
-      case Some(direction) =>
-        if(direction == 1)Some(DirectionType.left)
-        else if(direction == 2) Some(DirectionType.right)
-        else None
-      case None =>None
+  def setRacketDirection(action:Option[Byte],speedType:Boolean) = {
+    if(speedType){
+      val targetDirectionOpt = action match{
+        case Some(direction) =>
+          if(direction == 1)Some(DirectionType.left)
+          else if(direction == 2) Some(DirectionType.right)
+          else None
+        case None =>None
 
+      }
+      if(targetDirectionOpt.nonEmpty){
+        isMove = true
+        this.direction = targetDirectionOpt.get
+      }
+      else isMove = false
     }
-    if(targetDirectionOpt.nonEmpty){
-      isMove = true
-      this.direction = targetDirectionOpt.get
-    }
-    else isMove = false
+//    else{
+//      action match{
+//        case Some(mouseClientX) =>
+//          if(mouseClientX == position.x){
+//            isMove = false
+//          }else{
+//            if(mouseClientX > position.x){
+//              this.direction = DirectionType.right
+//              this.position = Point(mouseClientX,position.y)
+//            }else{
+//              this.direction = DirectionType.left
+//              this.position = Point(mouseClientX,position.y)
+//            }
+//            isMove = true
+//          }
+//        case None =>
+//          isMove = false
+//
+//      }
+//    }
+
   }
-
-
 
 
 

@@ -32,7 +32,7 @@ trait GameHallService extends ServiceUtils{
     entity(as[Either[Error,GameHallProtocol.GameModelReq]]){
       case Right(req) =>
         if(req.isVisitor){
-          userManager ! UserManager.ChooseModel(req.uid,req.name,req.isVisitor,req.model)
+          userManager ! UserManager.ChooseModel(req)
           complete(SuccessRsp())
         }else{
           dealFutureResult{
@@ -41,7 +41,7 @@ trait GameHallService extends ServiceUtils{
                 if(isForbidden){
                   complete(chooseGameModelErrorRsp(s"该用户已经被禁用"))
                 }else{
-                  userManager ! UserManager.ChooseModel(req.uid,req.name,req.isVisitor,req.model)
+                  userManager ! UserManager.ChooseModel(req)
                   complete(SuccessRsp())
                 }
 

@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import com.neo.sk.breakout.front.common.{Constants, Routes}
 import com.neo.sk.breakout.front.components.StartGameModal
 import com.neo.sk.breakout.front.model.PlayerInfo
+import com.neo.sk.breakout.front.pages.LoginPage
 import com.neo.sk.breakout.front.utils.{JsFunc, Shortcut}
 import com.neo.sk.breakout.shared.`object`.Racket
 import com.neo.sk.breakout.shared.game.GameContainerClientImpl
@@ -59,14 +60,8 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
 
   }
 
-//  def gameOverCallback() = {
-//    val buttonComeback = new Button()
-//  }
-
   def start(): Unit = {
     canvas.getCanvas.focus()
-//    dom.window.cancelAnimationFrame(nextFrame)
-//    Shortcut.cancelSchedule(timer)
     if (firstCome) {
       firstCome = false
       setGameState(GameState.loadingPlay)
@@ -95,47 +90,47 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
 
   var touchStartX :Double= 0
   var touchMoveEndX :Double= 0
+  var mouseMove:Boolean = false
 
-  private def handleTouchStart(e:TouchEvent) = {
-    println(s"------------------touchstart")
-    touchStartX = e.touches.item(0).clientX
-    //fixme 需要确定这个是不是需要
-    e.preventDefault()
-  }
+//  private def handleTouchStart(e:TouchEvent) = {
+//    println(s"------------------touchstart")
+//    touchStartX = e.touches.item(0).clientX
+//    e.preventDefault()
+//  }
 
-  private def handleTouchMove(e:TouchEvent) = {
-    println(s"=============touchmove")
-    touchMoveEndX = e.changedTouches.item(0).clientX
-    if(gameState == GameState.play && gameContainerOpt.nonEmpty && lastTouchMoveFrame != gameContainerOpt.get.systemFrame){
-      if(touchMoveEndX - touchStartX > 0){
-        val preExecuteAction = BreakoutGameEvent.UserTouchMove(gameContainerOpt.get.racketId,
-          gameContainerOpt.get.systemFrame + preExecuteFrameOffset,MoveSpace.RIGHT.toByte,getActionSerialNum)
-        lastTouchMoveFrame = gameContainerOpt.get.systemFrame
-        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-        sendMsg2Server(preExecuteAction)
-      }else if(touchMoveEndX - touchStartX < 0){
-        val preExecuteAction = BreakoutGameEvent.UserTouchMove(gameContainerOpt.get.racketId,
-          gameContainerOpt.get.systemFrame + preExecuteFrameOffset,MoveSpace.LEFT.toByte,getActionSerialNum)
-        lastTouchMoveFrame = gameContainerOpt.get.systemFrame
-        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-        sendMsg2Server(preExecuteAction)
-      }
-    }
-    touchStartX = touchMoveEndX
-    e.preventDefault()
+//  private def handleTouchMove(e:TouchEvent) = {
+//    println(s"=============touchmove")
+//    touchMoveEndX = e.changedTouches.item(0).clientX
+//    if(gameState == GameState.play && gameContainerOpt.nonEmpty && lastTouchMoveFrame != gameContainerOpt.get.systemFrame){
+//      if(touchMoveEndX - touchStartX > 0){
+//        val preExecuteAction = BreakoutGameEvent.UserTouchMove(gameContainerOpt.get.racketId,
+//          gameContainerOpt.get.systemFrame + preExecuteFrameOffset,MoveSpace.RIGHT.toByte,getActionSerialNum)
+//        lastTouchMoveFrame = gameContainerOpt.get.systemFrame
+//        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+//        sendMsg2Server(preExecuteAction)
+//      }else if(touchMoveEndX - touchStartX < 0){
+//        val preExecuteAction = BreakoutGameEvent.UserTouchMove(gameContainerOpt.get.racketId,
+//          gameContainerOpt.get.systemFrame + preExecuteFrameOffset,MoveSpace.LEFT.toByte,getActionSerialNum)
+//        lastTouchMoveFrame = gameContainerOpt.get.systemFrame
+//        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+//        sendMsg2Server(preExecuteAction)
+//      }
+//    }
+//    touchStartX = touchMoveEndX
+//    e.preventDefault()
+//
+//  }
 
-  }
-
-  private def handleTouchEnd(e:TouchEvent) = {
-    println(s"touchend")
-    touchStartX = 0
-    touchMoveEndX = 0
-    val preExecuteAction = BreakoutGameEvent.UserTouchEnd(gameContainerOpt.get.racketId,
-      gameContainerOpt.get.systemFrame + preExecuteFrameOffset,getActionSerialNum)
-    gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
-    sendMsg2Server(preExecuteAction)
-    e.preventDefault()
-  }
+//  private def handleTouchEnd(e:TouchEvent) = {
+//    println(s"touchend")
+//    touchStartX = 0
+//    touchMoveEndX = 0
+//    val preExecuteAction = BreakoutGameEvent.UserTouchEnd(gameContainerOpt.get.racketId,
+//      gameContainerOpt.get.systemFrame + preExecuteFrameOffset,getActionSerialNum)
+//    gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+//    sendMsg2Server(preExecuteAction)
+//    e.preventDefault()
+//  }
 
   private def addUserActionListenEvent(): Unit = {
     canvas.getCanvas.focus()
@@ -144,12 +139,13 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
       touchStartX = e.clientX
       //fixme 需要确定这个是不是需要
       e.preventDefault()
+      mouseMove = true
 
     }
     canvas.getCanvas.onmousemove  = {e:dom.MouseEvent =>
       println(s"=============touchmove")
       touchMoveEndX = e.clientX
-      if(gameState == GameState.play && gameContainerOpt.nonEmpty && lastTouchMoveFrame != gameContainerOpt.get.systemFrame){
+      if(gameState == GameState.play && mouseMove && gameContainerOpt.nonEmpty && lastTouchMoveFrame != gameContainerOpt.get.systemFrame){
         if(touchMoveEndX - touchStartX > 0){
           val preExecuteAction = BreakoutGameEvent.UserTouchMove(gameContainerOpt.get.racketId,
             gameContainerOpt.get.systemFrame + preExecuteFrameOffset,MoveSpace.RIGHT.toByte,getActionSerialNum)
@@ -163,12 +159,18 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
           gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
           sendMsg2Server(preExecuteAction)
         }
+//        val preExecuteAction = BreakoutGameEvent.UserTouchMove(gameContainerOpt.get.racketId,
+//          gameContainerOpt.get.systemFrame + preExecuteFrameOffset,e.clientX.toFloat,getActionSerialNum)
+//        lastTouchMoveFrame = gameContainerOpt.get.systemFrame
+//        gameContainerOpt.get.preExecuteUserEvent(preExecuteAction)
+//        sendMsg2Server(preExecuteAction)
       }
       touchStartX = touchMoveEndX
       e.preventDefault()
     }
     canvas.getCanvas.onmouseup  = {e:dom.MouseEvent =>
       println(s"----dragend")
+      mouseMove = false
       touchStartX = 0
       touchMoveEndX = 0
       val preExecuteAction = BreakoutGameEvent.UserTouchEnd(gameContainerOpt.get.racketId,
@@ -177,9 +179,9 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
       sendMsg2Server(preExecuteAction)
       e.preventDefault()
     }
-    canvas.getCanvas.addEventListener("touchstart",handleTouchStart,false)
-    canvas.getCanvas.addEventListener("touchmove",handleTouchMove,false)
-    canvas.getCanvas.addEventListener("touchend",handleTouchEnd,false)
+//    canvas.getCanvas.addEventListener("touchstart",handleTouchStart,false)
+//    canvas.getCanvas.addEventListener("touchmove",handleTouchMove,false)
+//    canvas.getCanvas.addEventListener("touchend",handleTouchEnd,false)
   }
 
   override protected def setKillCallback(racket: Racket) = {
@@ -187,18 +189,20 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
 //      webSocketClient.sendMsg(BreakoutGameEvent.FailGame)
 //      gameContainerOpt.foreach(_)
       val button1 = dom.document.getElementsByName("game_over_btn1").asInstanceOf[Button]
-      button1.setAttribute("class","visible")
+//      button1.setAttribute("class","visible")
       button1.onclick = {e:MouseEvent =>
         setGameState(GameState.firstCome)
+        gameContainerOpt = None
         e.preventDefault()
       }
       val button2 = dom.document.getElementsByName("game_over_btn2").asInstanceOf[Button]
-      button1.setAttribute("class","visible")
-      button1.onclick = {e:MouseEvent =>
-        gotoPage("#/login")
+//      button1.setAttribute("class","visible")
+      button2.onclick = {e:MouseEvent =>
+        gameContainerOpt = None
         e.preventDefault()
       }
       setGameState(GameState.stop)
+      LoginPage.setComebackButtonShow(true)
     }
   }
 
@@ -233,6 +237,7 @@ class GamePlayHolder(canvasName:String,playerInfo:PlayerInfo) extends GameHolder
 //        closeHolder
         Shortcut.cancelSchedule(timer)
         setGameState(GameState.stop)
+        LoginPage.setComebackButtonShow(true)
 
       case e: BreakoutGameEvent.SyncGameAllState =>
         gameContainerOpt.foreach(_.receiveGameContainerAllState(e.gState))

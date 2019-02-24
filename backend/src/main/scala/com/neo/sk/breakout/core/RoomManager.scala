@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors, StashBuffer, TimerScheduler}
 import com.neo.sk.breakout.models.SlickTables
+import com.neo.sk.breakout.shared.ptcl.GameHallProtocol.GameModelReq
 //import com.neo.sk.breakout.core.RoomActor.{Command, GameBattleRecord}
 import com.neo.sk.breakout.models.DAO.AccountDAO
 import com.neo.sk.breakout.shared.model
@@ -29,7 +30,7 @@ object RoomManager {
 
   case class ChildDead[U](childName:String,ctx:ActorRef[U]) extends Command
 
-  case class ChooseModel(uid:Long,name:String,model:Int,userActor:ActorRef[UserActor.Command]) extends Command
+  case class ChooseModel(req:GameModelReq,userActor:ActorRef[UserActor.Command]) extends Command
 
   case class WaitingTimeOut(name:String,model:Int) extends Command
   case class LeftRoom[U](actorRef:ActorRef[U]) extends Command
@@ -71,42 +72,42 @@ object RoomManager {
         Behaviors.withTimers[Command] {
           implicit timer =>
             val uidGenerator = new AtomicInteger(1)
-            idle(uidGenerator,mutable.HashMap[Int,List[(Long,String,ActorRef[UserActor.Command])]](),mutable.HashMap[Int,((Long,String,ActorRef[UserActor.Command]),(Long,String,ActorRef[UserActor.Command]))]())
+            idle(uidGenerator,mutable.HashMap[Int, List[(GameModelReq,ActorRef[UserActor.Command])]](),
+              mutable.HashMap[Int,((GameModelReq,ActorRef[UserActor.Command]),(GameModelReq,ActorRef[UserActor.Command]))]())
         }
     }
   }
 
   def idle(
             uidGenerator:AtomicInteger,
-           waithingToMatch:mutable.HashMap[Int,List[(Long,String,ActorRef[UserActor.Command])]],//modal--uid,name,actor
-            roomMap:mutable.HashMap[Int,((Long,String,ActorRef[UserActor.Command]),(Long,String,ActorRef[UserActor.Command]))]
+           waithingToMatch:mutable.HashMap[Int,List[(GameModelReq,ActorRef[UserActor.Command])]],//modal--uid,name,actor
+            roomMap:mutable.HashMap[Int,((GameModelReq,ActorRef[UserActor.Command]),(GameModelReq,ActorRef[UserActor.Command]))]
           )(
     implicit stashBuffer:StashBuffer[Command],
     timer:TimerScheduler[Command]
   ):Behavior[Command] = {
     Behaviors.receive[Command]{(ctx,msg) =>
       msg match {
-        case ChooseModel(uid,name,model,userActor) =>
+        case ChooseModel(req,userActor) =>
           //fixme 优先考虑用户加入的时间
-          if(waithingToMatch.contains(model)){
-            if(waithingToMatch(model).contains((uid,name,userActor))){
+          if(waithingToMatch.contains(req.model)){
+            if(waithingToMatch(req.model).contains((req,userActor))){
               log.debug(s"${ctx.self.path} 正在匹配请耐心等待...")
             }else{
-              var userActorList = waithingToMatch(model)
-              val enemy = userActorList((new util.Random).nextInt(waithingToMatch(model).length))
+              var userActorList = waithingToMatch(req.model)
+              val enemy = userActorList((new util.Random).nextInt(waithingToMatch(req.model).length))
               userActorList = userActorList.filterNot(t => t == enemy)
-              if(userActorList.nonEmpty)waithingToMatch.put(model,userActorList)
-              else waithingToMatch.remove(model)
+              if(userActorList.nonEmpty)waithingToMatch.put(req.model,userActorList)
+              else waithingToMatch.remove(req.model)
               val roomId = uidGenerator.getAndIncrement()
-              log.debug(s"${ctx.self.path} 新建roomActor为${uid}和${enemy._1}:roomId = ${roomId}")
-              getRoomActor(roomId,(name,uid),(enemy._2,enemy._1),mutable.HashMap((uid,userActor),(enemy._1,enemy._3)),ctx) ! RoomActor.BeginGame
-              roomMap.put(roomId,((uid,name,userActor),(enemy._1,enemy._2,enemy._3)))
+              log.debug(s"${ctx.self.path} 新建roomActor为${req.uid}和${enemy._1}:roomId = ${roomId}")
+              getRoomActor(roomId,req,enemy._1,mutable.HashMap((req.uid,userActor),(enemy._1.uid,enemy._2)),ctx) ! RoomActor.BeginGame
+              roomMap.put(roomId,((req,userActor),(req,enemy._2)))
             }
           }else{
-            waithingToMatch.put(model,List((uid,name,userActor)))
+            waithingToMatch.put(req.model,List((req,userActor)))
           }
           idle(uidGenerator,waithingToMatch,roomMap)
-//          Behaviors.same
 
         case LeftRoom(actorRef) =>
           ctx.unwatch(actorRef)
@@ -135,34 +136,25 @@ object RoomManager {
         case UpdateUserInfo(r,ls,isStop) =>
           AccountDAO.updateUserInfo(r.n,r.score > ls.map(_.score).max).map{t =>
             log.debug(s"${ctx.self.path}更新用户信息")
-//            ctx.self ! SwitchBehavior("idle",idle(uidGenerator,waithingToMatch,roomMap))
-//            if(isStop){
-//              ctx.self ! ActorStop
-//            }
           }.recover{
             case e:Exception =>
               log.debug(s"${ctx.self.path} 更新用户信息失败：${e}")
-//              ctx.self ! SwitchBehavior("idle",idle(uidGenerator,waithingToMatch,roomMap))
-//              if(isStop){
-//                ctx.self ! ActorStop
-//              }
           }
-//          switchBehavior(ctx,"busy",busy(uidGenerator,waithingToMatch,roomMap))
           Behaviors.same
 
 
         case GetRoomList(replyTo) =>
-          replyTo ! roomMap.map(r => RoomInfo(r._1,List(r._2._1._2,r._2._2._2))).toList
+//          replyTo ! roomMap.map(r => RoomInfo(r._1,List(r._2._1._2,r._2._2._2))).toList
           Behaviors.same
 
         case WaitingTimeOut(name,model) =>
-          //fixme 超时消息可以不加模式
-          if(waithingToMatch(model).filterNot(_ == name).isEmpty){
-            waithingToMatch.-=(model)
-          }
-          else {
-            waithingToMatch.put(model, waithingToMatch(model).filterNot(_ == name))
-          }
+//          //fixme 超时消息可以不加模式
+//          if(waithingToMatch(model).filterNot(_ == name).isEmpty){
+//            waithingToMatch.-=(model)
+//          }
+//          else {
+//            waithingToMatch.put(model, waithingToMatch(model).filterNot(_ == name))
+//          }
           Behaviors.same
 
         case unknowMsg =>
@@ -172,7 +164,7 @@ object RoomManager {
   }
 
 
-  private def getRoomActor(roomId:Int,nameA:(String,Long),nameB:(String,Long),playerMap:mutable.HashMap[Long,ActorRef[UserActor.Command]],ctx:ActorContext[Command]) = {
+  private def getRoomActor(roomId:Int,nameA:GameModelReq,nameB:GameModelReq,playerMap:mutable.HashMap[Long,ActorRef[UserActor.Command]],ctx:ActorContext[Command]) = {
     val childName = s"RoomActor-${roomId}"
     ctx.child(childName).getOrElse{
       val actor = ctx.spawn(RoomActor.create(roomId,nameA,nameB,playerMap),childName)
@@ -184,8 +176,8 @@ object RoomManager {
 
   private def busy(
                     uidGenerator:AtomicInteger,
-                    waithingToMatch:mutable.HashMap[Int,List[(Long,String,ActorRef[UserActor.Command])]],//modal--uid,name,actor
-                    roomMap:mutable.HashMap[Int,((Long,String,ActorRef[UserActor.Command]),(Long,String,ActorRef[UserActor.Command]))])
+                    waithingToMatch:mutable.HashMap[Int,List[(GameModelReq,ActorRef[UserActor.Command])]],//modal--uid,name,actor
+                    roomMap:mutable.HashMap[Int,((GameModelReq,ActorRef[UserActor.Command]),(GameModelReq,ActorRef[UserActor.Command]))])
                   (
                     implicit stashBuffer:StashBuffer[Command],
                     timer:TimerScheduler[Command]

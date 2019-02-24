@@ -16,7 +16,10 @@ import scala.language.implicitConversions
 import org.seekloud.byteobject.ByteObject._
 import org.slf4j.LoggerFactory
 import com.neo.sk.breakout.Boot.{executor, scheduler, timeout, userManager}
+import com.neo.sk.breakout.core.RoomManager.GameBattleRecord
+import com.neo.sk.breakout.shared.`object`.Racket
 import com.neo.sk.breakout.shared.model
+import com.neo.sk.breakout.shared.ptcl.GameHallProtocol.GameModelReq
 
 import concurrent.duration._
 import scala.collection.mutable
@@ -47,6 +50,8 @@ object RoomActor {
 
   final case class ChildDead[U](name:String,childRef:ActorRef[U]) extends Command
 
+  case class GameOver(uid:Long) extends Command
+
   case object GameLoopKey
 
   case object ActorStop extends Command
@@ -76,7 +81,7 @@ object RoomActor {
   }
 
 
-  def create(roomId:Int,nameA:(String,Long),nameB:(String,Long),playerMap:mutable.HashMap[Long,ActorRef[UserActor.Command]]) = {
+  def create(roomId:Int,nameA:GameModelReq,nameB:GameModelReq,playerMap:mutable.HashMap[Long,ActorRef[UserActor.Command]]) = {
     Behaviors.setup[Command]{
       ctx =>
         log.debug(s"RoomActor-${roomId} start...")
@@ -104,8 +109,8 @@ object RoomActor {
 
   private def idle(
                   roomId:Int,
-                    nameA:(String,Long),
-                    nameB:(String,Long),
+                    nameA:GameModelReq,
+                    nameB:GameModelReq,
                     subscribesMap:mutable.HashMap[Long,ActorRef[UserActor.Command]],
                     gameContainer:GameContainerServerImpl,
                     tickCount:Long)(
@@ -118,7 +123,7 @@ object RoomActor {
         case BeginGame =>
 //          subscribesMap.values.foreach(actor => actor !UserActor.JoinRoomSuccess(racketB,config.getGameConfigImpl(),roomActorRef))
 //          playerMap(nameB) ! UserActor.JoinRoomSuccess(racketB,config.getGameConfigImpl(),roomActorRef)
-          gameContainer.generateRacketAndBall(nameA._1,nameB._1,nameA._2,nameB._2,subscribesMap)
+          gameContainer.generateRacketAndBall(nameA,nameB,subscribesMap)
           Behaviors.same
 
         case GameLoop =>
@@ -131,6 +136,16 @@ object RoomActor {
 
         case WebSocketMsg(uid, tankId, req) =>
           gameContainer.receiveUserAction(req)
+          Behaviors.same
+
+        case GameOver(uid) =>
+          val gameOverEvent = BreakoutGameEvent.GameOver(gameContainer.racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
+          timer.cancel(RoomActor.GameLoopKey)
+          val userId = if(nameA.uid == uid) nameB.uid else nameA.uid
+          dispatchTo(subscribesMap)(userId,gameOverEvent)
+          roomManager !RoomManager.GameOver(roomId)
+          roomManager ! GameBattleRecord(gameContainer.racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
+          ctx.self ! ActorStop
           Behaviors.same
 
         case ChildDead(name,childRef) =>
@@ -149,8 +164,8 @@ object RoomActor {
   }
 
   private def busy(roomId:Int,
-                   nameA:(String,Long),
-                   nameB:(String,Long),
+                   nameA:GameModelReq,
+                   nameB:GameModelReq,
                    subscribesMap:mutable.HashMap[Long,ActorRef[UserActor.Command]],
                    gameContainer:GameContainerServerImpl,
                    tickCount:Long)

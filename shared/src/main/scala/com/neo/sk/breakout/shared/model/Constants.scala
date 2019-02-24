@@ -80,6 +80,7 @@ object Constants {
 //    val airDropBox:Byte = 1
     val brick:Byte = 1
     val racket:Byte = 2
+    val fastRemove = 3
 //    val steel:Byte = 3
 //    val river:Byte = 4
   }

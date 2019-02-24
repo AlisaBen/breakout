@@ -8,14 +8,17 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Flow
 import akka.stream.typed.scaladsl.ActorSource
 import akka.stream.typed.scaladsl.ActorSink
+import com.neo.sk.breakout.core.RoomActor.GameOver
 import com.neo.sk.breakout.shared.`object`.Racket
 import com.neo.sk.breakout.shared.config.{GameConfig, GameConfigImpl}
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent
 import com.neo.sk.breakout.shared.protocol.BreakoutGameEvent.TankGameSnapshot
 import org.seekloud.byteobject.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
+
 import scala.language.implicitConversions
 import org.seekloud.byteobject.ByteObject._
+
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration._
 /**
@@ -210,6 +213,10 @@ object UserActor {
         case UserLeft(actor) =>
           ctx.unwatch(actor)
 //          roomManager ! RoomManager.LeftRoom()
+          Behaviors.stopped
+
+        case CompleteMsgFront =>
+          roomActor ! GameOver(uid)
           Behaviors.stopped
 
 

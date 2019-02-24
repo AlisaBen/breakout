@@ -17,15 +17,16 @@ case class Brick(
                   override val oId: Int,
                   override val racketId:Int,
                   override var position: model.Point,
-                  value:Int
+                  value:Int,
+                  obstacleType:Byte
                 ) extends Obstacle with ObstacleBall{
 
   def this(config: GameConfig,obstacleState: ObstacleState){
-    this(config,obstacleState.oId,obstacleState.racketId,obstacleState.p,obstacleState.value)
+    this(config,obstacleState.oId,obstacleState.racketId,obstacleState.p,obstacleState.value,obstacleState.t)
   }
 
 
-  override val obstacleType = ObstacleType.brick
+//  override val obstacleType = ObstacleType.brick
   override protected val height: Float = config.brickHeight
   override protected val width: Float = config.boundary.x / config.brickHorizontalNum
   override protected val collisionOffset: Float = config.obstacleWO
