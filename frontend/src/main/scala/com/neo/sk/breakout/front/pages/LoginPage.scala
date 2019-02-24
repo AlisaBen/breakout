@@ -34,7 +34,7 @@ object LoginPage extends Page{
   val canvasShow = Var(true)
   val loginFormShow = Var(true)
   var gamePlayHolder:GamePlayHolder = _
-  private val comebackButtonShow = Var(false)
+  val comebackButtonShow = Var(false)
   def setComebackButtonShow(boolean: Boolean) = comebackButtonShow := boolean
   private val modal = Var(emptyHTML)
   private val canvas = <canvas id="GameView" style="z-index:1000;display: inline;position: absolute;" tabindex="1"></canvas>
@@ -68,6 +68,7 @@ object LoginPage extends Page{
       val data =  AccountProtocol.LoginReq(name,pwd).asJson.noSpaces
       Http.postJsonAndParse[LoginRsp](AccountRoute.loginRoute,data).map{rsp =>
         if(rsp.errCode == 0){
+          loginFormShow := false
           LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uidOpt.get,name,true))
           println(s"收到uid=${rsp.uidOpt.get}")
           gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,name,true,None))
@@ -110,21 +111,28 @@ object LoginPage extends Page{
     case false =>"display:none"
   }
 
-  private val comebackDisplay = comebackButtonShow.map{
+  val comebackDisplay = comebackButtonShow.map{
     case true =>"display:block;margin-left:10%"
     case false =>"display:none"
   }
 
   private def comeback2FirstPage(e:MouseEvent):Unit = {
+    gamePlayHolder.canvas.setHeight(0)
+    gamePlayHolder.canvas.setWidth(0)
     gamePlayHolder.setGameState(GameState.firstCome)
     gamePlayHolder.gameContainerOpt = None
+    setComebackButtonShow(false)
     e.preventDefault()
   }
 
   private def quit(e:MouseEvent):Unit = {
+    modal := emptyHTML
+    gamePlayHolder.canvas.setHeight(0)
+    gamePlayHolder.canvas.setWidth(0)
     gamePlayHolder.setGameState(GameState.firstCome)
     gamePlayHolder.gameContainerOpt = None
     gamePlayHolder.closeHolder
+    setComebackButtonShow(false)
     e.preventDefault()
   }
 

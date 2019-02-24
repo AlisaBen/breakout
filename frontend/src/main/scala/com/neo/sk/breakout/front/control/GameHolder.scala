@@ -25,9 +25,8 @@ abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
   protected var canvasWidth = 500.toFloat
   protected var canvasHeight = 720.toFloat
 
-  protected var canvas = drawFrame.createCanvas(canvasName,canvasWidth, canvasHeight)
+  var canvas = drawFrame.createCanvas(canvasName,canvasWidth, canvasHeight)
   protected val ctx = canvas.getCtx
-
 
   protected var canvasUnit = 10
   protected var canvasBoundary = Point(canvasWidth, canvasHeight) / canvasUnit
@@ -102,6 +101,8 @@ abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
   protected def init() = {
 //    drawFrame = new MiddleFrameInJs
 //    canvas = drawFrame.createCanvas(canvasName,canvasWidth, canvasHeight)
+    canvas.setWidth(canvasWidth.toInt)
+    canvas.setHeight(canvasHeight.toInt)
     tickCount = 1
     timer = 0
     nextFrame = 0
@@ -208,7 +209,7 @@ abstract class GameHolder(canvasName:String)  extends NetworkInfo  {
   }
 
   protected def wsConnectClose(e: Event) = {
-    JsFunc.alert("网络连接失败，请重新刷新")
+//    JsFunc.alert("网络连接失败，请重新刷新")
     e
   }
 

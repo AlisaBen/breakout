@@ -58,11 +58,15 @@ trait BrickDrawUtil{ this:GameContainerClientImpl =>
   protected def drawObstacles(offset:Point,view:Point) = {
     obstacleMap.values.foreach{ obstacle =>
       if((obstacle.getPosition + offset).in(view,Point(obstacle.getWidth,obstacle.getHeight))) {
-        val isAttacked: Boolean = obstacleAttackedAnimationMap.get(obstacle.oId).nonEmpty
-        val color = Constants.colorList((new Random).nextInt(Constants.colorList.length))
-        val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
-        val cache = obstacleCanvasCacheMap.getOrElseUpdate(obstacle.oId.toByte, generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
         if(this.racketId == obstacle.racketId){
+          val isAttacked: Boolean = obstacleAttackedAnimationMap.get(obstacle.oId).nonEmpty
+          val color = obstacle.obstacleType match{
+            case ObstacleType.brick => "#607B8B"
+            case ObstacleType.fastRemove => "#8B2323"
+          }
+          //        val color = Constants.colorList((new Random).nextInt(Constants.colorList.length))
+          val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
+          val cache = obstacleCanvasCacheMap.getOrElseUpdate(obstacle.oId.toByte, generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
           ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
         }
 //        else{

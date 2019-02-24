@@ -216,10 +216,29 @@ trait GameContainer extends KillInformation{
           println(s"该被打掉的障碍物的racketId=${obstacle.getObstacleState().racketId},value=${obstacle.getObstacleState().value}")
           ballRacketOpt.foreach(_.updateScore(obstacle.getObstacleState().value))
           ballRacketOpt.foreach(t =>println(s"此使racketId=${t.racketId},damage=${t.damageStatistics}"))
-        case _ =>
+          obstacleMap.remove(e.brickId)
+          quadTree.remove(obstacle)
+        case ObstacleType.fastRemove =>
+          println(s"快消道具")
+          ballRacketOpt match{
+            case Some(racket) =>
+              val objects = quadTree.retrieveFilter(obstacle).filter(_.isInstanceOf[Brick])
+                .map(_.asInstanceOf[Brick]).filter(_.getObstacleState().racketId == racket.racketId)
+              objects.foreach{o =>
+                if(o.getObstacleState().p.y == obstacle.getObstacleState().p.y){
+                  obstacleMap.remove(o.getObstacleState().oId)
+                  quadTree.remove(o)
+                }
+              }
+              obstacleMap.remove(e.brickId)
+              quadTree.remove(obstacle)
+
+            case None =>
+          }
+//          quadTree.retrieveFilter(tank).filter(_.isInstanceOf[Prop]).map(_.asInstanceOf[Prop])
+//          quadTree.retrieveFilter(obstacle).filter(_.isInstanceOf[Brick]).map(_.asInstanceOf[Brick]).filter(_.getObstacleState().racketId == )
+
       }
-      obstacleMap.remove(e.brickId)
-      quadTree.remove(obstacle)
 
     }
   }
@@ -301,7 +320,7 @@ trait GameContainer extends KillInformation{
 
   protected def handleGenerateObstacle(e:GenerateObstacle) :Unit = {
     val obstacle = Obstacle(config,e.obstacleState)
-    if (e.obstacleState.t <= ObstacleType.brick){
+    if (e.obstacleState.t == ObstacleType.brick || e.obstacleState.t == ObstacleType.fastRemove){
       obstacleMap.put(obstacle.oId,obstacle)
       quadTree.insert(obstacle)
     }
@@ -423,7 +442,7 @@ trait GameContainer extends KillInformation{
 //        println("game over")
         racketMap.get(ball.racketId) match{
           case Some(racket) =>
-//            gameOverCallBack(racket)
+            gameOverCallBack(racket)
           case None =>
         }
       }

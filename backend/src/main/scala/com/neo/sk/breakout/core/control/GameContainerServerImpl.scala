@@ -7,6 +7,7 @@ import com.neo.sk.breakout.Boot.roomManager
 import com.neo.sk.breakout.core.RoomActor.ActorStop
 import com.neo.sk.breakout.core.RoomManager
 import com.neo.sk.breakout.core.RoomManager.GameBattleRecord
+import com.neo.sk.breakout.protocol.EsheepProtocol.PlayerInfo
 import com.neo.sk.breakout.shared.ptcl.GameHallProtocol.GameModelReq
 
 //import akka.actor.TimerScheduler
@@ -44,6 +45,7 @@ case class GameContainerServerImpl(
                                     log:Logger,
                                     timer: TimerScheduler[RoomActor.Command],
                                     roomId:Int,
+                                    userList:List[GameModelReq],
                                     roomActorRef:ActorRef[RoomActor.Command],
                                     dispatch: BreakoutGameEvent.WsMsgServer => Unit,
                                     dispatchTo: (Long, BreakoutGameEvent.WsMsgServer) => Unit
@@ -63,16 +65,10 @@ case class GameContainerServerImpl(
 
   private val racketId2UserActorMap = mutable.HashMap[Int,Long]()
 
-  def generateBrick(position:Point,racketId:Int) = {
+  def generateBrick(position:Point,racketId:Int,brickValue:Int,obstacleType:Int) = {
     val oId = obstacleIdGenerator.getAndIncrement()
-    val brick = new Brick(config,ObstacleState(racketId,oId,ObstacleType.brick,position,0))
-//    val objects = quadTree.retrieveFilter(brick).filter(t => t.isInstanceOf[Ball] || t.isInstanceOf[Brick] || t.isInstanceOf[Racket])
-//    if (brick.isIntersectsObject(objects)){
-//      log.debug(s"砖块位置错误")
-//      None
-//    }else{
+    val brick = new Brick(config,ObstacleState(racketId,oId,obstacleType.toByte,position,brickValue))
       if(true) Some(brick) else None
-//    }
   }
 
   def generateRacket(position:Point,uid:Long,name:String) = {
@@ -106,17 +102,38 @@ case class GameContainerServerImpl(
     clearEventWhenUpdate()
     //fixme class上加nameA和nameB的信息 gameContainerOpt设置playerInfo
 
-    def generateBricks4Racket(racketId:Int) = {
+    def generateBricks4Racket(racketId:Int,playerInfo: GameModelReq) = {
       val width = (config.boundary.x - config.brickHorizontalNum * 2 * config.brickSpace - 2 * config.brickSpace) / config.brickHorizontalNum
       val fakeWidth = width + 2 * config.brickSpace
       val fakeHeight = config.brickHeight + 2 * config.brickSpace
+      val random = new Random()
+      var fastMoveIndex = List[(Int,Int)]()
+      val fastMoveNum = random.nextInt(config.brickVerticalNum) + 1
+      if(!playerInfo.isVisitor){
+        (0 to fastMoveNum).foreach{index =>
+          var randomXIndex = random.nextInt(config.brickHorizontalNum) + 1
+          var randomYIndex =random.nextInt(config.brickVerticalNum) + 1
+          if(fastMoveIndex.contains((randomXIndex,randomYIndex))){
+            randomXIndex = random.nextInt(config.brickHorizontalNum) + 1
+            randomYIndex =random.nextInt(config.brickVerticalNum) + 1
+          }else{
+            fastMoveIndex = (randomXIndex,randomYIndex) :: fastMoveIndex
+          }
+        }
+      }
+      log.debug(s"${roomActorRef.path} 快消道具的索引：${fastMoveIndex}")
       (1 to config.brickVerticalNum).foreach{verticalIndex =>
         (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
           //        val fakeWidth = width + 2 * config.brickSpace
           val x = (horizontalIndex - 1) * fakeWidth + fakeWidth / 2
           //        val fakeHeight = config.brickHeight + 2 * config.brickSpace
           val y = (verticalIndex - 1) * fakeHeight +  fakeHeight / 2 + config.getRankHeight
-          val brickOpt= generateBrick(Point(x,y.toFloat),racketId)
+          val brickOpt = if(fastMoveIndex.contains((horizontalIndex,verticalIndex))){
+            generateBrick(Point(x,y.toFloat),racketId,config.brickValue,ObstacleType.fastRemove)
+          }else{
+            generateBrick(Point(x,y.toFloat),racketId,2 * config.brickValue,ObstacleType.brick)
+          }
+//          val brickOpt= generateBrick(Point(x,y.toFloat),racketId)
           brickOpt match{
             case Some(brick) =>
               val event = BreakoutGameEvent.GenerateObstacle(systemFrame,brick.getObstacleState())
@@ -158,7 +175,7 @@ case class GameContainerServerImpl(
             log.debug(s"${roomActorRef.path} 发送加入房间成功的消息")
 //            playerMap(nameA) ! UserActor.JoinRoomSuccess(racketA,config.getGameConfigImpl(),roomActorRef)
           }
-        generateBricks4Racket(racketA.racketId)
+        generateBricks4Racket(racketA.racketId,nameA)
       }
       racketBOpt.foreach{racketB =>
         var randDirection = (new Random).nextFloat() * math.Pi.toFloat / 2 + math.Pi.toFloat * 5 / 4
@@ -177,7 +194,7 @@ case class GameContainerServerImpl(
             quadTree.insert(ball)
 //            playerMap(nameB) ! UserActor.JoinRoomSuccess(racketB,config.getGameConfigImpl(),roomActorRef)
           }
-        generateBricks4Racket(racketB.racketId)
+        generateBricks4Racket(racketB.racketId,nameA)
 
       }
       val state = getGameContainerAllState()

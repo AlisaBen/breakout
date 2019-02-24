@@ -22,8 +22,11 @@
     /*display: block;*/
     width: 80px;
     margin: auto;
+    background-color: blueviolet;
+    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.07);
+    border-radius: 20px;
     color: white;
-    background: blue;
+    font-size: 24px;
     font-family: Georgia, serif;
 }
 
@@ -75,11 +78,17 @@ button[name="game_over_btn1"]{
     width: 150px;
     margin-left: 10%;
     margin-top: 15%;
+    color: white;
+    background: blue;
+    font-family: Georgia, serif;
 }
 button[name="game_over_btn2"]{
     position: absolute;
     z-index: 1300;
     width: 150px;
     margin-left: 10%;
-    margin-top: 15%;
+    margin-top: 20%;
+    color: white;
+    background: blue;
+    font-family: Georgia, serif;
 }

@@ -93,6 +93,7 @@ object RoomActor {
             log,
             timer,
             roomId,
+            List(nameA,nameB),
             ctx.self,
             dispatch(playerMap),
             dispatchTo(playerMap)

@@ -183,7 +183,7 @@ case class GameContainerClientImpl(
   }
 
   def receiveGameEvent(e:BreakoutGameEvent.GenerateObstacle) = {
-    if(e.obstacleState.racketId == racketId && e.obstacleState.t == ObstacleType.brick){
+    if(e.obstacleState.racketId == racketId && (e.obstacleState.t == ObstacleType.brick || e.obstacleState.t == ObstacleType.fastRemove)){
       val obstacle = new Brick(config,e.obstacleState.getObstacleState())
       obstacleMap.put(obstacle.oId,obstacle)
       quadTree.insert(obstacle)
