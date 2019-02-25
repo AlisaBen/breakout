@@ -205,7 +205,10 @@ trait GameContainer extends KillInformation{
         case Some(ball) =>
           racketMap.get(ball.racketId) match {
             case Some(racket) =>
-              println(s"检测到该球对应的拍子${racket.racketId}")
+//              println(s"检测到该球对应的拍子${racket.racketId}")
+              if(obstacleMap.filter(_._2.getObstacleState().racketId == racket.racketId).isEmpty){
+                gameOverCallBack(racket)
+              }
               Some(racket)
             case None =>None
           }
@@ -213,13 +216,13 @@ trait GameContainer extends KillInformation{
       }
       obstacle.obstacleType match{
         case ObstacleType.brick =>
-          println(s"该被打掉的障碍物的racketId=${obstacle.getObstacleState().racketId},value=${obstacle.getObstacleState().value}")
+//          println(s"该被打掉的障碍物的racketId=${obstacle.getObstacleState().racketId},oId=${obstacle.getObstacleState().oId},value=${obstacle.getObstacleState().value}")
           ballRacketOpt.foreach(_.updateScore(obstacle.getObstacleState().value))
-          ballRacketOpt.foreach(t =>println(s"此使racketId=${t.racketId},damage=${t.damageStatistics}"))
+//          ballRacketOpt.foreach(t =>println(s"此使racketId=${t.racketId},damage=${t.damageStatistics}"))
           obstacleMap.remove(e.brickId)
           quadTree.remove(obstacle)
         case ObstacleType.fastRemove =>
-          println(s"快消道具")
+//          println(s"快消道具")
           ballRacketOpt match{
             case Some(racket) =>
               val objects = quadTree.retrieveFilter(obstacle).filter(_.isInstanceOf[Brick])
@@ -239,7 +242,6 @@ trait GameContainer extends KillInformation{
 //          quadTree.retrieveFilter(obstacle).filter(_.isInstanceOf[Brick]).map(_.asInstanceOf[Brick]).filter(_.getObstacleState().racketId == )
 
       }
-
     }
   }
 
@@ -484,8 +486,8 @@ trait GameContainer extends KillInformation{
   protected def collisionObstacleCallBack(ball: Ball)(o:Obstacle):Unit = {
     //fixme
     ball.changeDirection(o.getObstacleState().p,o.getWidth,o.getHeight)
-    val event = BreakoutGameEvent.ObstacleCollision(o.oId,ball.bId,ball.racketId,o.getObstacleState().p,frame = systemFrame)
-    addFollowEvent(event)
+      val event = BreakoutGameEvent.ObstacleCollision(o.oId,ball.bId,o.racketId,o.getObstacleState().value,o.getObstacleState().p,frame = systemFrame)
+      addFollowEvent(event)
   }
 
 //  protected final def removeBullet(bullet: Bullet):Unit = {

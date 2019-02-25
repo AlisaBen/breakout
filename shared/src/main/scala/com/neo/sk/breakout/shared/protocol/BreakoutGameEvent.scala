@@ -100,7 +100,7 @@ object BreakoutGameEvent {
   /**球运动方向重新计算，分数计算*/
   final case class RacketCollision(racketId:Int,ballId:Int,override val frame:Long) extends FollowEvent
 
-  final case class ObstacleCollision(brickId:Int, ballId:Int,enemyRacketId:Int,obstaclePosition:Point, isLeft:Option[Boolean] = None, override val frame:Long) extends FollowEvent
+  final case class ObstacleCollision(brickId:Int, ballId:Int,enemyRacketId:Int,obstacleValue:Int,obstaclePosition:Point, isLeft:Option[Boolean] = None, override val frame:Long) extends FollowEvent
 
   sealed trait GameSnapshot
 

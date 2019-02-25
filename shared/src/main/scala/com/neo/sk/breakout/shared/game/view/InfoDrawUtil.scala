@@ -91,6 +91,8 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
     ctx.setTextAlign("left")
     ctx.setFill("rgb(0,0,0)")
     var index = 0
+//    ctx.fillText(s"${racketMap(0).name}:${racketMap(0).damageStatistics}  vs  ${racketMap(1).name}:${racketMap(1).damageStatistics}",canvasSize.x / 2 * canvasUnit,  (canvasSize.y / 2 + index)* canvasUnit)
+
     racketMap.foreach{score =>
       ctx.fillText(s"${score._2.name}:${score._2.damageStatistics}",canvasSize.x / 2 * canvasUnit,  (canvasSize.y / 2 + index)* canvasUnit)
       index += 6

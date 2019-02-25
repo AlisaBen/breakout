@@ -101,7 +101,7 @@ case class GameContainerServerImpl(
   def generateRacketAndBall(nameA:GameModelReq,nameB:GameModelReq,playerMap:mutable.HashMap[Long,ActorRef[UserActor.Command]]): Unit = {
     clearEventWhenUpdate()
     //fixme class上加nameA和nameB的信息 gameContainerOpt设置playerInfo
-    println(s"--name--${nameA}---${nameB}")
+//    println(s"--name--${nameA}---${nameB}")
 
     def generateBricks4Racket(racketId:Int,playerInfo: GameModelReq) = {
       val width = (config.boundary.x - config.brickHorizontalNum * 2 * config.brickSpace - 2 * config.brickSpace) / config.brickHorizontalNum
@@ -109,7 +109,7 @@ case class GameContainerServerImpl(
       val fakeHeight = config.brickHeight + 2 * config.brickSpace
       var fastMoveIndex = List[(Int,Int)]()
       val fastMoveNum = (new Random()).nextInt(config.brickVerticalNum) + 1
-      println(s"--visitor-${fastMoveNum}-${playerInfo.isVisitor}")
+//      println(s"--visitor-${fastMoveNum}-${playerInfo.isVisitor}")
       if(!playerInfo.isVisitor){
         (0 to fastMoveNum).foreach{index =>
           var randomXIndex = (new Random()).nextInt(config.brickHorizontalNum) + 1
@@ -122,7 +122,7 @@ case class GameContainerServerImpl(
           }
         }
       }
-      log.debug(s"${roomActorRef.path} 快消道具的索引：${fastMoveIndex}")
+//      log.debug(s"${roomActorRef.path} 快消道具的索引：${fastMoveIndex}")
       (1 to config.brickVerticalNum).foreach{verticalIndex =>
         (1 to config.brickHorizontalNum).foreach{horizontalIndex =>
           //        val fakeWidth = width + 2 * config.brickSpace
@@ -160,7 +160,7 @@ case class GameContainerServerImpl(
       playerMap(nameB.uid) ! UserActor.JoinRoomSuccess(racketBOpt.get,config.getGameConfigImpl(),roomActorRef)
       racketAOpt.foreach{racketA =>
         var randDirection = (new Random).nextFloat() * math.Pi.toFloat / 2 + math.Pi.toFloat * 5 / 4
-        while (randDirection == 2*math.Pi || randDirection == math.Pi|| randDirection == 0){
+        while (randDirection == 2*math.Pi || randDirection == math.Pi|| randDirection == 0 || randDirection == math.Pi / 2){
           randDirection = (new Random).nextFloat() * math.Pi.toFloat / 2 + math.Pi.toFloat * 5 / 4
         }
         generateBall(racketAPosition - Point(0,config.getRacketHeight / 2 + config.getBallRadius),racketA.racketId,randDirection)
@@ -173,14 +173,14 @@ case class GameContainerServerImpl(
             racketHistoryMap.put(racketA.racketId,racketA.name)
             ballMap.put(ball.bId,ball)
             quadTree.insert(ball)
-            log.debug(s"${roomActorRef.path} 发送加入房间成功的消息")
+//            log.debug(s"${roomActorRef.path} 发送加入房间成功的消息")
 //            playerMap(nameA) ! UserActor.JoinRoomSuccess(racketA,config.getGameConfigImpl(),roomActorRef)
           }
         generateBricks4Racket(racketA.racketId,nameA)
       }
       racketBOpt.foreach{racketB =>
         var randDirection = (new Random).nextFloat() * math.Pi.toFloat / 2 + math.Pi.toFloat * 5 / 4
-        while (randDirection == 2*math.Pi || randDirection == math.Pi || randDirection == 0){
+        while (randDirection == 2*math.Pi || randDirection == math.Pi || randDirection == 0 || randDirection == math.Pi / 2){
           randDirection = (new Random).nextFloat() * math.Pi.toFloat / 2 + math.Pi.toFloat * 5 / 4
         }
         generateBall(racketBPosition - Point(0,config.getRacketHeight / 2 + config.getBallRadius),racketB.racketId,randDirection)
@@ -214,20 +214,69 @@ case class GameContainerServerImpl(
     roomManager !RoomManager.GameOver(roomId)
     roomManager ! GameBattleRecord(racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
   }
-//
-//  override protected def handleObstacleCollision(e:ObstacleCollision) :Unit = {
-//    super.handleObstacleCollision(e)
-//    val obstacleState = ObstacleState(e.enemyRacketId,obstacleIdGenerator.getAndIncrement(),ObstacleType.brick,
-//      Point(e.obstaclePosition.x,e.obstaclePosition.y - 2 * (e.obstaclePosition.y - config.boundary.y / 2)),0)
-//    val event = BreakoutGameEvent.GenerateObstacle(systemFrame,obstacleState)
-//
-//    racketId2UserActorMap.get(obstacleState.racketId).foreach{a =>
-//      dispatchTo(a,event)
-//      log.debug(s"${roomActorRef.path}将新生成障碍物发送给userActor=${a}")
-//    }
-//    obstacleMap.put(obstacleState.oId,obstacleState)
-//    quadTree.insert(obstacleState)
-//  }
+
+  override protected def handleObstacleCollision(e:ObstacleCollision) :Unit = {
+    /**
+      * 这里需要增加对方对应位置增加砖块,后端执行不同
+      * */
+    obstacleMap.get(e.brickId).foreach{ obstacle =>
+      //      ballMap.get(e.ballId).foreach(_.changeDirection(obstacle.getPosition,obstacle.getWidth,obstacle.getHeight))
+      val ballRacketOpt = racketMap.get(e.ballId) match{
+        case Some(ball) =>
+          racketMap.get(ball.racketId) match {
+            case Some(racket) =>
+//              println(s"检测到该球对应的拍子${racket.racketId}")
+//              if(obstacleMap.filter(_._2.getObstacleState().racketId == racket.racketId).isEmpty){
+//                gameOverCallBack(racket)
+//              }
+              Some(racket)
+            case None =>None
+          }
+        case None =>None
+      }
+      obstacle.obstacleType match{
+        case ObstacleType.brick =>
+//          println(s"该被打掉的障碍物的racketId=${obstacle.getObstacleState().racketId},oId=${obstacle.getObstacleState().oId},value=${obstacle.getObstacleState().value}")
+          ballRacketOpt.foreach(_.updateScore(obstacle.getObstacleState().value))
+          //          ballRacketOpt.foreach(t =>println(s"此使racketId=${t.racketId},damage=${t.damageStatistics}"))
+          obstacleMap.remove(e.brickId)
+          quadTree.remove(obstacle)
+        case ObstacleType.fastRemove =>
+//          println(s"快消道具")
+          ballRacketOpt match{
+            case Some(racket) =>
+              val objects = quadTree.retrieveFilter(obstacle).filter(_.isInstanceOf[Brick])
+                .map(_.asInstanceOf[Brick]).filter(_.getObstacleState().racketId == racket.racketId)
+              objects.foreach{o =>
+                if(o.getObstacleState().p.y == obstacle.getObstacleState().p.y){
+                  obstacleMap.remove(o.getObstacleState().oId)
+                  quadTree.remove(o)
+                }
+              }
+              obstacleMap.remove(e.brickId)
+              quadTree.remove(obstacle)
+
+            case None =>
+          }
+      }
+    }
+    if(e.obstacleValue != 0 && racketMap.filter(_._1 != e.enemyRacketId).keys.nonEmpty){
+//      val racketIds = racketMap.filter(_._1 != e.enemyRacketId).keys
+      val obstacleState = ObstacleState(racketMap.filter(_._1 != e.enemyRacketId).keys.head,obstacleIdGenerator.getAndIncrement(),ObstacleType.brick,
+        Point(e.obstaclePosition.x,config.boundary.y / 2 + e.obstaclePosition.y),0)
+      val event = BreakoutGameEvent.GenerateObstacle(systemFrame,obstacleState)
+      racketId2UserActorMap.get(obstacleState.racketId) match{
+        case None =>
+          log.debug(s"${roomActorRef.path} 该玩家已经不在房间")
+        case Some(uid) =>
+          dispatchTo(uid,event)
+//          log.debug(s"由${}${roomActorRef.path}将新生成障碍物发送给userActor=${uid}")
+          obstacleMap.put(obstacleState.oId,obstacleState)
+          quadTree.insert(obstacleState)
+      }
+    }
+
+  }
 
   implicit def obstacleState2Impl(o:ObstacleState):Obstacle = new Brick(config,o)
 

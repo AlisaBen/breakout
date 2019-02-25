@@ -156,10 +156,11 @@ object LoginPage extends Page{
           <p id="loginWar" style={displayOfP}>您输入的账户名或密码有误<button onclick={() => showWarning:=false}></button></p>
           <input type="text" id="account" placeholder="账号"></input>
           <input type="password" id="password" placeholder="密码"></input>
-          <p style="width: 300px;display: block;">
+          <p style="width: 45px;display: block;">
             <button id="loginBtn" onclick={() => enter}>登录</button>
             <button id="registerBtn" onclick={() => gotoPage(s"#/register")}>注册</button>
             <button id="visitorBtn" onclick={() => gotoPage(s"#/visitor")}>游客</button>
+            <button id="adminBtn" onclick={() => gotoPage(s"#/admin/login")}>管理员</button>
           </p>
         </div>
       </div>

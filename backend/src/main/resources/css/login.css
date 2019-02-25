@@ -18,9 +18,9 @@
 
 }
 
-#loginBtn, #registerBtn,#visitorBtn,#randomName,#confirmName,#come_back,.quitBtn{
+#loginBtn, #registerBtn,#visitorBtn,#randomName,#confirmName,#come_back,.quitBtn,#adminBtn{
     /*display: block;*/
-    width: 80px;
+    width: 100px;
     margin: auto;
     background-color: blueviolet;
     box-shadow: 0 2px 8px 0 rgba(0,0,0,0.07);

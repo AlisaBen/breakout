@@ -59,7 +59,7 @@ case class BreakoutGameConfigServerImpl(
   private[this] val obstacleWidthData = config.getDouble("breakoutGame.obstacle.width")
     .requiring(_ > 0,"minimum supported obstacle width is 1").toFloat
   private[this] val collisionWOffset = config.getDouble("breakoutGame.obstacle.collisionWidthOffset")
-    .requiring(_ > 0,"minimum supported obstacle width is 1").toFloat
+    .requiring(_ >= 0,"minimum supported obstacle width is 1").toFloat
 
   //  private[this] val brickNumData = config.getInt("breakoutGame.obstacle.brick.num")
   //    .requiring(_ >= 0,"minimum supported brick num is 0")

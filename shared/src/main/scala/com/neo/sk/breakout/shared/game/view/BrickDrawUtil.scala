@@ -63,13 +63,21 @@ trait BrickDrawUtil{ this:GameContainerClientImpl =>
           val color = obstacle.obstacleType match{
             case ObstacleType.fastRemove =>
               println(s"-----fastmove")
-              "#8B2323"
-            case ObstacleType.brick => "#607B8B"
+              "#EE4000"
+            case ObstacleType.brick =>
+              if(obstacle.getObstacleState().value == 0){
+                "#7A7A7A"
+              }else{
+                "#607B8B"
+              }
           }
           //        val color = Constants.colorList((new Random).nextInt(Constants.colorList.length))
           val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)
           val cache = obstacleCanvasCacheMap.getOrElseUpdate(obstacle.oId.toByte, generateObstacleCacheCanvas(obstacle.getWidth, obstacle.getHeight, color))
           ctx.drawImage(cache, p.x * canvasUnit, p.y * canvasUnit)
+//          val cacheCanvas = drawFrame.createCanvas((obstacle.getWidth * canvasUnit).toInt, (obstacle.getHeight * canvasUnit).toInt)
+//          val ctxCache = cacheCanvas.getCtx
+//          drawObstacle(obstacle.getPosition + offset, obstacle.getWidth, obstacle.getHeight, 1, color, ctxCache)
         }
 //        else{
 //          ctx.drawImage(cache, p.x * canvasUnit, (view.y - p.y) * canvasUnit)
