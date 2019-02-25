@@ -3,6 +3,7 @@ package com.neo.sk.breakout.front.common
 import com.neo.sk.breakout.front.model.PlayerInfo
 import org.scalajs.dom
 import com.neo.sk.breakout.front.model.ReplayInfo
+import com.neo.sk.breakout.front.pages.MainPage
 
 /**
   * User: Taoz
@@ -85,6 +86,13 @@ object Routes {
     s"$wsProtocol://${dom.document.location.host}${Routes.wsWatchGameUrl(roomId, accessCode, playerId)}"
   }
 
+  def handleAuthError(errorCode:Int, msg:String)(func:() => Unit) ={
+    if(errorCode == 1000202){
+      MainPage.gotoPage("#/admin/login")
+    } else {
+      func()
+    }
+  }
 
 
 

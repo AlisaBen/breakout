@@ -104,13 +104,19 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
       val leftBegin = 5 * unit
       context.setFont("Arial","bold",40)
       context.clearRect(0,0,currentRankCanvas.getWidth(), currentRankCanvas.getHeight())
-      var index = 0
+      var index:Float = 0
       context.setFill("black")
-      context.setTextAlign("center")
+      context.setTextAlign("left")
       context.setTextBaseline("middle")
       context.setLineCap("round")
-      racketMap.values.foreach(t => drawTextLine(s"${t.racketId}:${t.name}:${t.damageStatistics}",1,2,context))
-//      drawTextLine(s"${this.racketMap(racketId).damageStatistics}:${this.racketMap.filterNot(t => t._1 == racketId).head._2.damageStatistics}", currentRankCanvas.getWidth() / 2 , 1 * unit, context)
+      racketMap.values.foreach{t =>
+        drawTextLine(s"${t.name}:${t.damageStatistics}",index,0,context)
+        index  = canvasSize.x
+        context.setTextAlign("right")
+      }
+      drawTextLine(s"vs",(canvasSize.x / 2) * unit,0,context)
+
+      //      drawTextLine(s"${this.racketMap(racketId).damageStatistics}:${this.racketMap.filterNot(t => t._1 == racketId).head._2.damageStatistics}", currentRankCanvas.getWidth() / 2 , 1 * unit, context)
       context.setStrokeStyle("#262626")
       context.setLineWidth(3 * unit)
 //      drawTextLine(
@@ -132,7 +138,7 @@ trait BackgroundDrawUtil{ this:GameContainerClientImpl =>
       rankUpdated = false
     }
     ctx.setGlobalAlpha(0.8)
-    ctx.drawImage(currentRankCanvas.change2Image(),(canvasBoundary.x / 2 - rankWidth / 2) * canvasUnit,(canvasBoundary.y / 2 - rankHeight / 2) * canvasUnit)
+    ctx.drawImage(currentRankCanvas.change2Image(),(canvasBoundary.x / 2 - rankWidth / 2) * canvasUnit,rankHeight / 2 * canvasUnit)
     ctx.setGlobalAlpha(1)
   }
 

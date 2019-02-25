@@ -124,7 +124,7 @@ object VisitorHall extends Page{
       <div id="loginBg" class="visible"  style="position: relative;z-index: 100000" >
         <div class="loginForm" style={loginFormDisplay}>
           <div style="width:800px;margin-bottom:10%">
-            <img src="breakout/static/img/warn.png"></img>
+            <img src="/breakout/static/img/warn.png" style="width: 30px;height: 30px;"></img>
             游客登录将会缺失部分游戏功能，降低游戏体验
           </div>
           <input type="text" id="randomInput" readonly={if(Constants.needSpecialName)""else "readonly"} style="display:block;margin:auto;margin-bottom:10%"></input>

@@ -77,7 +77,7 @@ button[name="game_over_btn1"]{
     z-index: 1300;
     width: 150px;
     margin-left: 10%;
-    margin-top: 15%;
+    margin-top: 400px;
     color: white;
     background: blue;
     font-family: Georgia, serif;
@@ -87,8 +87,15 @@ button[name="game_over_btn2"]{
     z-index: 1300;
     width: 150px;
     margin-left: 10%;
-    margin-top: 20%;
+    margin-top: 450px;
     color: white;
     background: blue;
     font-family: Georgia, serif;
+}
+
+#general-css-word{
+    font-family: PingFangSC-Regular;
+    font-size: 14px;
+    color: #1D2341;
+    text-align: left;
 }

@@ -14,9 +14,13 @@ object AdminProtocol {
                        playNum:Int = 0,
                        winNum:Int = 0
                        )
-    case class GetUserInfoListReq(beginTimeOpt:Option[Long],endTimeOpt:Option[Long])
+    case class GetUserInfoListReq(
+                                 page:Int,
+                                 pageNum:Int
+                                 )
     case class GetUserInfoListRsp(
                                  userInfoList: List[UserInfo],
+                                 totalNum:Option[Int],
                                  errCode:Int = 0,
                                  msg:String = "ok"
                                  )
@@ -59,9 +63,13 @@ object AdminProtocol {
                              timestamp:Long,
                              result:List[SimpleScore]
                              )
-    case class GameStatisticProfile()
+    case class GameStatisticProfile(
+                                   page:Int,
+                                   pageNum:Int
+                                   )
     case class GameStatisticProfileRsp(
                                       gameBattleInfoLs: List[GameBattleInfo],
+                                      totalNum:Option[Int],
                                       errCode:Int = 0,
                                       msg:String ="ok"
                                       )

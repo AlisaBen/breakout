@@ -14,12 +14,21 @@ object AdminDAO {
     db.run(tUserInfo.result)
   }
 
-  def getUserInfoList(beginTime:Long,endTime:Long) = {
-    db.run(tUserInfo.filter(t => t.timestamp >= beginTime && t.timestamp <= endTime).result)
+  def getUserInfoList(page:Int,pageNum:Int) = {
+    db.run(tUserInfo.sortBy(_.id).drop((page - 1) * pageNum).take(pageNum).result)
   }
 
-  def getGameStatisticList() = {
-    db.run(tBattleRecord.result)
+  def getUserInfoLength() = {
+    db.run(tUserInfo.length.result)
+  }
+
+  def getGameStatisticList(page:Int,pageNum:Int) = {
+    db.run(tBattleRecord.sortBy(_.recordId).drop((page - 1) * pageNum).take(pageNum).result)
+  }
+
+  def getGameStatisticLength() = {
+    db.run(tBattleRecord.length.result)
+
   }
 
   def updateUserForbidden(name:String,isForbidden:Boolean) = {

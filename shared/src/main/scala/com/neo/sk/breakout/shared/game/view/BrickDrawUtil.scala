@@ -61,8 +61,10 @@ trait BrickDrawUtil{ this:GameContainerClientImpl =>
         if(this.racketId == obstacle.racketId){
           val isAttacked: Boolean = obstacleAttackedAnimationMap.get(obstacle.oId).nonEmpty
           val color = obstacle.obstacleType match{
+            case ObstacleType.fastRemove =>
+              println(s"-----fastmove")
+              "#8B2323"
             case ObstacleType.brick => "#607B8B"
-            case ObstacleType.fastRemove => "#8B2323"
           }
           //        val color = Constants.colorList((new Random).nextInt(Constants.colorList.length))
           val p = obstacle.getPosition + offset - Point(obstacle.getWidth / 2, obstacle.getHeight / 2)

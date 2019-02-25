@@ -134,7 +134,7 @@ object RoomManager {
           Behaviors.same
 
         case UpdateUserInfo(r,ls,isStop) =>
-          AccountDAO.updateUserInfo(r.n,r.score > ls.map(_.score).max).map{t =>
+          AccountDAO.updateUserInfo(r.n,r.score >= ls.map(_.score).max).map{t =>
             log.debug(s"${ctx.self.path}更新用户信息")
           }.recover{
             case e:Exception =>

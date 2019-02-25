@@ -53,6 +53,7 @@ object LoginPage extends Page{
         dom.document.getElementById("loginBg").asInstanceOf[Div].setAttribute("class","invisible")
       }
       else{
+        JsFunc.alert(s"该账户已经被禁用")
         showWarning := true
         gotoPage(s"#/login")
         //        dom.window.location.hash = s"#/login"
@@ -79,6 +80,7 @@ object LoginPage extends Page{
           //          dom.window.location.hash = s"#/gameHall"
         }
         else{
+          JsFunc.alert(s"该账户已经被禁用")
           showWarning := true
           gotoPage(s"#/login")
           //          dom.window.location.hash = s"#/login"

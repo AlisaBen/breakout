@@ -11,8 +11,7 @@ import com.neo.sk.breakout.protocol.CommonErrorCode._
 import com.neo.sk.breakout.shared.ptcl.ErrorRsp
 import com.neo.sk.utils.CirceSupport
 import com.neo.sk.utils.SecureUtil._
-import com.neo.sk.breakout.http.SessionBase.SessionCombine
-
+import com.neo.sk.breakout.http.SessionBase.{AccountSession, SessionCombine}
 import com.neo.sk.breakout.protocol.CommonErrorCode
 import io.circe.{Decoder, Error}
 import io.circe.parser.decode
@@ -163,13 +162,21 @@ trait ServiceUtils extends CirceSupport with SessionBase{
   }
 
 
-  def authUser(f: SessionCombine => server.Route) = loggingAction { ctx =>
-    optionalUserSession {
-      case Some(usersession) =>
-        f(usersession)
-      case None =>
-        println("authuser  wxredirect+++++ 1000202")
-        complete(CommonErrorCode.noSessionError(wxRedirectUrl))
+  def loginUrl:String = {
+    val domainUrl = AppSettings.baseUrl
+    s"$domainUrl/${AppSettings.rootPath}/game#/admin/login"
+  }
+
+  def authUser(f: AccountSession => server.Route) = loggingAction { ctx =>
+    if(true){
+      optionalAccountSession {
+        case Some(usersession) =>
+          f(usersession)
+        case None =>
+          complete(CommonErrorCode.noSessionError(loginUrl))
+      }
+    }else{
+      f(AccountSession("admin",System.currentTimeMillis()))
     }
   }
 

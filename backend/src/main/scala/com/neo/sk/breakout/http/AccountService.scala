@@ -9,6 +9,7 @@ import com.neo.sk.breakout.models.SlickTables._
 import com.neo.sk.breakout.Boot.{executor, scheduler, timeout, userManager}
 import com.neo.sk.breakout.core.UserManager.GetUserId
 import akka.actor.typed.scaladsl.AskPattern._
+import com.neo.sk.breakout.http.SessionBase.AccountSession
 import com.neo.sk.breakout.shared.ptcl.AccountProtocol.LoginRsp
 import com.neo.sk.utils.TimeUtil
 
@@ -83,7 +84,10 @@ trait AccountService extends ServiceUtils{
     entity(as[Either[Error,AccountProtocol.LoginReq]]){
       case Right(req) =>
         if(req.userName == AppSettings.adminName && req.password == AppSettings.adminPassword){
-          complete(SuccessRsp())
+          val session = AccountSession(req.userName,System.currentTimeMillis()).toSessionMap
+          addSession(session){
+            log.info(s"admin ${req.userName} login success")
+            complete(SuccessRsp())}
         }else{
           log.debug(s"管理员登录失败，用户名或者密码错误")
           complete(adminLoginErrorRsp("管理员登录失败，用户名或者密码错误"))

@@ -25,43 +25,46 @@ trait AdminService extends ServiceUtils{
 
   private def getUserInfoListErrorRsp(msg:String) = ErrorRsp(10031,msg)
   private val getUserInfoList = (path("getUserInfoList") & post){
-    entity(as[Either[Error,AdminProtocol.UserManagerProtocol.GetUserInfoListReq]]){
-      case Right(req) =>
-        dealFutureResult{
-          req.beginTimeOpt match{
-            case Some(beginTime) =>
-              AdminDAO.getUserInfoList(beginTime,req.endTimeOpt.get).map{l =>
-                complete(AdminProtocol.UserManagerProtocol.GetUserInfoListRsp(l.map(t => UserInfo(t.userName,t.timestamp,t.isForbidden,0,0)).toList))
-              }
-            case None =>
-              AdminDAO.getUserInfoList().map{l =>
-                complete(AdminProtocol.UserManagerProtocol.GetUserInfoListRsp(l.map(t => UserInfo(t.userName,t.timestamp,t.isForbidden,0,0)).toList))
-              }
+    authUser{u =>
+      entity(as[Either[Error,AdminProtocol.UserManagerProtocol.GetUserInfoListReq]]){
+        case Right(req) =>
+          dealFutureResult{
+            for{
+              l <- AdminDAO.getUserInfoList(req.page,req.pageNum)
+              n <- AdminDAO.getUserInfoLength()
+            }yield{
+//              log.debug(s"-----${l}")
+              complete(AdminProtocol.UserManagerProtocol.GetUserInfoListRsp(l.map(t => UserInfo(t.userName,t.timestamp,t.isForbidden,t.playNum,t.winNum)).toList,Some(n)))
+            }
           }
-        }
-      case Left(error) =>
-        log.debug(s"获取用户列表信息失败：${error}")
-        complete(getUserInfoListErrorRsp(s"获取用户列表信息失败：${error}"))
+        case Left(error) =>
+          log.debug(s"获取用户列表信息失败：${error}")
+          complete(getUserInfoListErrorRsp(s"获取用户列表信息失败：${error}"))
+      }
+
     }
   }
 
   private def userForbiddenErrorRsp(msg:String) = ErrorRsp(10034,msg)
   private val userForbidden = (path("userForbidden") & post){
-    entity(as[Either[Error,UserForbiddenReq]]){
-      case Right(req) =>
-        dealFutureResult{
-          AdminDAO.updateUserForbidden(req.name,req.isForbidden).map{ls =>
-            complete(SuccessRsp())
-          }.recover{
-            case e:Exception =>
-              log.debug(s"更新用户禁用信息失败：${e}")
-              complete(userForbiddenErrorRsp(s"更新用户禁用信息失败：${e}"))
+    authUser{u =>
+      entity(as[Either[Error,UserForbiddenReq]]){
+        case Right(req) =>
+          dealFutureResult{
+            AdminDAO.updateUserForbidden(req.name,req.isForbidden).map{ls =>
+              complete(SuccessRsp())
+            }.recover{
+              case e:Exception =>
+                log.debug(s"更新用户禁用信息失败：${e}")
+                complete(userForbiddenErrorRsp(s"更新用户禁用信息失败：${e}"))
+            }
           }
-        }
-      case Left(error) =>
-        log.debug(s"更新用户禁用信息失败：${error}")
-        complete(userForbiddenErrorRsp(s"更新用户禁用信息失败：${error}"))
+        case Left(error) =>
+          log.debug(s"更新用户禁用信息失败：${error}")
+          complete(userForbiddenErrorRsp(s"更新用户禁用信息失败：${error}"))
+      }
     }
+
 
   }
 
@@ -79,22 +82,24 @@ trait AdminService extends ServiceUtils{
 
   private def getGameStatisticErrorRsp(msg:String) = ErrorRsp(100035,msg)
   private val getGameStatistic = (path("getGameStatistic") & post){
-    entity(as[Either[Error,GameStatisticProfile]]){
-      case Right(req) =>
-        dealFutureResult{
-          AdminDAO.getGameStatisticList().map{ls =>
-            complete(GameStatisticProfileRsp(
-              ls.map{r => GameBattleInfo(r.recordId,r.timestamp,List(SimpleScore(r.nameA,r.damageStatisticA),SimpleScore(r.nameB,r.damageStatisticB)))}
-                .toList))
-          }.recover{
-            case e:Exception =>
-              log.debug(s"获取游戏战绩数据失败:$e")
-              complete(getGameStatisticErrorRsp(s"获取游戏战绩数据失败:$e"))
+    authUser{u =>
+      entity(as[Either[Error,GameStatisticProfile]]){
+        case Right(req) =>
+          dealFutureResult{
+            for{
+              ls <- AdminDAO.getGameStatisticList(req.page,req.pageNum)
+              n <- AdminDAO.getGameStatisticLength()
+            }yield {
+              complete(GameStatisticProfileRsp(
+                ls.map{r => GameBattleInfo(r.recordId,r.timestamp,List(SimpleScore(r.nameA,r.damageStatisticA),SimpleScore(r.nameB,r.damageStatisticB)))}
+                  .toList,Some(n)))
+            }
           }
-        }
-      case Left(error) =>
-        log.debug(s"获取游戏战绩数据失败:$error")
-        complete(getGameStatisticErrorRsp(s"获取游戏战绩数据失败:$error"))
+        case Left(error) =>
+          log.debug(s"获取游戏战绩数据失败:$error")
+          complete(getGameStatisticErrorRsp(s"获取游戏战绩数据失败:$error"))
+      }
+
     }
   }
 

@@ -85,12 +85,19 @@ trait InfoDrawUtil {this:GameContainerClientImpl =>
     middleCanvas.setGlobalAlpha(1)
   }
   def drawCombatGains():Unit = {
-    clearScreen("#BEBEBE",1, canvasSize.x, canvasSize.y, ctx)
+    clearScreen("#548B54",1, canvasSize.x, canvasSize.y, ctx)
     ctx.setFont("Arial", "normal", 4 * canvasUnit)
     ctx.setGlobalAlpha(1)
     ctx.setTextAlign("left")
     ctx.setFill("rgb(0,0,0)")
-    ctx.fillText(s"${ranks}",0.4 * canvasSize.x * canvasUnit, 0.12 * canvasSize.y * canvasUnit)
+    var index = 0
+    racketMap.foreach{score =>
+      ctx.fillText(s"${score._2.name}:${score._2.damageStatistics}",canvasSize.x / 2 * canvasUnit,  (canvasSize.y / 2 + index)* canvasUnit)
+      index += 6
+    }
+    ctx.fillText(s"vs",canvasSize.x / 2 * canvasUnit,  (canvasSize.y / 2 + (index - 3))* canvasUnit)
+
+    //    ctx.fillText(s"",0.4 * canvasSize.x * canvasUnit, 0.12 * canvasSize.y * canvasUnit)
 //    ctx.fillText(s"Damage：", 0.4 * canvasSize.x * canvasUnit, 0.2 * canvasSize.y * canvasUnit)
 //    ctx.fillText(s"Killer：",0.4 * canvasSize.x * canvasUnit, 0.26 * canvasSize.y * canvasUnit)
 //    ctx.fillText(s"Press Enter To Comeback!!!",0.4 * canvasSize.x * canvasUnit, 0.32 * canvasSize.y * canvasUnit)

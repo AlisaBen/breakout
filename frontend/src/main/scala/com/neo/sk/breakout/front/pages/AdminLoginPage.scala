@@ -11,7 +11,7 @@ import com.neo.sk.breakout.front.common.Routes._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.Elem
-
+import com.neo.sk.breakout.front.pages.MainPage.gotoPage
 /**
   * Created by wmy
   * Date on 2018/12/12
@@ -31,11 +31,12 @@ object AdminLoginPage extends Page {
     Http.postJsonAndParse[SuccessRsp](AccountRoute.adminLoginRoute,data).map{rsp =>
       if(rsp.errCode == 0){
 //        LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
-        dom.window.location.hash = s"#/main/user"
+//        dom.window.location.hash = s"#/main/user"
+        gotoPage("#/userManager")
       }
       else{
         showWarning := true
-        dom.window.location.hash = s"#/login"
+//        dom.window.location.hash = s"#/login"
       }
     }
   }
@@ -48,11 +49,12 @@ object AdminLoginPage extends Page {
       Http.postJsonAndParse[SuccessRsp](AccountRoute.adminLoginRoute,data).map{rsp =>
         if(rsp.errCode == 0){
 //          LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(name))
-          dom.window.location.hash = s"#/main/user"
+//          dom.window.location.hash = s"#/main/user"
+          gotoPage("#/userManager")
         }
         else{
           showWarning := true
-          dom.window.location.hash = s"#/login"
+//          dom.window.location.hash = s"#/login"
         }
       }
     }
@@ -72,7 +74,6 @@ object AdminLoginPage extends Page {
 
       </div>
       <div class="loginBg" onkeydown = {e:KeyboardEvent => keyDownEnter(e)}>
-        <div class="peitu" style="vertical-align: top;"><img src="/evoke/static/img/配图.png" width="500px" height="400px"></img></div>
         <div class="loginForm">
           <p id="loginTip">请登录</p>
           <p id="loginWar" style={displayOfP}>您输入的账户名或密码有误<button onclick={() => showWarning:=false}></button></p>
