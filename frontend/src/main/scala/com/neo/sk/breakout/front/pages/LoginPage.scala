@@ -47,8 +47,8 @@ object LoginPage extends Page{
     Http.postJsonAndParse[LoginRsp](AccountRoute.loginRoute,data).map{rsp =>
       if(rsp.errCode == 0){
         loginFormShow := false
-        LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uidOpt.get,name,true))
-        gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,name,true,None))
+        LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uidOpt.get,name,false))
+        gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,name,false,None))
         modal := gamePlayHolder.getStartGameModal()
         dom.document.getElementById("loginBg").asInstanceOf[Div].setAttribute("class","invisible")
       }
@@ -70,9 +70,9 @@ object LoginPage extends Page{
       Http.postJsonAndParse[LoginRsp](AccountRoute.loginRoute,data).map{rsp =>
         if(rsp.errCode == 0){
           loginFormShow := false
-          LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uidOpt.get,name,true))
+          LocalStorageUtil.storeUserInfo(AccountProtocol.NameStorage(rsp.uidOpt.get,name,false))
           println(s"收到uid=${rsp.uidOpt.get}")
-          gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,name,true,None))
+          gamePlayHolder = new GamePlayHolder("GameView",PlayerInfo(rsp.uidOpt.get,name,false,None))
           modal := gamePlayHolder.getStartGameModal()
           dom.document.getElementById("loginBg").asInstanceOf[Div].setAttribute("class","invisible")
 //          GameHall.playerName = name

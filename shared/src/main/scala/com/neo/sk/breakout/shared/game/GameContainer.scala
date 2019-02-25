@@ -320,10 +320,10 @@ trait GameContainer extends KillInformation{
 
   protected def handleGenerateObstacle(e:GenerateObstacle) :Unit = {
     val obstacle = Obstacle(config,e.obstacleState)
-    if (e.obstacleState.t == ObstacleType.brick || e.obstacleState.t == ObstacleType.fastRemove){
+//    if (e.obstacleState.t == ObstacleType.brick || e.obstacleState.t == ObstacleType.fastRemove){
       obstacleMap.put(obstacle.oId,obstacle)
       quadTree.insert(obstacle)
-    }
+//    }
 
   }
 

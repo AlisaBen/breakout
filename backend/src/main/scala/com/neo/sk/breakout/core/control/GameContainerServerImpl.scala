@@ -65,9 +65,9 @@ case class GameContainerServerImpl(
 
   private val racketId2UserActorMap = mutable.HashMap[Int,Long]()
 
-  def generateBrick(position:Point,racketId:Int,brickValue:Int,obstacleType:Int) = {
+  def generateBrick(position:Point,racketId:Int,brickValue:Int,obstacleType:Byte) = {
     val oId = obstacleIdGenerator.getAndIncrement()
-    val brick = new Brick(config,ObstacleState(racketId,oId,obstacleType.toByte,position,brickValue))
+    val brick = new Brick(config,ObstacleState(racketId,oId,obstacleType,position,brickValue))
       if(true) Some(brick) else None
   }
 
@@ -101,21 +101,22 @@ case class GameContainerServerImpl(
   def generateRacketAndBall(nameA:GameModelReq,nameB:GameModelReq,playerMap:mutable.HashMap[Long,ActorRef[UserActor.Command]]): Unit = {
     clearEventWhenUpdate()
     //fixme class上加nameA和nameB的信息 gameContainerOpt设置playerInfo
+    println(s"--name--${nameA}---${nameB}")
 
     def generateBricks4Racket(racketId:Int,playerInfo: GameModelReq) = {
       val width = (config.boundary.x - config.brickHorizontalNum * 2 * config.brickSpace - 2 * config.brickSpace) / config.brickHorizontalNum
       val fakeWidth = width + 2 * config.brickSpace
       val fakeHeight = config.brickHeight + 2 * config.brickSpace
-      val random = new Random()
       var fastMoveIndex = List[(Int,Int)]()
-      val fastMoveNum = random.nextInt(config.brickVerticalNum) + 1
+      val fastMoveNum = (new Random()).nextInt(config.brickVerticalNum) + 1
+      println(s"--visitor-${fastMoveNum}-${playerInfo.isVisitor}")
       if(!playerInfo.isVisitor){
         (0 to fastMoveNum).foreach{index =>
-          var randomXIndex = random.nextInt(config.brickHorizontalNum) + 1
-          var randomYIndex =random.nextInt(config.brickVerticalNum) + 1
+          var randomXIndex = (new Random()).nextInt(config.brickHorizontalNum) + 1
+          var randomYIndex =(new Random()).nextInt(config.brickVerticalNum) + 1
           if(fastMoveIndex.contains((randomXIndex,randomYIndex))){
-            randomXIndex = random.nextInt(config.brickHorizontalNum) + 1
-            randomYIndex =random.nextInt(config.brickVerticalNum) + 1
+            randomXIndex = (new Random()).nextInt(config.brickHorizontalNum) + 1
+            randomYIndex =(new Random()).nextInt(config.brickVerticalNum) + 1
           }else{
             fastMoveIndex = (randomXIndex,randomYIndex) :: fastMoveIndex
           }
@@ -129,10 +130,12 @@ case class GameContainerServerImpl(
           //        val fakeHeight = config.brickHeight + 2 * config.brickSpace
           val y = (verticalIndex - 1) * fakeHeight +  fakeHeight / 2 + config.getRankHeight
           val brickOpt = if(fastMoveIndex.contains((horizontalIndex,verticalIndex))){
-            generateBrick(Point(x,y.toFloat),racketId,config.brickValue,ObstacleType.fastRemove)
-          }else{
-            generateBrick(Point(x,y.toFloat),racketId,2 * config.brickValue,ObstacleType.brick)
-          }
+//          val brickOpt = if(!playerInfo.isVisitor){
+              generateBrick(Point(x,y.toFloat),racketId,config.brickValue,ObstacleType.fastRemove)
+            }else{
+              generateBrick(Point(x,y.toFloat),racketId,2 * config.brickValue,ObstacleType.brick)
+            }
+//          }
 //          val brickOpt= generateBrick(Point(x,y.toFloat),racketId)
           brickOpt match{
             case Some(brick) =>
@@ -147,8 +150,6 @@ case class GameContainerServerImpl(
       }
     }
     val racketAPosition = Point(config.boundary.x / 2,config.boundary.y - config.getRacketHeight / 2 - 5)
-//    racketAPosition - Point(0,config.getRacketHeight / 2 + config.getBallRadius)
-//    Point(config.boundary.x / 2,(config.boundary.y - config.getRacketHeight / 2 - 3 - config.getRacketHeight / 2 - config.getBallRadius).toFloat)
     val racketBPosition = Point(config.boundary.x / 2,config.boundary.y - config.getRacketHeight / 2 - 5)
     val racketAOpt = generateRacket(racketAPosition,nameA.uid,nameA.name)//自己
     val racketBOpt = generateRacket(racketBPosition,nameB.uid,nameB.name)//对方
@@ -194,7 +195,7 @@ case class GameContainerServerImpl(
             quadTree.insert(ball)
 //            playerMap(nameB) ! UserActor.JoinRoomSuccess(racketB,config.getGameConfigImpl(),roomActorRef)
           }
-        generateBricks4Racket(racketB.racketId,nameA)
+        generateBricks4Racket(racketB.racketId,nameB)
 
       }
       val state = getGameContainerAllState()
@@ -213,20 +214,20 @@ case class GameContainerServerImpl(
     roomManager !RoomManager.GameOver(roomId)
     roomManager ! GameBattleRecord(racketMap.values.map(t => Score(t.racketId,t.name,t.damageStatistics)).toList)
   }
-
-  override protected def handleObstacleCollision(e:ObstacleCollision) :Unit = {
-    super.handleObstacleCollision(e)
-    val obstacleState = ObstacleState(e.enemyRacketId,obstacleIdGenerator.getAndIncrement(),ObstacleType.brick,
-      Point(e.obstaclePosition.x,e.obstaclePosition.y - 2 * (e.obstaclePosition.y - config.boundary.y / 2)),0)
-    val event = BreakoutGameEvent.GenerateObstacle(systemFrame,obstacleState)
-
-    racketId2UserActorMap.get(obstacleState.racketId).foreach{a =>
-      dispatchTo(a,event)
-      log.debug(s"${roomActorRef.path}将新生成障碍物发送给userActor=${a}")
-    }
-    obstacleMap.put(obstacleState.oId,obstacleState)
-    quadTree.insert(obstacleState)
-  }
+//
+//  override protected def handleObstacleCollision(e:ObstacleCollision) :Unit = {
+//    super.handleObstacleCollision(e)
+//    val obstacleState = ObstacleState(e.enemyRacketId,obstacleIdGenerator.getAndIncrement(),ObstacleType.brick,
+//      Point(e.obstaclePosition.x,e.obstaclePosition.y - 2 * (e.obstaclePosition.y - config.boundary.y / 2)),0)
+//    val event = BreakoutGameEvent.GenerateObstacle(systemFrame,obstacleState)
+//
+//    racketId2UserActorMap.get(obstacleState.racketId).foreach{a =>
+//      dispatchTo(a,event)
+//      log.debug(s"${roomActorRef.path}将新生成障碍物发送给userActor=${a}")
+//    }
+//    obstacleMap.put(obstacleState.oId,obstacleState)
+//    quadTree.insert(obstacleState)
+//  }
 
   implicit def obstacleState2Impl(o:ObstacleState):Obstacle = new Brick(config,o)
 
